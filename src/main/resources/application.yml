@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: oye
+  profiles:
+    active: local
+  jpa:
+    open-in-view: false

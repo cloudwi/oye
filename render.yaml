@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: oye-api
+    runtime: docker
+    plan: free
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod

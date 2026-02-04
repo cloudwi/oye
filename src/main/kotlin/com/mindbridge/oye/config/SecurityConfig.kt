@@ -18,8 +18,10 @@ class SecurityConfig(
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+        val corsSource = corsConfigurationSource()
+
         http
-            .cors { it.configurationSource(corsConfigurationSource()) }
+            .cors { it.configurationSource(corsSource) }
             .csrf { it.disable() }
             .headers { headers ->
                 headers.frameOptions { it.sameOrigin() }

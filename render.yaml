@@ -13,3 +13,5 @@ services:
         sync: false
       - key: SPRING_PROFILES_ACTIVE
         value: prod
+      - key: PORT
+        value: "10000"

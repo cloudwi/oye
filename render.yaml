@@ -6,5 +6,9 @@ services:
     envVars:
       - key: OPENAI_API_KEY
         sync: false
+      - key: KAKAO_CLIENT_ID
+        sync: false
+      - key: KAKAO_CLIENT_SECRET
+        sync: false
       - key: SPRING_PROFILES_ACTIVE
         value: prod

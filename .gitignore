@@ -41,3 +41,6 @@ out/
 
 ### Local config ###
 application-local.yml
+.env
+.env.local
+*.env

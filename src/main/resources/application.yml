@@ -3,6 +3,9 @@ spring:
     name: oye
   profiles:
     active: local
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:placeholder}
   jpa:
     open-in-view: false
   security:

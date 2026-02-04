@@ -3,6 +3,7 @@ services:
     name: oye-api
     runtime: docker
     plan: free
+    healthCheckPath: /health
     envVars:
       - key: OPENAI_API_KEY
         sync: false

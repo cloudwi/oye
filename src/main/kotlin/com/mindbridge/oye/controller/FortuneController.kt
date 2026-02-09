@@ -19,22 +19,25 @@ class FortuneController(
 ) {
 
     @GetMapping("/today")
-    fun getTodayFortune(@AuthenticationPrincipal principal: OAuth2User?): FortuneResponse {
+    fun getTodayFortune(@AuthenticationPrincipal principal: Any?): FortuneResponse {
         val user = getCurrentUser(principal)
         val fortune = fortuneService.generateFortune(user)
         return FortuneResponse.from(fortune)
     }
 
     @GetMapping("/history")
-    fun getFortuneHistory(@AuthenticationPrincipal principal: OAuth2User?): List<FortuneResponse> {
+    fun getFortuneHistory(@AuthenticationPrincipal principal: Any?): List<FortuneResponse> {
         val user = getCurrentUser(principal)
         return fortuneService.getFortuneHistory(user).map { FortuneResponse.from(it) }
     }
 
-    private fun getCurrentUser(principal: OAuth2User?) =
-        principal?.let {
-            val userId = it.attributes["userId"] as? Long
+    private fun getCurrentUser(principal: Any?) = when (principal) {
+        is Long -> userRepository.findById(principal).orElseThrow { UserNotFoundException() }
+        is OAuth2User -> {
+            val userId = principal.attributes["userId"] as? Long
                 ?: throw UnauthorizedException("사용자 ID를 찾을 수 없습니다.")
             userRepository.findById(userId).orElseThrow { UserNotFoundException() }
-        } ?: throw UnauthorizedException()
+        }
+        else -> throw UnauthorizedException()
+    }
 }

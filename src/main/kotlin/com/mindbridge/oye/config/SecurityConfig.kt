@@ -3,6 +3,7 @@ package com.mindbridge.oye.config
 import com.mindbridge.oye.service.OAuth2UserService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -20,6 +21,7 @@ class SecurityConfig(
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
+            .cors { }
             .csrf { it.disable() }
             .headers { headers ->
                 headers.frameOptions { it.sameOrigin() }
@@ -29,6 +31,7 @@ class SecurityConfig(
             }
             .authorizeHttpRequests { auth ->
                 auth
+                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .requestMatchers("/health").permitAll()
                     .requestMatchers("/h2-console/**").permitAll()
                     .requestMatchers("/login/**", "/oauth2/**").permitAll()

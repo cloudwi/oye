@@ -12,7 +12,8 @@ class WebConfig : WebMvcConfigurer {
             .allowedOriginPatterns(
                 "https://*.yegam.today",
                 "https://yegam.today",
-                "http://localhost:[*]"
+                "http://localhost:[*]",
+                "http://192.168.[*].[*]:[*]"
             )
             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
             .allowedHeaders("*")

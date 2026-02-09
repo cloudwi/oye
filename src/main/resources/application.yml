@@ -10,7 +10,11 @@ spring:
     active: local
   ai:
     openai:
-      api-key: ${OPENAI_API_KEY:placeholder}
+      api-key: ${GEMINI_API_KEY:placeholder}
+      base-url: https://generativelanguage.googleapis.com/v1beta/openai
+      chat:
+        options:
+          model: gemini-2.5-flash-lite
   jpa:
     open-in-view: false
   security:

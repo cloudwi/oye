@@ -22,7 +22,7 @@ class UserController(
 ) {
 
     @GetMapping("/me")
-    fun getMe(@AuthenticationPrincipal principal: OAuth2User?): UserResponse {
+    fun getMe(@AuthenticationPrincipal principal: Any?): UserResponse {
         val user = getCurrentUser(principal)
         return UserResponse.from(user)
     }
@@ -30,7 +30,7 @@ class UserController(
     @PutMapping("/me")
     @Transactional
     fun updateMe(
-        @AuthenticationPrincipal principal: OAuth2User?,
+        @AuthenticationPrincipal principal: Any?,
         @Valid @RequestBody request: UserUpdateRequest
     ): UserResponse {
         val user = getCurrentUser(principal)
@@ -39,10 +39,13 @@ class UserController(
         return UserResponse.from(userRepository.save(user))
     }
 
-    private fun getCurrentUser(principal: OAuth2User?) =
-        principal?.let {
-            val userId = it.attributes["userId"] as? Long
+    private fun getCurrentUser(principal: Any?) = when (principal) {
+        is Long -> userRepository.findById(principal).orElseThrow { UserNotFoundException() }
+        is OAuth2User -> {
+            val userId = principal.attributes["userId"] as? Long
                 ?: throw UnauthorizedException("사용자 ID를 찾을 수 없습니다.")
             userRepository.findById(userId).orElseThrow { UserNotFoundException() }
-        } ?: throw UnauthorizedException()
+        }
+        else -> throw UnauthorizedException()
+    }
 }

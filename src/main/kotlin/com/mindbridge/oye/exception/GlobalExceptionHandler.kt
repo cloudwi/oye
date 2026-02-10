@@ -29,7 +29,7 @@ class GlobalExceptionHandler {
     fun handleFortuneGenerationException(e: FortuneGenerationException): ResponseEntity<ErrorResponse> {
         return ResponseEntity
             .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(ErrorResponse(e.message ?: "운세 생성에 실패했습니다.", "FORTUNE_GENERATION_FAILED"))
+            .body(ErrorResponse(e.message ?: "예감 생성에 실패했습니다.", "FORTUNE_GENERATION_FAILED"))
     }
 
     @ExceptionHandler(UnauthorizedException::class)

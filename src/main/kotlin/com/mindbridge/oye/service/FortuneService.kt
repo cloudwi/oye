@@ -42,12 +42,12 @@ class FortuneService(
         }
 
         val prompt = """
-            당신은 하루의 분위기를 전해주는 운세 작가입니다.
+            당신은 하루의 분위기를 전해주는 예감 작가입니다.
 
             사용자: ${user.name} (${genderText}, ${user.birthDate}생, ${calendarText})
             오늘: ${LocalDate.now()}
 
-            짧고 임팩트 있는 한 문장 운세를 작성하세요.
+            짧고 임팩트 있는 한 문장 예감을 작성하세요.
 
             규칙:
             - 반드시 한 문장, 40자 이내
@@ -79,11 +79,11 @@ class FortuneService(
         val response = try {
             chatClient.prompt(prompt).call().content()
         } catch (e: Exception) {
-            throw FortuneGenerationException("AI 운세 생성 중 오류가 발생했습니다: ${e.message}")
+            throw FortuneGenerationException("AI 예감 생성 중 오류가 발생했습니다: ${e.message}")
         }
 
         if (response.isNullOrBlank()) {
-            throw FortuneGenerationException("운세 내용이 비어있습니다.")
+            throw FortuneGenerationException("예감 내용이 비어있습니다.")
         }
 
         val fortune = Fortune(

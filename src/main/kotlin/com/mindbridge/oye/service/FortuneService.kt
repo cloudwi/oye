@@ -1,6 +1,8 @@
 package com.mindbridge.oye.service
 
+import com.mindbridge.oye.domain.CalendarType
 import com.mindbridge.oye.domain.Fortune
+import com.mindbridge.oye.domain.Gender
 import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.exception.FortuneGenerationException
 import com.mindbridge.oye.repository.FortuneRepository
@@ -28,11 +30,22 @@ class FortuneService(
             return existingFortune
         }
 
+        val genderText = when (user.gender) {
+            Gender.MALE -> "남성"
+            Gender.FEMALE -> "여성"
+            null -> "미지정"
+        }
+        val calendarText = when (user.calendarType) {
+            CalendarType.SOLAR -> "양력"
+            CalendarType.LUNAR -> "음력"
+            null -> "양력"
+        }
+
         val prompt = """
             당신은 오늘 일어날 일을 예언하는 운세 작가입니다.
             조언이나 훈계가 아니라, 오늘 일어날 일을 알려주는 톤으로 작성하세요.
 
-            사용자: ${user.name} (${user.birthDate}생)
+            사용자: ${user.name} (${genderText}, ${user.birthDate}생, ${calendarText})
             오늘: ${LocalDate.now()}
 
             짧고 임팩트 있는 한 문장 운세를 작성하세요.

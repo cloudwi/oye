@@ -1,5 +1,6 @@
 package com.mindbridge.oye.controller
 
+import com.mindbridge.oye.controller.api.UserApi
 import com.mindbridge.oye.dto.UserResponse
 import com.mindbridge.oye.dto.UserUpdateRequest
 import com.mindbridge.oye.exception.UnauthorizedException
@@ -19,23 +20,25 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/users")
 class UserController(
     private val userRepository: UserRepository
-) {
+) : UserApi {
 
     @GetMapping("/me")
-    fun getMe(@AuthenticationPrincipal principal: Any?): UserResponse {
+    override fun getMe(@AuthenticationPrincipal principal: Any?): UserResponse {
         val user = getCurrentUser(principal)
         return UserResponse.from(user)
     }
 
     @PutMapping("/me")
     @Transactional
-    fun updateMe(
+    override fun updateMe(
         @AuthenticationPrincipal principal: Any?,
         @Valid @RequestBody request: UserUpdateRequest
     ): UserResponse {
         val user = getCurrentUser(principal)
         user.name = request.name
         user.birthDate = request.birthDate
+        request.gender?.let { user.gender = it }
+        request.calendarType?.let { user.calendarType = it }
         return UserResponse.from(userRepository.save(user))
     }
 

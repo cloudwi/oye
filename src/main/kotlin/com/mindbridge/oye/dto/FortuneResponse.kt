@@ -1,13 +1,22 @@
 package com.mindbridge.oye.dto
 
 import com.mindbridge.oye.domain.Fortune
+import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+@Schema(description = "운세 응답")
 data class FortuneResponse(
+    @Schema(description = "운세 고유 ID", example = "1")
     val id: Long,
+
+    @Schema(description = "AI가 생성한 운세 본문", example = "오후에 반가운 연락이 온다.")
     val content: String,
+
+    @Schema(description = "운세 대상 날짜 (YYYY-MM-DD)", example = "2025-06-15")
     val date: LocalDate,
+
+    @Schema(description = "운세 생성일시", example = "2025-06-15T08:00:00")
     val createdAt: LocalDateTime
 ) {
     companion object {

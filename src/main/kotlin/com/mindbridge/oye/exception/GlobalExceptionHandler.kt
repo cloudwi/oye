@@ -1,13 +1,17 @@
 package com.mindbridge.oye.exception
 
+import io.swagger.v3.oas.annotations.media.Schema
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
+@Schema(description = "에러 응답")
 data class ErrorResponse(
+    @Schema(description = "에러 메시지", example = "사용자를 찾을 수 없습니다.")
     val message: String,
+    @Schema(description = "에러 코드", example = "USER_NOT_FOUND")
     val code: String
 )
 

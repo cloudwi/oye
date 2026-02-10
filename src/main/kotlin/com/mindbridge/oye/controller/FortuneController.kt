@@ -1,5 +1,6 @@
 package com.mindbridge.oye.controller
 
+import com.mindbridge.oye.controller.api.FortuneApi
 import com.mindbridge.oye.dto.FortuneResponse
 import com.mindbridge.oye.exception.UnauthorizedException
 import com.mindbridge.oye.exception.UserNotFoundException
@@ -16,17 +17,17 @@ import org.springframework.web.bind.annotation.RestController
 class FortuneController(
     private val fortuneService: FortuneService,
     private val userRepository: UserRepository
-) {
+) : FortuneApi {
 
     @GetMapping("/today")
-    fun getTodayFortune(@AuthenticationPrincipal principal: Any?): FortuneResponse {
+    override fun getTodayFortune(@AuthenticationPrincipal principal: Any?): FortuneResponse {
         val user = getCurrentUser(principal)
         val fortune = fortuneService.generateFortune(user)
         return FortuneResponse.from(fortune)
     }
 
     @GetMapping("/history")
-    fun getFortuneHistory(@AuthenticationPrincipal principal: Any?): List<FortuneResponse> {
+    override fun getFortuneHistory(@AuthenticationPrincipal principal: Any?): List<FortuneResponse> {
         val user = getCurrentUser(principal)
         return fortuneService.getFortuneHistory(user).map { FortuneResponse.from(it) }
     }

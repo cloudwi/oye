@@ -1,5 +1,6 @@
 package com.mindbridge.oye.service
 
+import com.mindbridge.oye.domain.CalendarType
 import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.repository.UserRepository
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService
@@ -40,7 +41,8 @@ class OAuth2UserService(
         val user = User(
             kakaoId = kakaoId,
             name = nickname,
-            birthDate = LocalDate.of(2000, 1, 1)
+            birthDate = LocalDate.of(2000, 1, 1),
+            calendarType = CalendarType.SOLAR
         )
         return userRepository.save(user)
     }

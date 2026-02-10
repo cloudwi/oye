@@ -20,7 +20,7 @@ class OAuth2UserService(
         val oAuth2User = super.loadUser(userRequest)
         val kakaoId = oAuth2User.name
 
-        val user = userRepository.findByKakaoId(kakaoId)
+        val user = userRepository.findFirstByKakaoId(kakaoId)
             ?: createUser(kakaoId, oAuth2User)
 
         val attributes = oAuth2User.attributes.toMutableMap()

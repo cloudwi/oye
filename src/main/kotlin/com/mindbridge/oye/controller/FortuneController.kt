@@ -1,7 +1,9 @@
 package com.mindbridge.oye.controller
 
 import com.mindbridge.oye.controller.api.FortuneApi
+import com.mindbridge.oye.dto.ApiResponse
 import com.mindbridge.oye.dto.FortuneResponse
+import com.mindbridge.oye.dto.PageResponse
 import com.mindbridge.oye.exception.UnauthorizedException
 import com.mindbridge.oye.exception.UserNotFoundException
 import com.mindbridge.oye.repository.UserRepository
@@ -10,6 +12,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -27,9 +30,14 @@ class FortuneController(
     }
 
     @GetMapping("/history")
-    override fun getFortuneHistory(@AuthenticationPrincipal principal: Any?): List<FortuneResponse> {
+    override fun getFortuneHistory(
+        @AuthenticationPrincipal principal: Any?,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int
+    ): ApiResponse<PageResponse<FortuneResponse>> {
         val user = getCurrentUser(principal)
-        return fortuneService.getFortuneHistory(user).map { FortuneResponse.from(it) }
+        val pageResponse = fortuneService.getFortuneHistory(user, page, size)
+        return ApiResponse.success(pageResponse)
     }
 
     private fun getCurrentUser(principal: Any?) = when (principal) {

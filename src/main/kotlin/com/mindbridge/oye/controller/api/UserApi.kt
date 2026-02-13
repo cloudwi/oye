@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 
-@Tag(name = "사용자", description = "사용자 정보 조회 및 수정 API")
+@Tag(name = "사용자", description = "사용자 정보 조회, 수정, 삭제 API")
 interface UserApi {
 
     @Operation(
@@ -67,4 +67,29 @@ interface UserApi {
         )
     )
     fun updateMe(principal: Any?, request: UserUpdateRequest): UserResponse
+
+    @Operation(
+        summary = "계정 삭제",
+        description = """현재 로그인한 사용자의 계정을 삭제합니다.
+
+- 사용자 정보와 관련된 모든 예감 데이터가 함께 삭제됩니다.
+- 이 작업은 되돌릴 수 없습니다."""
+    )
+    @ApiResponses(
+        ApiResponse(
+            responseCode = "204",
+            description = "계정 삭제 성공"
+        ),
+        ApiResponse(
+            responseCode = "401",
+            description = "인증 실패",
+            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
+        ),
+        ApiResponse(
+            responseCode = "404",
+            description = "사용자를 찾을 수 없음",
+            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
+        )
+    )
+    fun deleteMe(principal: Any?)
 }

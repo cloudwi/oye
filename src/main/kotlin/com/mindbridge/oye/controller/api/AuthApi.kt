@@ -1,5 +1,6 @@
 package com.mindbridge.oye.controller.api
 
+import com.mindbridge.oye.controller.AppleLoginRequest
 import com.mindbridge.oye.controller.RefreshTokenRequest
 import com.mindbridge.oye.controller.TokenResponse
 import com.mindbridge.oye.exception.ErrorResponse
@@ -13,7 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.web.servlet.view.RedirectView
 
-@Tag(name = "인증", description = "카카오 OAuth2 로그인 및 JWT 토큰 관리 API")
+@Tag(name = "인증", description = "OAuth2 로그인 및 JWT 토큰 관리 API")
 interface AuthApi {
 
     @Operation(
@@ -54,4 +55,27 @@ interface AuthApi {
         )
     )
     fun refresh(request: RefreshTokenRequest): TokenResponse
+
+    @Operation(
+        summary = "Apple 로그인",
+        description = """Apple Sign In으로 로그인합니다.
+
+- iOS 네이티브에서 받은 identityToken(JWT)을 전송합니다.
+- 서버에서 Apple 공개키로 토큰을 검증한 후 JWT를 발급합니다.
+- 최초 로그인 시 사용자가 자동 생성됩니다.
+- fullName은 Apple이 최초 로그인 시에만 제공합니다."""
+    )
+    @ApiResponses(
+        ApiResponse(
+            responseCode = "200",
+            description = "로그인 성공",
+            content = [Content(schema = Schema(implementation = TokenResponse::class))]
+        ),
+        ApiResponse(
+            responseCode = "401",
+            description = "유효하지 않은 Apple 토큰",
+            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
+        )
+    )
+    fun loginApple(request: AppleLoginRequest): TokenResponse
 }

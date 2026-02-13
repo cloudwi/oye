@@ -12,6 +12,7 @@ class WebConfig : WebMvcConfigurer {
             .allowedOriginPatterns(
                 "https://*.yegam.today",
                 "https://yegam.today",
+                "https://*.vercel.app",
                 "http://localhost:[*]",
                 "http://192.168.[*].[*]:[*]"
             )

@@ -21,9 +21,13 @@ class User(
     @Comment("사용자 고유 ID")
     val id: Long? = null,
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = true)
     @Comment("카카오 OAuth2 고유 ID")
-    val kakaoId: String,
+    val kakaoId: String? = null,
+
+    @Column(unique = true, nullable = true)
+    @Comment("Apple Sign In 고유 ID")
+    val appleId: String? = null,
 
     @Column(nullable = false)
     @Comment("사용자 이름 (카카오 닉네임)")

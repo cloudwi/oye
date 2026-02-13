@@ -1,6 +1,7 @@
 package com.mindbridge.oye.exception
 
 import io.swagger.v3.oas.annotations.media.Schema
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException
@@ -17,6 +18,8 @@ data class ErrorResponse(
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
+
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @ExceptionHandler(UserNotFoundException::class)
     fun handleUserNotFoundException(e: UserNotFoundException): ResponseEntity<ErrorResponse> {
@@ -48,8 +51,16 @@ class GlobalExceptionHandler {
             .body(ErrorResponse(message, "VALIDATION_ERROR"))
     }
 
+    @ExceptionHandler(IllegalArgumentException::class)
+    fun handleIllegalArgumentException(e: IllegalArgumentException): ResponseEntity<ErrorResponse> {
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(ErrorResponse(e.message ?: "잘못된 요청입니다.", "BAD_REQUEST"))
+    }
+
     @ExceptionHandler(Exception::class)
     fun handleException(e: Exception): ResponseEntity<ErrorResponse> {
+        log.error("처리되지 않은 예외 발생", e)
         return ResponseEntity
             .status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(ErrorResponse("서버 오류가 발생했습니다.", "INTERNAL_SERVER_ERROR"))

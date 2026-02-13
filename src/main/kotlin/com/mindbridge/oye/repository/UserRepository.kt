@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface UserRepository : JpaRepository<User, Long> {
     fun findFirstByKakaoId(kakaoId: String): User?
+    fun findFirstByAppleId(appleId: String): User?
 }

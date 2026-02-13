@@ -31,8 +31,8 @@ data class UserResponse(
     @Schema(description = "사용자 고유 ID", example = "1")
     val id: Long,
 
-    @Schema(description = "카카오 OAuth2 고유 ID", example = "1234567890")
-    val kakaoId: String,
+    @Schema(description = "카카오 OAuth2 고유 ID", example = "1234567890", nullable = true)
+    val kakaoId: String?,
 
     @Schema(description = "사용자 이름", example = "홍길동")
     val name: String,

@@ -6,20 +6,25 @@ import com.mindbridge.oye.dto.UserUpdateRequest
 import com.mindbridge.oye.exception.UnauthorizedException
 import com.mindbridge.oye.exception.UserNotFoundException
 import com.mindbridge.oye.repository.UserRepository
+import com.mindbridge.oye.service.UserService
 import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/users")
 class UserController(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val userService: UserService
 ) : UserApi {
 
     @GetMapping("/me")
@@ -40,6 +45,13 @@ class UserController(
         request.gender?.let { user.gender = it }
         request.calendarType?.let { user.calendarType = it }
         return UserResponse.from(userRepository.save(user))
+    }
+
+    @DeleteMapping("/me")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    override fun deleteMe(@AuthenticationPrincipal principal: Any?) {
+        val user = getCurrentUser(principal)
+        userService.deleteUser(user)
     }
 
     private fun getCurrentUser(principal: Any?) = when (principal) {

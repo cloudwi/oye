@@ -5,8 +5,11 @@ import com.mindbridge.oye.domain.Fortune
 import com.mindbridge.oye.domain.Gender
 import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.exception.FortuneGenerationException
+import com.mindbridge.oye.dto.FortuneResponse
+import com.mindbridge.oye.dto.PageResponse
 import com.mindbridge.oye.repository.FortuneRepository
 import org.springframework.ai.chat.client.ChatClient
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -100,5 +103,18 @@ class FortuneService(
     @Transactional(readOnly = true)
     fun getFortuneHistory(user: User): List<Fortune> {
         return fortuneRepository.findByUserOrderByDateDesc(user)
+    }
+
+    @Transactional(readOnly = true)
+    fun getFortuneHistory(user: User, page: Int, size: Int): PageResponse<FortuneResponse> {
+        val pageable = PageRequest.of(page, size)
+        val fortunePage = fortuneRepository.findByUserOrderByDateDesc(user, pageable)
+        return PageResponse(
+            content = fortunePage.content.map { FortuneResponse.from(it) },
+            page = fortunePage.number,
+            size = fortunePage.size,
+            totalElements = fortunePage.totalElements,
+            totalPages = fortunePage.totalPages
+        )
     }
 }

@@ -1,9 +1,14 @@
 package com.mindbridge.oye.controller
 
+import com.mindbridge.oye.config.AppleTokenVerifier
 import com.mindbridge.oye.config.JwtTokenProvider
 import com.mindbridge.oye.controller.api.AuthApi
+import com.mindbridge.oye.domain.CalendarType
+import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.exception.UnauthorizedException
+import com.mindbridge.oye.repository.UserRepository
 import io.swagger.v3.oas.annotations.media.Schema
+import org.slf4j.LoggerFactory
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -12,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.view.RedirectView
+import java.time.LocalDate
 
 @Schema(description = "토큰 갱신 요청")
 data class RefreshTokenRequest(
@@ -27,11 +33,23 @@ data class TokenResponse(
     val refreshToken: String
 )
 
+@Schema(description = "Apple 로그인 요청")
+data class AppleLoginRequest(
+    @Schema(description = "Apple identityToken (JWT)", requiredMode = Schema.RequiredMode.REQUIRED)
+    val identityToken: String,
+    @Schema(description = "사용자 이름 (최초 로그인 시에만 제공)", nullable = true)
+    val fullName: String? = null
+)
+
 @RestController
 @RequestMapping("/api/auth")
 class AuthController(
-    private val jwtTokenProvider: JwtTokenProvider
+    private val jwtTokenProvider: JwtTokenProvider,
+    private val appleTokenVerifier: AppleTokenVerifier,
+    private val userRepository: UserRepository
 ) : AuthApi {
+
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @GetMapping("/login/kakao")
     override fun loginKakao(
@@ -60,6 +78,34 @@ class AuthController(
         return TokenResponse(
             accessToken = newAccessToken,
             refreshToken = newRefreshToken
+        )
+    }
+
+    @PostMapping("/login/apple")
+    override fun loginApple(@RequestBody request: AppleLoginRequest): TokenResponse {
+        val appleUserId = try {
+            appleTokenVerifier.verify(request.identityToken)
+        } catch (e: Exception) {
+            log.error("Apple 토큰 검증 실패", e)
+            throw UnauthorizedException("유효하지 않은 Apple 토큰입니다.")
+        }
+
+        val user = userRepository.findFirstByAppleId(appleUserId)
+            ?: userRepository.save(
+                User(
+                    appleId = appleUserId,
+                    name = request.fullName ?: "사용자",
+                    birthDate = LocalDate.of(2000, 1, 1),
+                    calendarType = CalendarType.SOLAR
+                )
+            )
+
+        val accessToken = jwtTokenProvider.generateAccessToken(user.id!!)
+        val refreshToken = jwtTokenProvider.generateRefreshToken(user.id!!)
+
+        return TokenResponse(
+            accessToken = accessToken,
+            refreshToken = refreshToken
         )
     }
 }

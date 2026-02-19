@@ -8,12 +8,16 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
+import jakarta.persistence.UniqueConstraint
 import org.hibernate.annotations.Comment
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "fortunes")
+@Table(
+    name = "fortunes",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "date"])]
+)
 @Comment("AI 생성 예감")
 class Fortune(
     @Id

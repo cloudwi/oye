@@ -2,6 +2,7 @@ package com.mindbridge.oye.dto
 
 import com.mindbridge.oye.domain.CalendarType
 import com.mindbridge.oye.domain.Gender
+import com.mindbridge.oye.domain.SocialProvider
 import com.mindbridge.oye.domain.User
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotBlank
@@ -31,8 +32,8 @@ data class UserResponse(
     @Schema(description = "사용자 고유 ID", example = "1")
     val id: Long,
 
-    @Schema(description = "카카오 OAuth2 고유 ID", example = "1234567890", nullable = true)
-    val kakaoId: String?,
+    @Schema(description = "소셜 로그인 제공자 (KAKAO, APPLE)", example = "KAKAO", nullable = true)
+    val provider: SocialProvider?,
 
     @Schema(description = "사용자 이름", example = "홍길동")
     val name: String,
@@ -50,10 +51,10 @@ data class UserResponse(
     val createdAt: LocalDateTime
 ) {
     companion object {
-        fun from(user: User): UserResponse {
+        fun from(user: User, provider: SocialProvider? = null): UserResponse {
             return UserResponse(
                 id = user.id!!,
-                kakaoId = user.kakaoId,
+                provider = provider,
                 name = user.name,
                 birthDate = user.birthDate,
                 gender = user.gender,

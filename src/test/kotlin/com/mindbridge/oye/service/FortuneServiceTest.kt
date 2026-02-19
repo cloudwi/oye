@@ -43,7 +43,6 @@ class FortuneServiceTest {
 
     private val testUser = User(
         id = 1L,
-        kakaoId = "kakao123",
         name = "테스트유저",
         birthDate = LocalDate.of(1990, 1, 15),
         gender = Gender.MALE,

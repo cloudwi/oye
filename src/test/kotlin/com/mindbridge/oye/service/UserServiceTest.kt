@@ -4,6 +4,7 @@ import com.mindbridge.oye.domain.CalendarType
 import com.mindbridge.oye.domain.Gender
 import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.repository.FortuneRepository
+import com.mindbridge.oye.repository.SocialAccountRepository
 import com.mindbridge.oye.repository.UserRepository
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -23,12 +24,14 @@ class UserServiceTest {
     @Mock
     private lateinit var fortuneRepository: FortuneRepository
 
+    @Mock
+    private lateinit var socialAccountRepository: SocialAccountRepository
+
     @InjectMocks
     private lateinit var userService: UserService
 
     private val testUser = User(
         id = 1L,
-        kakaoId = "kakao123",
         name = "테스트유저",
         birthDate = LocalDate.of(1990, 1, 15),
         gender = Gender.MALE,
@@ -36,11 +39,12 @@ class UserServiceTest {
     )
 
     @Test
-    fun `deleteUser - deletes fortunes before deleting user`() {
+    fun `deleteUser - deletes fortunes and social accounts before deleting user`() {
         userService.deleteUser(testUser)
 
-        val inOrder: InOrder = inOrder(fortuneRepository, userRepository)
+        val inOrder: InOrder = inOrder(fortuneRepository, socialAccountRepository, userRepository)
         inOrder.verify(fortuneRepository).deleteAllByUser(testUser)
+        inOrder.verify(socialAccountRepository).deleteAllByUser(testUser)
         inOrder.verify(userRepository).delete(testUser)
     }
 }

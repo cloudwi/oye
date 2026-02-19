@@ -1,7 +1,10 @@
 package com.mindbridge.oye.service
 
 import com.mindbridge.oye.domain.CalendarType
+import com.mindbridge.oye.domain.SocialAccount
+import com.mindbridge.oye.domain.SocialProvider
 import com.mindbridge.oye.domain.User
+import com.mindbridge.oye.repository.SocialAccountRepository
 import com.mindbridge.oye.repository.UserRepository
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest
@@ -13,7 +16,8 @@ import java.time.LocalDate
 
 @Service
 class OAuth2UserService(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val socialAccountRepository: SocialAccountRepository
 ) : DefaultOAuth2UserService() {
 
     @Transactional
@@ -21,8 +25,8 @@ class OAuth2UserService(
         val oAuth2User = super.loadUser(userRequest)
         val kakaoId = oAuth2User.name
 
-        val user = userRepository.findFirstByKakaoId(kakaoId)
-            ?: createUser(kakaoId, oAuth2User)
+        val socialAccount = socialAccountRepository.findByProviderAndProviderId(SocialProvider.KAKAO, kakaoId)
+        val user = socialAccount?.user ?: createUser(kakaoId, oAuth2User)
 
         val attributes = oAuth2User.attributes.toMutableMap()
         attributes["userId"] = user.id
@@ -38,12 +42,22 @@ class OAuth2UserService(
         val properties = oAuth2User.attributes["properties"] as? Map<*, *>
         val nickname = properties?.get("nickname") as? String ?: "사용자"
 
-        val user = User(
-            kakaoId = kakaoId,
-            name = nickname,
-            birthDate = LocalDate.of(2000, 1, 1),
-            calendarType = CalendarType.SOLAR
+        val user = userRepository.save(
+            User(
+                name = nickname,
+                birthDate = LocalDate.of(2000, 1, 1),
+                calendarType = CalendarType.SOLAR
+            )
         )
-        return userRepository.save(user)
+
+        socialAccountRepository.save(
+            SocialAccount(
+                user = user,
+                provider = SocialProvider.KAKAO,
+                providerId = kakaoId
+            )
+        )
+
+        return user
     }
 }

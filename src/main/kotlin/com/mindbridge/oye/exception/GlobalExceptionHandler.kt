@@ -69,6 +69,20 @@ class GlobalExceptionHandler {
             .body(ErrorResponse(e.message ?: "요청이 너무 많습니다.", "TOO_MANY_REQUESTS"))
     }
 
+    @ExceptionHandler(InquiryNotFoundException::class)
+    fun handleInquiryNotFoundException(e: InquiryNotFoundException): ResponseEntity<ErrorResponse> {
+        return ResponseEntity
+            .status(HttpStatus.NOT_FOUND)
+            .body(ErrorResponse(e.message ?: "문의를 찾을 수 없습니다.", "INQUIRY_NOT_FOUND"))
+    }
+
+    @ExceptionHandler(ForbiddenException::class)
+    fun handleForbiddenException(e: ForbiddenException): ResponseEntity<ErrorResponse> {
+        return ResponseEntity
+            .status(HttpStatus.FORBIDDEN)
+            .body(ErrorResponse(e.message ?: "권한이 없습니다.", "FORBIDDEN"))
+    }
+
     @ExceptionHandler(DataIntegrityViolationException::class)
     fun handleDataIntegrityViolationException(e: DataIntegrityViolationException): ResponseEntity<ErrorResponse> {
         log.warn("데이터 무결성 위반: {}", e.message)

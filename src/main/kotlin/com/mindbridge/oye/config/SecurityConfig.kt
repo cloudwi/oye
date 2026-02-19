@@ -48,6 +48,8 @@ class SecurityConfig(
                 auth
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .requestMatchers("/health").permitAll()
+                    .requestMatchers("/actuator/health").permitAll()
+                    .requestMatchers("/actuator/**").denyAll()
                     .requestMatchers("/h2-console/**").permitAll()
                     .requestMatchers("/login/**", "/oauth2/**").permitAll()
                     .requestMatchers("/api/auth/**").permitAll()

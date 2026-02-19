@@ -15,7 +15,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 class SecurityConfig(
     private val oAuth2UserService: OAuth2UserService,
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
-    private val oAuth2SuccessHandler: OAuth2SuccessHandler
+    private val oAuth2SuccessHandler: OAuth2SuccessHandler,
+    private val rateLimitFilter: RateLimitFilter
 ) {
 
     @Bean
@@ -25,9 +26,23 @@ class SecurityConfig(
             .csrf { it.disable() }
             .headers { headers ->
                 headers.frameOptions { it.sameOrigin() }
+                headers.httpStrictTransportSecurity { hsts ->
+                    hsts.includeSubDomains(true)
+                    hsts.maxAgeInSeconds(31536000)
+                }
+                headers.contentTypeOptions { }
+                headers.xssProtection { xss ->
+                    xss.headerValue(org.springframework.security.web.header.writers.XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK)
+                }
+                headers.referrerPolicy { referrer ->
+                    referrer.policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
+                }
+                headers.permissionsPolicy { permissions ->
+                    permissions.policy("camera=(), microphone=(), geolocation=()")
+                }
             }
             .sessionManagement { session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }
             .authorizeHttpRequests { auth ->
                 auth
@@ -48,9 +63,8 @@ class SecurityConfig(
                     .successHandler(oAuth2SuccessHandler)
             }
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
-            .logout { logout ->
-                logout.logoutSuccessUrl("/")
-            }
+            .addFilterAfter(rateLimitFilter, JwtAuthenticationFilter::class.java)
+            .logout { it.disable() }
 
         return http.build()
     }

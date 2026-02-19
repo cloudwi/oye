@@ -2,8 +2,12 @@ package com.mindbridge.oye.exception
 
 import io.swagger.v3.oas.annotations.media.Schema
 import org.slf4j.LoggerFactory
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.security.access.AccessDeniedException
+import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -56,6 +60,42 @@ class GlobalExceptionHandler {
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
             .body(ErrorResponse(e.message ?: "잘못된 요청입니다.", "BAD_REQUEST"))
+    }
+
+    @ExceptionHandler(TooManyRequestsException::class)
+    fun handleTooManyRequestsException(e: TooManyRequestsException): ResponseEntity<ErrorResponse> {
+        return ResponseEntity
+            .status(HttpStatus.TOO_MANY_REQUESTS)
+            .body(ErrorResponse(e.message ?: "요청이 너무 많습니다.", "TOO_MANY_REQUESTS"))
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException::class)
+    fun handleDataIntegrityViolationException(e: DataIntegrityViolationException): ResponseEntity<ErrorResponse> {
+        log.warn("데이터 무결성 위반: {}", e.message)
+        return ResponseEntity
+            .status(HttpStatus.CONFLICT)
+            .body(ErrorResponse("데이터 무결성 위반이 발생했습니다.", "DATA_INTEGRITY_VIOLATION"))
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException::class)
+    fun handleHttpMessageNotReadableException(e: HttpMessageNotReadableException): ResponseEntity<ErrorResponse> {
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(ErrorResponse("요청 본문을 읽을 수 없습니다.", "MESSAGE_NOT_READABLE"))
+    }
+
+    @ExceptionHandler(AccessDeniedException::class)
+    fun handleAccessDeniedException(e: AccessDeniedException): ResponseEntity<ErrorResponse> {
+        return ResponseEntity
+            .status(HttpStatus.FORBIDDEN)
+            .body(ErrorResponse("접근이 거부되었습니다.", "ACCESS_DENIED"))
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
+    fun handleHttpRequestMethodNotSupportedException(e: HttpRequestMethodNotSupportedException): ResponseEntity<ErrorResponse> {
+        return ResponseEntity
+            .status(HttpStatus.METHOD_NOT_ALLOWED)
+            .body(ErrorResponse("지원하지 않는 HTTP 메서드입니다: ${e.method}", "METHOD_NOT_ALLOWED"))
     }
 
     @ExceptionHandler(Exception::class)

@@ -13,6 +13,7 @@ import com.mindbridge.oye.repository.UserRepository
 import io.swagger.v3.oas.annotations.media.Schema
 import org.slf4j.LoggerFactory
 import jakarta.servlet.http.HttpServletRequest
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -119,5 +120,12 @@ class AuthController(
             accessToken = accessToken,
             refreshToken = refreshToken
         )
+    }
+
+    @PostMapping("/logout")
+    override fun logout(): ResponseEntity<Map<String, String>> {
+        // Stateless 방식: 서버에서는 별도 처리 없이 성공 응답 반환
+        // 클라이언트에서 토큰을 삭제하여 로그아웃 처리
+        return ResponseEntity.ok(mapOf("message" to "로그아웃되었습니다."))
     }
 }

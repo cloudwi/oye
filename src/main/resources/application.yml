@@ -1,3 +1,6 @@
+oye:
+  admin-user-ids: ${OYE_ADMIN_USER_IDS:}
+
 apple:
   bundle-id: ${APPLE_BUNDLE_ID:com.oyeapp.fortune}
 
@@ -5,6 +8,20 @@ jwt:
   secret: ${JWT_SECRET:default-secret-key-for-development-only-change-in-production-min-32-bytes!!}
   access-token-expiration: 3600000
   refresh-token-expiration: 604800000
+
+sentry:
+  dsn: ${SENTRY_DSN:}
+  environment: ${SPRING_PROFILES_ACTIVE:local}
+  traces-sample-rate: 0.2
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
 
 spring:
   application:

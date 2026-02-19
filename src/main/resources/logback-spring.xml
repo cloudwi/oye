@@ -29,6 +29,7 @@
         <logger name="com.mindbridge.oye" level="DEBUG"/>
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
         </root>
     </springProfile>
 

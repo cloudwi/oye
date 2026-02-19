@@ -32,12 +32,12 @@ class OAuth2SuccessHandler(
         session.removeAttribute("oauth2_platform")
         session.removeAttribute("oauth2_redirect_uri")
 
+        val fragment = "token=$accessToken&refresh_token=$refreshToken"
         val targetUrl = if (platform == "native") {
-            "oyeapp://auth/callback?token=$accessToken&refresh_token=$refreshToken"
+            "oyeapp://auth/callback#$fragment"
         } else {
             val baseUri = redirectUri ?: defaultWebRedirectUri
-            val separator = if (baseUri.contains("?")) "&" else "?"
-            "$baseUri${separator}token=$accessToken&refresh_token=$refreshToken"
+            "$baseUri#$fragment"
         }
 
         response.sendRedirect(targetUrl)

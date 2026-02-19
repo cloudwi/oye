@@ -34,7 +34,6 @@ class FortuneRepositoryTest {
         userRepository.deleteAll()
         testUser = userRepository.save(
             User(
-                kakaoId = "kakao789",
                 name = "리포지토리테스트",
                 birthDate = LocalDate.of(1985, 7, 10),
                 gender = Gender.FEMALE,
@@ -72,7 +71,6 @@ class FortuneRepositoryTest {
     fun `findByUserAndDate - returns null for different user`() {
         val otherUser = userRepository.save(
             User(
-                kakaoId = "kakao999",
                 name = "다른유저",
                 birthDate = LocalDate.of(2000, 1, 1)
             )
@@ -128,7 +126,6 @@ class FortuneRepositoryTest {
     fun `findByUserOrderByDateDesc with pageable - returns empty for user with no fortunes`() {
         val otherUser = userRepository.save(
             User(
-                kakaoId = "kakao000",
                 name = "빈유저",
                 birthDate = LocalDate.of(2000, 1, 1)
             )
@@ -153,7 +150,6 @@ class FortuneRepositoryTest {
         }
         val otherUser = userRepository.save(
             User(
-                kakaoId = "kakao111",
                 name = "보존유저",
                 birthDate = LocalDate.of(2000, 1, 1)
             )

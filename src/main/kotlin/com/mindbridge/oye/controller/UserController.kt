@@ -1,10 +1,13 @@
 package com.mindbridge.oye.controller
 
 import com.mindbridge.oye.controller.api.UserApi
+import com.mindbridge.oye.domain.User
+import com.mindbridge.oye.domain.SocialProvider
 import com.mindbridge.oye.dto.UserResponse
 import com.mindbridge.oye.dto.UserUpdateRequest
 import com.mindbridge.oye.exception.UnauthorizedException
 import com.mindbridge.oye.exception.UserNotFoundException
+import com.mindbridge.oye.repository.SocialAccountRepository
 import com.mindbridge.oye.repository.UserRepository
 import com.mindbridge.oye.service.UserService
 import jakarta.validation.Valid
@@ -24,13 +27,14 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/users")
 class UserController(
     private val userRepository: UserRepository,
-    private val userService: UserService
+    private val userService: UserService,
+    private val socialAccountRepository: SocialAccountRepository
 ) : UserApi {
 
     @GetMapping("/me")
     override fun getMe(@AuthenticationPrincipal principal: Any?): UserResponse {
         val user = getCurrentUser(principal)
-        return UserResponse.from(user)
+        return UserResponse.from(user, getProvider(user))
     }
 
     @PutMapping("/me")
@@ -44,7 +48,8 @@ class UserController(
         user.birthDate = request.birthDate
         request.gender?.let { user.gender = it }
         request.calendarType?.let { user.calendarType = it }
-        return UserResponse.from(userRepository.save(user))
+        val savedUser = userRepository.save(user)
+        return UserResponse.from(savedUser, getProvider(savedUser))
     }
 
     @DeleteMapping("/me")
@@ -62,5 +67,9 @@ class UserController(
             userRepository.findById(userId).orElseThrow { UserNotFoundException() }
         }
         else -> throw UnauthorizedException()
+    }
+
+    private fun getProvider(user: User): SocialProvider? {
+        return socialAccountRepository.findFirstByUser(user)?.provider
     }
 }

@@ -4,8 +4,11 @@ import com.mindbridge.oye.config.AppleTokenVerifier
 import com.mindbridge.oye.config.JwtTokenProvider
 import com.mindbridge.oye.controller.api.AuthApi
 import com.mindbridge.oye.domain.CalendarType
+import com.mindbridge.oye.domain.SocialAccount
+import com.mindbridge.oye.domain.SocialProvider
 import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.exception.UnauthorizedException
+import com.mindbridge.oye.repository.SocialAccountRepository
 import com.mindbridge.oye.repository.UserRepository
 import io.swagger.v3.oas.annotations.media.Schema
 import org.slf4j.LoggerFactory
@@ -46,7 +49,8 @@ data class AppleLoginRequest(
 class AuthController(
     private val jwtTokenProvider: JwtTokenProvider,
     private val appleTokenVerifier: AppleTokenVerifier,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val socialAccountRepository: SocialAccountRepository
 ) : AuthApi {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -90,15 +94,23 @@ class AuthController(
             throw UnauthorizedException("유효하지 않은 Apple 토큰입니다.")
         }
 
-        val user = userRepository.findFirstByAppleId(appleUserId)
+        val socialAccount = socialAccountRepository.findByProviderAndProviderId(SocialProvider.APPLE, appleUserId)
+        val user = socialAccount?.user
             ?: userRepository.save(
                 User(
-                    appleId = appleUserId,
                     name = request.fullName ?: "사용자",
                     birthDate = LocalDate.of(2000, 1, 1),
                     calendarType = CalendarType.SOLAR
                 )
-            )
+            ).also { newUser ->
+                socialAccountRepository.save(
+                    SocialAccount(
+                        user = newUser,
+                        provider = SocialProvider.APPLE,
+                        providerId = appleUserId
+                    )
+                )
+            }
 
         val accessToken = jwtTokenProvider.generateAccessToken(user.id!!)
         val refreshToken = jwtTokenProvider.generateRefreshToken(user.id!!)

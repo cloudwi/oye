@@ -48,7 +48,6 @@ class FortuneControllerTest {
         userRepository.deleteAll()
         testUser = userRepository.save(
             User(
-                kakaoId = "kakao456",
                 name = "예감유저",
                 birthDate = LocalDate.of(1995, 3, 20),
                 gender = Gender.FEMALE,

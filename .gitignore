@@ -44,3 +44,12 @@ application-local.yml
 .env
 .env.local
 *.env
+
+### OS ###
+.DS_Store
+
+### Decompiled sources ###
+org/
+
+### Logs ###
+logs/

@@ -9,6 +9,7 @@ import com.mindbridge.oye.dto.FortuneResponse
 import com.mindbridge.oye.dto.PageResponse
 import com.mindbridge.oye.repository.FortuneRepository
 import org.springframework.ai.chat.client.ChatClient
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -26,7 +27,6 @@ class FortuneService(
         return fortuneRepository.findByUserAndDate(user, LocalDate.now())
     }
 
-    @Transactional
     fun generateFortune(user: User): Fortune {
         val existingFortune = getTodayFortune(user)
         if (existingFortune != null) {
@@ -103,7 +103,13 @@ class FortuneService(
             content = response,
             date = LocalDate.now()
         )
-        return fortuneRepository.save(fortune)
+        return try {
+            fortuneRepository.save(fortune)
+        } catch (e: DataIntegrityViolationException) {
+            // 동시 요청으로 이미 저장된 경우 기존 데이터 반환
+            getTodayFortune(user)
+                ?: throw FortuneGenerationException("예감 저장 중 오류가 발생했습니다.")
+        }
     }
 
     @Transactional(readOnly = true)

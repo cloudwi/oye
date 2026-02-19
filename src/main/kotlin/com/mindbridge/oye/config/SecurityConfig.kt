@@ -37,7 +37,7 @@ class SecurityConfig(
                 headers.referrerPolicy { referrer ->
                     referrer.policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
                 }
-                headers.permissionsPolicy { permissions ->
+                headers.permissionsPolicyHeader { permissions ->
                     permissions.policy("camera=(), microphone=(), geolocation=()")
                 }
             }

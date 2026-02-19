@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.HttpServletRequest
+import org.springframework.http.ResponseEntity
 import org.springframework.web.servlet.view.RedirectView
 
 @Tag(name = "인증", description = "OAuth2 로그인 및 JWT 토큰 관리 API")
@@ -78,4 +79,16 @@ interface AuthApi {
         )
     )
     fun loginApple(request: AppleLoginRequest): TokenResponse
+
+    @Operation(
+        summary = "로그아웃",
+        description = """로그아웃 처리합니다.
+
+- Stateless 방식이므로 서버에서는 별도 처리 없이 성공 응답을 반환합니다.
+- 클라이언트에서 저장된 토큰을 삭제하여 로그아웃을 완료해야 합니다."""
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "로그아웃 성공")
+    )
+    fun logout(): ResponseEntity<Map<String, String>>
 }

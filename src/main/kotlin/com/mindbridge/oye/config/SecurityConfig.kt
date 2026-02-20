@@ -3,6 +3,7 @@ package com.mindbridge.oye.config
 import com.mindbridge.oye.service.OAuth2UserService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.annotation.Order
 import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -16,11 +17,46 @@ class SecurityConfig(
     private val oAuth2UserService: OAuth2UserService,
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
     private val oAuth2SuccessHandler: OAuth2SuccessHandler,
+    private val oAuth2FailureHandler: OAuth2FailureHandler,
     private val rateLimitFilter: RateLimitFilter
 ) {
 
+    /**
+     * OAuth2 로그인 전용 필터 체인.
+     * 카카오 인가 → 콜백 과정에서만 짧은 세션을 사용합니다.
+     */
     @Bean
-    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+    @Order(1)
+    fun oauthSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
+        http
+            .securityMatcher("/oauth2/**", "/login/oauth2/**", "/api/auth/login/kakao")
+            .cors { }
+            .csrf { it.disable() }
+            .sessionManagement { session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+            }
+            .authorizeHttpRequests { auth ->
+                auth.anyRequest().permitAll()
+            }
+            .oauth2Login { oauth2 ->
+                oauth2
+                    .userInfoEndpoint { userInfo ->
+                        userInfo.userService(oAuth2UserService)
+                    }
+                    .successHandler(oAuth2SuccessHandler)
+                    .failureHandler(oAuth2FailureHandler)
+            }
+
+        return http.build()
+    }
+
+    /**
+     * API 전용 필터 체인.
+     * JWT 기반 STATELESS 인증을 사용합니다.
+     */
+    @Bean
+    @Order(2)
+    fun apiSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .cors { }
             .csrf { it.disable() }
@@ -51,18 +87,10 @@ class SecurityConfig(
                     .requestMatchers("/actuator/health").permitAll()
                     .requestMatchers("/actuator/**").denyAll()
                     .requestMatchers("/h2-console/**").permitAll()
-                    .requestMatchers("/login/**", "/oauth2/**").permitAll()
                     .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                     .requestMatchers("/api/**").authenticated()
                     .anyRequest().permitAll()
-            }
-            .oauth2Login { oauth2 ->
-                oauth2
-                    .userInfoEndpoint { userInfo ->
-                        userInfo.userService(oAuth2UserService)
-                    }
-                    .successHandler(oAuth2SuccessHandler)
             }
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
             .addFilterAfter(rateLimitFilter, JwtAuthenticationFilter::class.java)

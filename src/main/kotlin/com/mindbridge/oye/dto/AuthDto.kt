@@ -25,3 +25,9 @@ data class AppleLoginRequest(
     @Schema(description = "사용자 이름 (최초 로그인 시에만 제공)", nullable = true)
     val fullName: String? = null
 )
+
+@Schema(description = "카카오 네이티브 로그인 요청")
+data class KakaoLoginRequest(
+    @Schema(description = "카카오 액세스 토큰", requiredMode = Schema.RequiredMode.REQUIRED)
+    val accessToken: String
+)

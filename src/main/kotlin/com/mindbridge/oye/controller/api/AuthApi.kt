@@ -1,6 +1,7 @@
 package com.mindbridge.oye.controller.api
 
 import com.mindbridge.oye.dto.AppleLoginRequest
+import com.mindbridge.oye.dto.KakaoLoginRequest
 import com.mindbridge.oye.dto.RefreshTokenRequest
 import com.mindbridge.oye.dto.TokenResponse
 import com.mindbridge.oye.exception.ErrorResponse
@@ -79,6 +80,28 @@ interface AuthApi {
         )
     )
     fun loginApple(request: AppleLoginRequest): TokenResponse
+
+    @Operation(
+        summary = "카카오 네이티브 로그인",
+        description = """카카오 SDK로 받은 액세스 토큰으로 로그인합니다.
+
+- 네이티브 앱에서 카카오 SDK로 받은 액세스 토큰을 전송합니다.
+- 서버에서 카카오 API로 토큰을 검증한 후 JWT를 발급합니다.
+- 최초 로그인 시 사용자가 자동 생성됩니다."""
+    )
+    @ApiResponses(
+        ApiResponse(
+            responseCode = "200",
+            description = "로그인 성공",
+            content = [Content(schema = Schema(implementation = TokenResponse::class))]
+        ),
+        ApiResponse(
+            responseCode = "401",
+            description = "유효하지 않은 카카오 토큰",
+            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
+        )
+    )
+    fun loginKakaoNative(request: KakaoLoginRequest): TokenResponse
 
     @Operation(
         summary = "로그아웃",

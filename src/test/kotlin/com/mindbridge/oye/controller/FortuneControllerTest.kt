@@ -78,9 +78,9 @@ class FortuneControllerTest {
     }
 
     @Test
-    fun `GET fortune today - redirects to login without token`() {
+    fun `GET fortune today - returns 401 without token`() {
         mockMvc.perform(get("/api/fortune/today"))
-            .andExpect(status().is3xxRedirection)
+            .andExpect(status().isUnauthorized)
     }
 
     @Test
@@ -149,8 +149,8 @@ class FortuneControllerTest {
     }
 
     @Test
-    fun `GET fortune history - redirects to login without token`() {
+    fun `GET fortune history - returns 401 without token`() {
         mockMvc.perform(get("/api/fortune/history"))
-            .andExpect(status().is3xxRedirection)
+            .andExpect(status().isUnauthorized)
     }
 }

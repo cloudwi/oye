@@ -21,6 +21,7 @@ class OAuth2SuccessHandler(
     ) {
         val oAuth2User = authentication.principal as OAuth2User
         val userId = oAuth2User.attributes["userId"] as Long
+        val isNewUser = oAuth2User.attributes["isNewUser"] as Boolean
 
         val accessToken = jwtTokenProvider.generateAccessToken(userId)
         val refreshToken = jwtTokenProvider.generateRefreshToken(userId)
@@ -32,7 +33,7 @@ class OAuth2SuccessHandler(
         session.removeAttribute("oauth2_platform")
         session.removeAttribute("oauth2_redirect_uri")
 
-        val fragment = "token=$accessToken&refresh_token=$refreshToken"
+        val fragment = "token=$accessToken&refresh_token=$refreshToken&is_new_user=$isNewUser"
         val targetUrl = if (platform == "native") {
             "oyeapp://auth/callback#$fragment"
         } else {

@@ -34,7 +34,9 @@ data class TokenResponse(
     @Schema(description = "액세스 토큰 (API 호출 시 Authorization 헤더에 사용)", example = "eyJhbGciOiJIUzI1NiJ9...")
     val accessToken: String,
     @Schema(description = "리프레시 토큰 (액세스 토큰 만료 시 갱신에 사용)", example = "eyJhbGciOiJIUzI1NiJ9...")
-    val refreshToken: String
+    val refreshToken: String,
+    @Schema(description = "신규 회원 여부 (true: 첫 로그인, false: 기존 회원)", example = "true")
+    val isNewUser: Boolean = false
 )
 
 @Schema(description = "Apple 로그인 요청")
@@ -96,6 +98,7 @@ class AuthController(
         }
 
         val socialAccount = socialAccountRepository.findByProviderAndProviderId(SocialProvider.APPLE, appleUserId)
+        val isNewUser = socialAccount == null
         val user = socialAccount?.user
             ?: userRepository.save(
                 User(
@@ -118,7 +121,8 @@ class AuthController(
 
         return TokenResponse(
             accessToken = accessToken,
-            refreshToken = refreshToken
+            refreshToken = refreshToken,
+            isNewUser = isNewUser
         )
     }
 

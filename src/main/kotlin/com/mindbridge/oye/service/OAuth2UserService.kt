@@ -26,10 +26,12 @@ class OAuth2UserService(
         val kakaoId = oAuth2User.name
 
         val socialAccount = socialAccountRepository.findByProviderAndProviderId(SocialProvider.KAKAO, kakaoId)
+        val isNewUser = socialAccount == null
         val user = socialAccount?.user ?: createUser(kakaoId, oAuth2User)
 
         val attributes = oAuth2User.attributes.toMutableMap()
         attributes["userId"] = user.id
+        attributes["isNewUser"] = isNewUser
 
         return DefaultOAuth2User(
             oAuth2User.authorities,

@@ -35,24 +35,22 @@ class JwtTokenProvider(
     }
 
     fun getUserIdFromToken(token: String): Long {
-        val claims = Jwts.parser()
-            .verifyWith(key)
-            .build()
-            .parseSignedClaims(token)
-            .payload
-
-        return claims.subject.toLong()
+        return parseClaims(token).subject.toLong()
     }
 
     fun validateToken(token: String): Boolean {
         return try {
-            Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
+            parseClaims(token)
             true
         } catch (e: Exception) {
             false
         }
     }
+
+    private fun parseClaims(token: String) =
+        Jwts.parser()
+            .verifyWith(key)
+            .build()
+            .parseSignedClaims(token)
+            .payload
 }

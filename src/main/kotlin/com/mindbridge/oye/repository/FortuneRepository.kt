@@ -9,7 +9,6 @@ import java.time.LocalDate
 
 interface FortuneRepository : JpaRepository<Fortune, Long> {
     fun findByUserAndDate(user: User, date: LocalDate): Fortune?
-    fun findByUserOrderByDateDesc(user: User): List<Fortune>
     fun findByUserOrderByDateDesc(user: User, pageable: Pageable): Page<Fortune>
     fun deleteAllByUser(user: User)
 }

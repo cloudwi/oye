@@ -109,7 +109,9 @@ class FortuneServiceTest {
 
         whenever(fortuneRepository.findByUserAndDate(testUser, LocalDate.now()))
             .thenReturn(null)
-        whenever(chatClient.prompt(any<String>())).thenReturn(chatClientRequestSpec)
+        whenever(chatClient.prompt()).thenReturn(chatClientRequestSpec)
+        whenever(chatClientRequestSpec.system(any<String>())).thenReturn(chatClientRequestSpec)
+        whenever(chatClientRequestSpec.user(any<String>())).thenReturn(chatClientRequestSpec)
         whenever(chatClientRequestSpec.call()).thenReturn(callResponse)
         whenever(callResponse.content()).thenReturn(aiContent)
 
@@ -133,7 +135,10 @@ class FortuneServiceTest {
         val service = createService()
         whenever(fortuneRepository.findByUserAndDate(testUser, LocalDate.now()))
             .thenReturn(null)
-        whenever(chatClient.prompt(any<String>())).thenThrow(RuntimeException("AI service unavailable"))
+        whenever(chatClient.prompt()).thenReturn(chatClientRequestSpec)
+        whenever(chatClientRequestSpec.system(any<String>())).thenReturn(chatClientRequestSpec)
+        whenever(chatClientRequestSpec.user(any<String>())).thenReturn(chatClientRequestSpec)
+        whenever(chatClientRequestSpec.call()).thenThrow(RuntimeException("AI service unavailable"))
 
         assertThrows<FortuneGenerationException> {
             service.generateFortune(testUser)
@@ -145,7 +150,9 @@ class FortuneServiceTest {
         val service = createService()
         whenever(fortuneRepository.findByUserAndDate(testUser, LocalDate.now()))
             .thenReturn(null)
-        whenever(chatClient.prompt(any<String>())).thenReturn(chatClientRequestSpec)
+        whenever(chatClient.prompt()).thenReturn(chatClientRequestSpec)
+        whenever(chatClientRequestSpec.system(any<String>())).thenReturn(chatClientRequestSpec)
+        whenever(chatClientRequestSpec.user(any<String>())).thenReturn(chatClientRequestSpec)
         whenever(chatClientRequestSpec.call()).thenReturn(callResponse)
         whenever(callResponse.content()).thenReturn("")
 
@@ -159,7 +166,9 @@ class FortuneServiceTest {
         val service = createService()
         whenever(fortuneRepository.findByUserAndDate(testUser, LocalDate.now()))
             .thenReturn(null)
-        whenever(chatClient.prompt(any<String>())).thenReturn(chatClientRequestSpec)
+        whenever(chatClient.prompt()).thenReturn(chatClientRequestSpec)
+        whenever(chatClientRequestSpec.system(any<String>())).thenReturn(chatClientRequestSpec)
+        whenever(chatClientRequestSpec.user(any<String>())).thenReturn(chatClientRequestSpec)
         whenever(chatClientRequestSpec.call()).thenReturn(callResponse)
         whenever(callResponse.content()).thenReturn(null)
 

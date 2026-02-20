@@ -8,6 +8,7 @@ import com.mindbridge.oye.exception.FortuneGenerationException
 import com.mindbridge.oye.dto.FortuneResponse
 import com.mindbridge.oye.dto.PageResponse
 import com.mindbridge.oye.repository.FortuneRepository
+import org.slf4j.LoggerFactory
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
@@ -20,35 +21,15 @@ class FortuneService(
     chatClientBuilder: ChatClient.Builder,
     private val fortuneRepository: FortuneRepository
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
     private val chatClient: ChatClient = chatClientBuilder.build()
 
-    @Transactional(readOnly = true)
-    fun getTodayFortune(user: User): Fortune? {
-        return fortuneRepository.findByUserAndDate(user, LocalDate.now())
-    }
+    companion object {
+        private const val MAX_RETRY_COUNT = 2
+        private const val FORTUNE_MAX_LENGTH = 80
 
-    fun generateFortune(user: User): Fortune {
-        val existingFortune = getTodayFortune(user)
-        if (existingFortune != null) {
-            return existingFortune
-        }
-
-        val genderText = when (user.gender) {
-            Gender.MALE -> "남성"
-            Gender.FEMALE -> "여성"
-            null -> "미지정"
-        }
-        val calendarText = when (user.calendarType) {
-            CalendarType.SOLAR -> "양력"
-            CalendarType.LUNAR -> "음력"
-            null -> "양력"
-        }
-
-        val prompt = """
+        private val SYSTEM_PROMPT = """
             당신은 하루의 분위기를 전해주는 예감 작가입니다.
-
-            사용자: ${user.name} (${genderText}, ${user.birthDate}생, ${calendarText})
-            오늘: ${LocalDate.now()}
 
             짧고 임팩트 있는 한 문장 예감을 작성하세요.
 
@@ -87,34 +68,48 @@ class FortuneService(
             "오늘은 공기가 조금 다르게 느껴져요."
             "익숙한 향 속에 새로운 무언가가 섞여 있어요."
         """.trimIndent()
+    }
 
-        val response = try {
-            chatClient.prompt(prompt).call().content()
-        } catch (e: Exception) {
-            throw FortuneGenerationException("AI 예감 생성 중 오류가 발생했습니다: ${e.message}")
+    @Transactional(readOnly = true)
+    fun getTodayFortune(user: User): Fortune? {
+        return fortuneRepository.findByUserAndDate(user, LocalDate.now())
+    }
+
+    fun generateFortune(user: User): Fortune {
+        // 1. 기존 fortune 확인 (별도 읽기 트랜잭션)
+        val existingFortune = getTodayFortune(user)
+        if (existingFortune != null) {
+            return existingFortune
         }
 
-        if (response.isNullOrBlank()) {
-            throw FortuneGenerationException("예감 내용이 비어있습니다.")
-        }
+        // 2. AI 호출 (트랜잭션 외부 - DB 커넥션 점유하지 않음)
+        val content = callAiWithRetry(user)
 
-        val fortune = Fortune(
-            user = user,
-            content = response,
-            date = LocalDate.now()
-        )
+        // 3. 저장 시도 (별도 쓰기 트랜잭션)
         return try {
-            fortuneRepository.save(fortune)
+            saveFortune(user, content)
         } catch (e: DataIntegrityViolationException) {
-            // 동시 요청으로 이미 저장된 경우 기존 데이터 반환
+            // 동시 요청으로 이미 저장된 경우 새 트랜잭션으로 조회
+            log.warn("중복 fortune 저장 시도 감지: userId={}", user.id)
             getTodayFortune(user)
                 ?: throw FortuneGenerationException("예감 저장 중 오류가 발생했습니다.")
         }
     }
 
-    @Transactional(readOnly = true)
-    fun getFortuneHistory(user: User): List<Fortune> {
-        return fortuneRepository.findByUserOrderByDateDesc(user)
+    @Transactional
+    fun saveFortune(user: User, content: String): Fortune {
+        // 트랜잭션 내에서 다시 한번 확인 (동시성 보호)
+        val existingFortune = fortuneRepository.findByUserAndDate(user, LocalDate.now())
+        if (existingFortune != null) {
+            return existingFortune
+        }
+
+        val fortune = Fortune(
+            user = user,
+            content = content,
+            date = LocalDate.now()
+        )
+        return fortuneRepository.save(fortune)
     }
 
     @Transactional(readOnly = true)
@@ -128,5 +123,53 @@ class FortuneService(
             totalElements = fortunePage.totalElements,
             totalPages = fortunePage.totalPages
         )
+    }
+
+    private fun callAiWithRetry(user: User): String {
+        val userPrompt = buildUserPrompt(user)
+        var lastException: Exception? = null
+
+        repeat(MAX_RETRY_COUNT) { attempt ->
+            try {
+                val response = chatClient.prompt()
+                    .system(SYSTEM_PROMPT)
+                    .user(userPrompt)
+                    .call()
+                    .content()
+
+                if (!response.isNullOrBlank()) {
+                    return sanitizeResponse(response)
+                }
+                log.warn("AI 응답이 비어있습니다. 재시도 {}/{}", attempt + 1, MAX_RETRY_COUNT)
+            } catch (e: Exception) {
+                lastException = e
+                log.warn("AI 호출 실패 (재시도 {}/{}): {}", attempt + 1, MAX_RETRY_COUNT, e.message)
+            }
+        }
+
+        throw FortuneGenerationException(
+            "AI 예감 생성에 실패했습니다: ${lastException?.message ?: "빈 응답"}"
+        )
+    }
+
+    private fun buildUserPrompt(user: User): String {
+        val genderText = when (user.gender) {
+            Gender.MALE -> "남성"
+            Gender.FEMALE -> "여성"
+            null -> "미지정"
+        }
+        val calendarText = when (user.calendarType) {
+            CalendarType.SOLAR -> "양력"
+            CalendarType.LUNAR -> "음력"
+            null -> "양력"
+        }
+        return "사용자: ${user.name} (${genderText}, ${user.birthDate}생, ${calendarText}), 오늘: ${LocalDate.now()}"
+    }
+
+    private fun sanitizeResponse(response: String): String {
+        return response
+            .trim()
+            .removeSurrounding("\"")
+            .take(FORTUNE_MAX_LENGTH)
     }
 }

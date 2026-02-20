@@ -34,8 +34,8 @@ class RateLimitFilter : OncePerRequestFilter() {
         val rateLimit = getRateLimit(path)
 
         if (rateLimit != null) {
-            val key = buildKey(request, path)
-            val (limit, _) = rateLimit
+            val (limit, keyType) = rateLimit
+            val key = buildKey(request, path, keyType)
 
             if (!tryConsume(key, limit)) {
                 response.status = HttpStatus.TOO_MANY_REQUESTS.value()
@@ -62,23 +62,18 @@ class RateLimitFilter : OncePerRequestFilter() {
         }
     }
 
-    private fun buildKey(request: HttpServletRequest, path: String): String {
-        val rateLimit = getRateLimit(path)!!
-        val (_, keyType) = rateLimit
-
+    private fun buildKey(request: HttpServletRequest, path: String, keyType: String): String {
         val identifier = if (keyType == "user") {
             val auth = SecurityContextHolder.getContext().authentication
             if (auth != null && auth.principal is Long) {
                 "user:${auth.principal}"
             } else {
-                // 인증되지 않은 요청은 IP로 폴백
                 "ip:${getClientIp(request)}"
             }
         } else {
             "ip:${getClientIp(request)}"
         }
 
-        // 경로 카테고리별로 구분
         val pathCategory = when {
             path.startsWith("/api/fortune/today") -> "fortune"
             path.startsWith("/api/auth/login") -> "auth-login"
@@ -91,6 +86,8 @@ class RateLimitFilter : OncePerRequestFilter() {
 
     private fun tryConsume(key: String, limit: Int): Boolean {
         val now = System.currentTimeMillis()
+        cleanupStaleEntries(now)
+
         val entry = rateLimitMap.compute(key) { _, existing ->
             if (existing == null || now - existing.windowStart >= WINDOW_MS) {
                 RateLimitEntry(AtomicInteger(0), now)
@@ -100,6 +97,12 @@ class RateLimitFilter : OncePerRequestFilter() {
         }!!
 
         return entry.count.incrementAndGet() <= limit
+    }
+
+    private fun cleanupStaleEntries(now: Long) {
+        rateLimitMap.entries.removeIf { (_, entry) ->
+            now - entry.windowStart >= WINDOW_MS * 2
+        }
     }
 
     private fun getClientIp(request: HttpServletRequest): String {

@@ -1,8 +1,8 @@
 package com.mindbridge.oye.controller.api
 
-import com.mindbridge.oye.controller.AppleLoginRequest
-import com.mindbridge.oye.controller.RefreshTokenRequest
-import com.mindbridge.oye.controller.TokenResponse
+import com.mindbridge.oye.dto.AppleLoginRequest
+import com.mindbridge.oye.dto.RefreshTokenRequest
+import com.mindbridge.oye.dto.TokenResponse
 import com.mindbridge.oye.exception.ErrorResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter

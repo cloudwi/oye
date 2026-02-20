@@ -1,15 +1,12 @@
 package com.mindbridge.oye.controller
 
+import com.mindbridge.oye.config.AuthenticationResolver
 import com.mindbridge.oye.controller.api.FortuneApi
 import com.mindbridge.oye.dto.ApiResponse
 import com.mindbridge.oye.dto.FortuneResponse
 import com.mindbridge.oye.dto.PageResponse
-import com.mindbridge.oye.exception.UnauthorizedException
-import com.mindbridge.oye.exception.UserNotFoundException
-import com.mindbridge.oye.repository.UserRepository
 import com.mindbridge.oye.service.FortuneService
 import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -19,14 +16,13 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/fortune")
 class FortuneController(
     private val fortuneService: FortuneService,
-    private val userRepository: UserRepository
+    private val authenticationResolver: AuthenticationResolver
 ) : FortuneApi {
 
     @GetMapping("/today")
     override fun getTodayFortune(@AuthenticationPrincipal principal: Any?): FortuneResponse {
-        val user = getCurrentUser(principal)
-        val fortune = fortuneService.generateFortune(user)
-        return FortuneResponse.from(fortune)
+        val user = authenticationResolver.getCurrentUser(principal)
+        return FortuneResponse.from(fortuneService.generateFortune(user))
     }
 
     @GetMapping("/history")
@@ -35,18 +31,7 @@ class FortuneController(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int
     ): ApiResponse<PageResponse<FortuneResponse>> {
-        val user = getCurrentUser(principal)
-        val pageResponse = fortuneService.getFortuneHistory(user, page, size)
-        return ApiResponse.success(pageResponse)
-    }
-
-    private fun getCurrentUser(principal: Any?) = when (principal) {
-        is Long -> userRepository.findById(principal).orElseThrow { UserNotFoundException() }
-        is OAuth2User -> {
-            val userId = principal.attributes["userId"] as? Long
-                ?: throw UnauthorizedException("사용자 ID를 찾을 수 없습니다.")
-            userRepository.findById(userId).orElseThrow { UserNotFoundException() }
-        }
-        else -> throw UnauthorizedException()
+        val user = authenticationResolver.getCurrentUser(principal)
+        return ApiResponse.success(fortuneService.getFortuneHistory(user, page, size))
     }
 }

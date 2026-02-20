@@ -46,11 +46,9 @@ class InquiryService(
 
     @Transactional(readOnly = true)
     fun getInquiry(user: User, inquiryId: Long): InquiryResponse {
-        val inquiry = inquiryRepository.findById(inquiryId)
-            .orElseThrow { InquiryNotFoundException() }
+        val inquiry = findInquiryById(inquiryId)
 
-        val isAdmin = user.id in adminProperties.adminUserIds
-        if (inquiry.user.id != user.id && !isAdmin) {
+        if (inquiry.user.id != user.id && !isAdmin(user)) {
             throw ForbiddenException()
         }
 
@@ -59,17 +57,28 @@ class InquiryService(
 
     @Transactional
     fun replyToInquiry(user: User, inquiryId: Long, request: InquiryReplyRequest): InquiryResponse {
-        if (user.id !in adminProperties.adminUserIds) {
-            throw ForbiddenException()
-        }
+        requireAdmin(user)
 
-        val inquiry = inquiryRepository.findById(inquiryId)
-            .orElseThrow { InquiryNotFoundException() }
-
+        val inquiry = findInquiryById(inquiryId)
         inquiry.adminReply = request.content
         inquiry.adminRepliedAt = LocalDateTime.now()
         inquiry.status = InquiryStatus.ANSWERED
 
-        return InquiryResponse.from(inquiryRepository.save(inquiry))
+        return InquiryResponse.from(inquiry)
+    }
+
+    private fun findInquiryById(inquiryId: Long): Inquiry {
+        return inquiryRepository.findById(inquiryId)
+            .orElseThrow { InquiryNotFoundException() }
+    }
+
+    private fun isAdmin(user: User): Boolean {
+        return user.id in adminProperties.adminUserIds
+    }
+
+    private fun requireAdmin(user: User) {
+        if (!isAdmin(user)) {
+            throw ForbiddenException()
+        }
     }
 }

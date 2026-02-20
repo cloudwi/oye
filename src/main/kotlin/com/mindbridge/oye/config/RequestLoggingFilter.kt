@@ -33,7 +33,11 @@ class RequestLoggingFilter : OncePerRequestFilter() {
             val status = response.status
             val userId = getUserId()
 
-            log.info("[API] {} {}{} → {} ({}ms) user={}", method, uri, query, status, duration, userId ?: "anonymous")
+            if (duration >= 3000) {
+                log.warn("[API][SLOW] {} {}{} -> {} ({}ms) user={}", method, uri, query, status, duration, userId ?: "anonymous")
+            } else {
+                log.info("[API] {} {}{} -> {} ({}ms) user={}", method, uri, query, status, duration, userId ?: "anonymous")
+            }
         }
     }
 

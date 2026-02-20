@@ -25,98 +25,77 @@ class GlobalExceptionHandler {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
+    // --- Domain exceptions ---
+
     @ExceptionHandler(UserNotFoundException::class)
-    fun handleUserNotFoundException(e: UserNotFoundException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity
-            .status(HttpStatus.NOT_FOUND)
-            .body(ErrorResponse(e.message ?: "사용자를 찾을 수 없습니다.", "USER_NOT_FOUND"))
-    }
+    fun handleUserNotFoundException(e: UserNotFoundException) =
+        errorResponse(HttpStatus.NOT_FOUND, e.message ?: "사용자를 찾을 수 없습니다.", "USER_NOT_FOUND")
 
     @ExceptionHandler(FortuneGenerationException::class)
     fun handleFortuneGenerationException(e: FortuneGenerationException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(ErrorResponse(e.message ?: "예감 생성에 실패했습니다.", "FORTUNE_GENERATION_FAILED"))
+        log.error("예감 생성 실패: {}", e.message)
+        return errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, e.message ?: "예감 생성에 실패했습니다.", "FORTUNE_GENERATION_FAILED")
     }
 
+    @ExceptionHandler(InquiryNotFoundException::class)
+    fun handleInquiryNotFoundException(e: InquiryNotFoundException) =
+        errorResponse(HttpStatus.NOT_FOUND, e.message ?: "문의를 찾을 수 없습니다.", "INQUIRY_NOT_FOUND")
+
+    @ExceptionHandler(TooManyRequestsException::class)
+    fun handleTooManyRequestsException(e: TooManyRequestsException) =
+        errorResponse(HttpStatus.TOO_MANY_REQUESTS, e.message ?: "요청이 너무 많습니다.", "TOO_MANY_REQUESTS")
+
+    // --- Auth/access exceptions ---
+
     @ExceptionHandler(UnauthorizedException::class)
-    fun handleUnauthorizedException(e: UnauthorizedException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity
-            .status(HttpStatus.UNAUTHORIZED)
-            .body(ErrorResponse(e.message ?: "인증이 필요합니다.", "UNAUTHORIZED"))
+    fun handleUnauthorizedException(e: UnauthorizedException) =
+        errorResponse(HttpStatus.UNAUTHORIZED, e.message ?: "인증이 필요합니다.", "UNAUTHORIZED")
+
+    @ExceptionHandler(ForbiddenException::class)
+    fun handleForbiddenException(e: ForbiddenException) =
+        errorResponse(HttpStatus.FORBIDDEN, e.message ?: "권한이 없습니다.", "FORBIDDEN")
+
+    @ExceptionHandler(AccessDeniedException::class)
+    fun handleAccessDeniedException(e: AccessDeniedException): ResponseEntity<ErrorResponse> {
+        log.warn("접근 거부: {}", e.message)
+        return errorResponse(HttpStatus.FORBIDDEN, "접근이 거부되었습니다.", "ACCESS_DENIED")
     }
+
+    // --- Request validation exceptions ---
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidationException(e: MethodArgumentNotValidException): ResponseEntity<ErrorResponse> {
         val message = e.bindingResult.fieldErrors
             .joinToString(", ") { "${it.field}: ${it.defaultMessage}" }
-        return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
-            .body(ErrorResponse(message, "VALIDATION_ERROR"))
+        return errorResponse(HttpStatus.BAD_REQUEST, message, "VALIDATION_ERROR")
     }
 
     @ExceptionHandler(IllegalArgumentException::class)
-    fun handleIllegalArgumentException(e: IllegalArgumentException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
-            .body(ErrorResponse(e.message ?: "잘못된 요청입니다.", "BAD_REQUEST"))
-    }
+    fun handleIllegalArgumentException(e: IllegalArgumentException) =
+        errorResponse(HttpStatus.BAD_REQUEST, e.message ?: "잘못된 요청입니다.", "BAD_REQUEST")
 
-    @ExceptionHandler(TooManyRequestsException::class)
-    fun handleTooManyRequestsException(e: TooManyRequestsException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity
-            .status(HttpStatus.TOO_MANY_REQUESTS)
-            .body(ErrorResponse(e.message ?: "요청이 너무 많습니다.", "TOO_MANY_REQUESTS"))
-    }
+    @ExceptionHandler(HttpMessageNotReadableException::class)
+    fun handleHttpMessageNotReadableException(e: HttpMessageNotReadableException) =
+        errorResponse(HttpStatus.BAD_REQUEST, "요청 본문을 읽을 수 없습니다.", "MESSAGE_NOT_READABLE")
 
-    @ExceptionHandler(InquiryNotFoundException::class)
-    fun handleInquiryNotFoundException(e: InquiryNotFoundException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity
-            .status(HttpStatus.NOT_FOUND)
-            .body(ErrorResponse(e.message ?: "문의를 찾을 수 없습니다.", "INQUIRY_NOT_FOUND"))
-    }
+    @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
+    fun handleHttpRequestMethodNotSupportedException(e: HttpRequestMethodNotSupportedException) =
+        errorResponse(HttpStatus.METHOD_NOT_ALLOWED, "지원하지 않는 HTTP 메서드입니다: ${e.method}", "METHOD_NOT_ALLOWED")
 
-    @ExceptionHandler(ForbiddenException::class)
-    fun handleForbiddenException(e: ForbiddenException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity
-            .status(HttpStatus.FORBIDDEN)
-            .body(ErrorResponse(e.message ?: "권한이 없습니다.", "FORBIDDEN"))
-    }
+    // --- Infrastructure exceptions ---
 
     @ExceptionHandler(DataIntegrityViolationException::class)
     fun handleDataIntegrityViolationException(e: DataIntegrityViolationException): ResponseEntity<ErrorResponse> {
         log.warn("데이터 무결성 위반: {}", e.message)
-        return ResponseEntity
-            .status(HttpStatus.CONFLICT)
-            .body(ErrorResponse("데이터 무결성 위반이 발생했습니다.", "DATA_INTEGRITY_VIOLATION"))
-    }
-
-    @ExceptionHandler(HttpMessageNotReadableException::class)
-    fun handleHttpMessageNotReadableException(e: HttpMessageNotReadableException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
-            .body(ErrorResponse("요청 본문을 읽을 수 없습니다.", "MESSAGE_NOT_READABLE"))
-    }
-
-    @ExceptionHandler(AccessDeniedException::class)
-    fun handleAccessDeniedException(e: AccessDeniedException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity
-            .status(HttpStatus.FORBIDDEN)
-            .body(ErrorResponse("접근이 거부되었습니다.", "ACCESS_DENIED"))
-    }
-
-    @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
-    fun handleHttpRequestMethodNotSupportedException(e: HttpRequestMethodNotSupportedException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity
-            .status(HttpStatus.METHOD_NOT_ALLOWED)
-            .body(ErrorResponse("지원하지 않는 HTTP 메서드입니다: ${e.method}", "METHOD_NOT_ALLOWED"))
+        return errorResponse(HttpStatus.CONFLICT, "데이터 무결성 위반이 발생했습니다.", "DATA_INTEGRITY_VIOLATION")
     }
 
     @ExceptionHandler(Exception::class)
     fun handleException(e: Exception): ResponseEntity<ErrorResponse> {
         log.error("처리되지 않은 예외 발생", e)
-        return ResponseEntity
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(ErrorResponse("서버 오류가 발생했습니다.", "INTERNAL_SERVER_ERROR"))
+        return errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다.", "INTERNAL_SERVER_ERROR")
     }
+
+    private fun errorResponse(status: HttpStatus, message: String, code: String): ResponseEntity<ErrorResponse> =
+        ResponseEntity.status(status).body(ErrorResponse(message, code))
 }

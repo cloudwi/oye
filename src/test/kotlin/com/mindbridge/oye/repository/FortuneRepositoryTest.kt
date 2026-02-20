@@ -160,10 +160,10 @@ class FortuneRepositoryTest {
 
         fortuneRepository.deleteAllByUser(testUser)
 
-        val testUserFortunes = fortuneRepository.findByUserOrderByDateDesc(testUser)
-        val otherUserFortunes = fortuneRepository.findByUserOrderByDateDesc(otherUser)
+        val testUserFortunes = fortuneRepository.findByUserOrderByDateDesc(testUser, PageRequest.of(0, 100))
+        val otherUserFortunes = fortuneRepository.findByUserOrderByDateDesc(otherUser, PageRequest.of(0, 100))
 
-        assertTrue(testUserFortunes.isEmpty())
-        assertEquals(1, otherUserFortunes.size)
+        assertTrue(testUserFortunes.content.isEmpty())
+        assertEquals(1, otherUserFortunes.content.size)
     }
 }

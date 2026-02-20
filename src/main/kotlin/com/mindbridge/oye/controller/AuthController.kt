@@ -7,13 +7,16 @@ import com.mindbridge.oye.domain.CalendarType
 import com.mindbridge.oye.domain.SocialAccount
 import com.mindbridge.oye.domain.SocialProvider
 import com.mindbridge.oye.domain.User
+import com.mindbridge.oye.dto.AppleLoginRequest
+import com.mindbridge.oye.dto.RefreshTokenRequest
+import com.mindbridge.oye.dto.TokenResponse
 import com.mindbridge.oye.exception.UnauthorizedException
 import com.mindbridge.oye.repository.SocialAccountRepository
 import com.mindbridge.oye.repository.UserRepository
-import io.swagger.v3.oas.annotations.media.Schema
-import org.slf4j.LoggerFactory
 import jakarta.servlet.http.HttpServletRequest
+import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -22,30 +25,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.view.RedirectView
 import java.time.LocalDate
-
-@Schema(description = "토큰 갱신 요청")
-data class RefreshTokenRequest(
-    @Schema(description = "리프레시 토큰", example = "eyJhbGciOiJIUzI1NiJ9...", requiredMode = Schema.RequiredMode.REQUIRED)
-    val refreshToken: String
-)
-
-@Schema(description = "토큰 응답")
-data class TokenResponse(
-    @Schema(description = "액세스 토큰 (API 호출 시 Authorization 헤더에 사용)", example = "eyJhbGciOiJIUzI1NiJ9...")
-    val accessToken: String,
-    @Schema(description = "리프레시 토큰 (액세스 토큰 만료 시 갱신에 사용)", example = "eyJhbGciOiJIUzI1NiJ9...")
-    val refreshToken: String,
-    @Schema(description = "신규 회원 여부 (true: 첫 로그인, false: 기존 회원)", example = "true")
-    val isNewUser: Boolean = false
-)
-
-@Schema(description = "Apple 로그인 요청")
-data class AppleLoginRequest(
-    @Schema(description = "Apple identityToken (JWT)", requiredMode = Schema.RequiredMode.REQUIRED)
-    val identityToken: String,
-    @Schema(description = "사용자 이름 (최초 로그인 시에만 제공)", nullable = true)
-    val fullName: String? = null
-)
 
 @RestController
 @RequestMapping("/api/auth")
@@ -66,9 +45,7 @@ class AuthController(
     ): RedirectView {
         val session = request.session
         session.setAttribute("oauth2_platform", platform)
-        if (redirectUri != null) {
-            session.setAttribute("oauth2_redirect_uri", redirectUri)
-        }
+        redirectUri?.let { session.setAttribute("oauth2_redirect_uri", it) }
         return RedirectView("/oauth2/authorization/kakao")
     }
 
@@ -79,16 +56,14 @@ class AuthController(
         }
 
         val userId = jwtTokenProvider.getUserIdFromToken(request.refreshToken)
-        val newAccessToken = jwtTokenProvider.generateAccessToken(userId)
-        val newRefreshToken = jwtTokenProvider.generateRefreshToken(userId)
-
         return TokenResponse(
-            accessToken = newAccessToken,
-            refreshToken = newRefreshToken
+            accessToken = jwtTokenProvider.generateAccessToken(userId),
+            refreshToken = jwtTokenProvider.generateRefreshToken(userId)
         )
     }
 
     @PostMapping("/login/apple")
+    @Transactional
     override fun loginApple(@RequestBody request: AppleLoginRequest): TokenResponse {
         val appleUserId = try {
             appleTokenVerifier.verify(request.identityToken)
@@ -99,37 +74,35 @@ class AuthController(
 
         val socialAccount = socialAccountRepository.findByProviderAndProviderId(SocialProvider.APPLE, appleUserId)
         val isNewUser = socialAccount == null
-        val user = socialAccount?.user
-            ?: userRepository.save(
-                User(
-                    name = request.fullName ?: "사용자",
-                    birthDate = LocalDate.of(2000, 1, 1),
-                    calendarType = CalendarType.SOLAR
-                )
-            ).also { newUser ->
-                socialAccountRepository.save(
-                    SocialAccount(
-                        user = newUser,
-                        provider = SocialProvider.APPLE,
-                        providerId = appleUserId
-                    )
-                )
-            }
-
-        val accessToken = jwtTokenProvider.generateAccessToken(user.id!!)
-        val refreshToken = jwtTokenProvider.generateRefreshToken(user.id!!)
+        val user = socialAccount?.user ?: createAppleUser(appleUserId, request.fullName)
 
         return TokenResponse(
-            accessToken = accessToken,
-            refreshToken = refreshToken,
+            accessToken = jwtTokenProvider.generateAccessToken(user.id!!),
+            refreshToken = jwtTokenProvider.generateRefreshToken(user.id!!),
             isNewUser = isNewUser
         )
     }
 
     @PostMapping("/logout")
     override fun logout(): ResponseEntity<Map<String, String>> {
-        // Stateless 방식: 서버에서는 별도 처리 없이 성공 응답 반환
-        // 클라이언트에서 토큰을 삭제하여 로그아웃 처리
         return ResponseEntity.ok(mapOf("message" to "로그아웃되었습니다."))
+    }
+
+    private fun createAppleUser(appleUserId: String, fullName: String?): User {
+        val user = userRepository.save(
+            User(
+                name = fullName ?: "사용자",
+                birthDate = LocalDate.of(2000, 1, 1),
+                calendarType = CalendarType.SOLAR
+            )
+        )
+        socialAccountRepository.save(
+            SocialAccount(
+                user = user,
+                provider = SocialProvider.APPLE,
+                providerId = appleUserId
+            )
+        )
+        return user
     }
 }

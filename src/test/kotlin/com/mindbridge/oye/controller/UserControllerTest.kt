@@ -74,9 +74,9 @@ class UserControllerTest {
     }
 
     @Test
-    fun `GET users me - redirects to login without token`() {
+    fun `GET users me - returns 401 without token`() {
         mockMvc.perform(get("/api/users/me"))
-            .andExpect(status().is3xxRedirection)
+            .andExpect(status().isUnauthorized)
     }
 
     @Test
@@ -141,7 +141,7 @@ class UserControllerTest {
     }
 
     @Test
-    fun `PUT users me - redirects to login without token`() {
+    fun `PUT users me - returns 401 without token`() {
         val requestBody = """
             {
                 "name": "수정된이름",
@@ -154,7 +154,7 @@ class UserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
         )
-            .andExpect(status().is3xxRedirection)
+            .andExpect(status().isUnauthorized)
     }
 
     @Test
@@ -174,8 +174,8 @@ class UserControllerTest {
     }
 
     @Test
-    fun `DELETE users me - redirects to login without token`() {
+    fun `DELETE users me - returns 401 without token`() {
         mockMvc.perform(delete("/api/users/me"))
-            .andExpect(status().is3xxRedirection)
+            .andExpect(status().isUnauthorized)
     }
 }

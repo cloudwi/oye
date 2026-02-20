@@ -1,5 +1,6 @@
 package com.mindbridge.oye.service
 
+import com.mindbridge.oye.domain.BloodType
 import com.mindbridge.oye.domain.CalendarType
 import com.mindbridge.oye.domain.Fortune
 import com.mindbridge.oye.domain.Gender
@@ -163,7 +164,25 @@ class FortuneService(
             CalendarType.LUNAR -> "음력"
             null -> "양력"
         }
-        return "사용자: ${user.name} (${genderText}, ${user.birthDate}생, ${calendarText}), 오늘: ${LocalDate.now()}"
+        val bloodTypeText = when (user.bloodType) {
+            BloodType.A -> "A형"
+            BloodType.B -> "B형"
+            BloodType.O -> "O형"
+            BloodType.AB -> "AB형"
+            null -> null
+        }
+
+        val parts = mutableListOf<String>()
+        parts.add("사용자: ${user.name}")
+        parts.add("${genderText}, ${user.birthDate}생 (${calendarText})")
+        user.birthTime?.let { parts.add("태어난 시각: ${it}") }
+        user.occupation?.let { parts.add("직업: $it") }
+        user.mbti?.let { parts.add("MBTI: $it") }
+        bloodTypeText?.let { parts.add("혈액형: $it") }
+        user.interests?.let { parts.add("관심사: $it") }
+        parts.add("오늘: ${LocalDate.now()}")
+
+        return parts.joinToString(", ")
     }
 
     private fun sanitizeResponse(response: String): String {

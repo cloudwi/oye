@@ -30,8 +30,13 @@ class UserService(
     fun updateProfile(user: User, request: UserUpdateRequest): UserResponse {
         user.name = request.name
         user.birthDate = request.birthDate
+        request.birthTime?.let { user.birthTime = it }
         request.gender?.let { user.gender = it }
         request.calendarType?.let { user.calendarType = it }
+        request.occupation?.let { user.occupation = it }
+        request.mbti?.let { user.mbti = it }
+        request.bloodType?.let { user.bloodType = it }
+        request.interests?.let { user.interests = it }
         val savedUser = userRepository.save(user)
         return UserResponse.from(savedUser, getProvider(savedUser))
     }

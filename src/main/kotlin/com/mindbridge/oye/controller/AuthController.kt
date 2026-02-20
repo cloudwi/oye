@@ -2,12 +2,14 @@ package com.mindbridge.oye.controller
 
 import com.mindbridge.oye.config.AppleTokenVerifier
 import com.mindbridge.oye.config.JwtTokenProvider
+import com.mindbridge.oye.config.KakaoTokenVerifier
 import com.mindbridge.oye.controller.api.AuthApi
 import com.mindbridge.oye.domain.CalendarType
 import com.mindbridge.oye.domain.SocialAccount
 import com.mindbridge.oye.domain.SocialProvider
 import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.dto.AppleLoginRequest
+import com.mindbridge.oye.dto.KakaoLoginRequest
 import com.mindbridge.oye.dto.RefreshTokenRequest
 import com.mindbridge.oye.dto.TokenResponse
 import com.mindbridge.oye.exception.UnauthorizedException
@@ -31,6 +33,7 @@ import java.time.LocalDate
 class AuthController(
     private val jwtTokenProvider: JwtTokenProvider,
     private val appleTokenVerifier: AppleTokenVerifier,
+    private val kakaoTokenVerifier: KakaoTokenVerifier,
     private val userRepository: UserRepository,
     private val socialAccountRepository: SocialAccountRepository
 ) : AuthApi {
@@ -83,9 +86,48 @@ class AuthController(
         )
     }
 
+    @PostMapping("/login/kakao/native")
+    @Transactional
+    override fun loginKakaoNative(@RequestBody request: KakaoLoginRequest): TokenResponse {
+        val kakaoUser = try {
+            kakaoTokenVerifier.verify(request.accessToken)
+        } catch (e: Exception) {
+            log.error("카카오 토큰 검증 실패", e)
+            throw UnauthorizedException("유효하지 않은 카카오 토큰입니다.")
+        }
+
+        val socialAccount = socialAccountRepository.findByProviderAndProviderId(SocialProvider.KAKAO, kakaoUser.id)
+        val isNewUser = socialAccount == null
+        val user = socialAccount?.user ?: createKakaoUser(kakaoUser.id, kakaoUser.nickname)
+
+        return TokenResponse(
+            accessToken = jwtTokenProvider.generateAccessToken(user.id!!),
+            refreshToken = jwtTokenProvider.generateRefreshToken(user.id!!),
+            isNewUser = isNewUser
+        )
+    }
+
     @PostMapping("/logout")
     override fun logout(): ResponseEntity<Map<String, String>> {
         return ResponseEntity.ok(mapOf("message" to "로그아웃되었습니다."))
+    }
+
+    private fun createKakaoUser(kakaoId: String, nickname: String): User {
+        val user = userRepository.save(
+            User(
+                name = nickname,
+                birthDate = LocalDate.of(2000, 1, 1),
+                calendarType = CalendarType.SOLAR
+            )
+        )
+        socialAccountRepository.save(
+            SocialAccount(
+                user = user,
+                provider = SocialProvider.KAKAO,
+                providerId = kakaoId
+            )
+        )
+        return user
     }
 
     private fun createAppleUser(appleUserId: String, fullName: String?): User {

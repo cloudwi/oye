@@ -4,6 +4,9 @@ oye:
 apple:
   bundle-id: ${APPLE_BUNDLE_ID:com.oyeapp.fortune}
 
+kakao:
+  native-app-key: ${KAKAO_NATIVE_APP_KEY:placeholder}
+
 jwt:
   secret: ${JWT_SECRET:default-secret-key-for-development-only-change-in-production-min-32-bytes!!}
   access-token-expiration: 3600000

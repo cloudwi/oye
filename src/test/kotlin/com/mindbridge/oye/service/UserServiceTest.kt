@@ -4,6 +4,7 @@ import com.mindbridge.oye.domain.CalendarType
 import com.mindbridge.oye.domain.Gender
 import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.repository.FortuneRepository
+import com.mindbridge.oye.repository.InquiryCommentRepository
 import com.mindbridge.oye.repository.InquiryRepository
 import com.mindbridge.oye.repository.SocialAccountRepository
 import com.mindbridge.oye.repository.UserRepository
@@ -13,6 +14,7 @@ import org.mockito.InOrder
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.inOrder
+import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import java.time.LocalDate
 
@@ -31,6 +33,9 @@ class UserServiceTest {
     @Mock
     private lateinit var inquiryRepository: InquiryRepository
 
+    @Mock
+    private lateinit var inquiryCommentRepository: InquiryCommentRepository
+
     @InjectMocks
     private lateinit var userService: UserService
 
@@ -44,9 +49,12 @@ class UserServiceTest {
 
     @Test
     fun `deleteUser - deletes fortunes and social accounts before deleting user`() {
+        `when`(inquiryRepository.findAllByUser(testUser)).thenReturn(emptyList())
+
         userService.deleteUser(testUser)
 
         val inOrder: InOrder = inOrder(inquiryRepository, fortuneRepository, socialAccountRepository, userRepository)
+        inOrder.verify(inquiryRepository).findAllByUser(testUser)
         inOrder.verify(inquiryRepository).deleteAllByUser(testUser)
         inOrder.verify(fortuneRepository).deleteAllByUser(testUser)
         inOrder.verify(socialAccountRepository).deleteAllByUser(testUser)

@@ -3,8 +3,8 @@ package com.mindbridge.oye.controller
 import com.mindbridge.oye.config.AuthenticationResolver
 import com.mindbridge.oye.controller.api.InquiryApi
 import com.mindbridge.oye.dto.ApiResponse
+import com.mindbridge.oye.dto.InquiryCommentCreateRequest
 import com.mindbridge.oye.dto.InquiryCreateRequest
-import com.mindbridge.oye.dto.InquiryReplyRequest
 import com.mindbridge.oye.dto.InquiryResponse
 import com.mindbridge.oye.dto.PageResponse
 import com.mindbridge.oye.service.InquiryService
@@ -53,13 +53,13 @@ class InquiryController(
         return inquiryService.getInquiry(user, id)
     }
 
-    @PostMapping("/{id}/reply")
-    override fun replyToInquiry(
+    @PostMapping("/{id}/comments")
+    override fun addComment(
         @AuthenticationPrincipal principal: Any?,
         @PathVariable id: Long,
-        @Valid @RequestBody request: InquiryReplyRequest
+        @Valid @RequestBody request: InquiryCommentCreateRequest
     ): InquiryResponse {
         val user = authenticationResolver.getCurrentUser(principal)
-        return inquiryService.replyToInquiry(user, id, request)
+        return inquiryService.addComment(user, id, request)
     }
 }

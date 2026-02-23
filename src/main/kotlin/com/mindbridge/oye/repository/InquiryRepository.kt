@@ -8,5 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface InquiryRepository : JpaRepository<Inquiry, Long> {
     fun findByUserOrderByCreatedAtDesc(user: User, pageable: Pageable): Page<Inquiry>
+    fun findAllByUser(user: User): List<Inquiry>
     fun deleteAllByUser(user: User)
 }

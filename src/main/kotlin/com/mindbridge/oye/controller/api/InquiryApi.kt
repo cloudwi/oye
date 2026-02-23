@@ -1,8 +1,8 @@
 package com.mindbridge.oye.controller.api
 
 import com.mindbridge.oye.dto.ApiResponse
+import com.mindbridge.oye.dto.InquiryCommentCreateRequest
 import com.mindbridge.oye.dto.InquiryCreateRequest
-import com.mindbridge.oye.dto.InquiryReplyRequest
 import com.mindbridge.oye.dto.InquiryResponse
 import com.mindbridge.oye.dto.PageResponse
 import com.mindbridge.oye.exception.ErrorResponse
@@ -54,14 +54,15 @@ interface InquiryApi {
     fun getInquiry(principal: Any?, id: Long): InquiryResponse
 
     @Operation(
-        summary = "문의 답변 작성",
-        description = """관리자가 문의에 답변을 작성합니다.
-- 관리자만 사용 가능합니다."""
+        summary = "문의 댓글 작성",
+        description = """관리자가 문의에 댓글을 작성합니다.
+- 관리자만 사용 가능합니다.
+- 첫 댓글 작성 시 문의 상태가 ANSWERED로 변경됩니다."""
     )
     @ApiResponses(
         SwaggerResponse(
             responseCode = "200",
-            description = "답변 성공",
+            description = "댓글 작성 성공",
             content = [Content(schema = Schema(implementation = InquiryResponse::class))]
         ),
         SwaggerResponse(
@@ -75,5 +76,5 @@ interface InquiryApi {
             content = [Content(schema = Schema(implementation = ErrorResponse::class))]
         )
     )
-    fun replyToInquiry(principal: Any?, id: Long, request: InquiryReplyRequest): InquiryResponse
+    fun addComment(principal: Any?, id: Long, request: InquiryCommentCreateRequest): InquiryResponse
 }

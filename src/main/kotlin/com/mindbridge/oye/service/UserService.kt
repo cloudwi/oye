@@ -5,6 +5,7 @@ import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.dto.UserResponse
 import com.mindbridge.oye.dto.UserUpdateRequest
 import com.mindbridge.oye.repository.FortuneRepository
+import com.mindbridge.oye.repository.InquiryCommentRepository
 import com.mindbridge.oye.repository.InquiryRepository
 import com.mindbridge.oye.repository.SocialAccountRepository
 import com.mindbridge.oye.repository.UserRepository
@@ -17,7 +18,8 @@ class UserService(
     private val userRepository: UserRepository,
     private val fortuneRepository: FortuneRepository,
     private val socialAccountRepository: SocialAccountRepository,
-    private val inquiryRepository: InquiryRepository
+    private val inquiryRepository: InquiryRepository,
+    private val inquiryCommentRepository: InquiryCommentRepository
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -44,6 +46,8 @@ class UserService(
     @Transactional
     fun deleteUser(user: User) {
         log.info("사용자 삭제 시작: userId={}", user.id)
+        val inquiries = inquiryRepository.findAllByUser(user)
+        inquiries.forEach { inquiryCommentRepository.deleteAllByInquiry(it) }
         inquiryRepository.deleteAllByUser(user)
         fortuneRepository.deleteAllByUser(user)
         socialAccountRepository.deleteAllByUser(user)

@@ -2,23 +2,25 @@ package com.mindbridge.oye.service
 
 import com.mindbridge.oye.config.AdminProperties
 import com.mindbridge.oye.domain.Inquiry
+import com.mindbridge.oye.domain.InquiryComment
 import com.mindbridge.oye.domain.InquiryStatus
 import com.mindbridge.oye.domain.User
+import com.mindbridge.oye.dto.InquiryCommentCreateRequest
 import com.mindbridge.oye.dto.InquiryCreateRequest
-import com.mindbridge.oye.dto.InquiryReplyRequest
 import com.mindbridge.oye.dto.InquiryResponse
 import com.mindbridge.oye.dto.PageResponse
 import com.mindbridge.oye.exception.ForbiddenException
 import com.mindbridge.oye.exception.InquiryNotFoundException
+import com.mindbridge.oye.repository.InquiryCommentRepository
 import com.mindbridge.oye.repository.InquiryRepository
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
 
 @Service
 class InquiryService(
     private val inquiryRepository: InquiryRepository,
+    private val inquiryCommentRepository: InquiryCommentRepository,
     private val adminProperties: AdminProperties
 ) {
     @Transactional
@@ -52,19 +54,25 @@ class InquiryService(
             throw ForbiddenException()
         }
 
-        return InquiryResponse.from(inquiry)
+        val comments = inquiryCommentRepository.findByInquiryOrderByCreatedAtAsc(inquiry)
+        return InquiryResponse.from(inquiry, comments)
     }
 
     @Transactional
-    fun replyToInquiry(user: User, inquiryId: Long, request: InquiryReplyRequest): InquiryResponse {
+    fun addComment(user: User, inquiryId: Long, request: InquiryCommentCreateRequest): InquiryResponse {
         requireAdmin(user)
 
         val inquiry = findInquiryById(inquiryId)
-        inquiry.adminReply = request.content
-        inquiry.adminRepliedAt = LocalDateTime.now()
+        val comment = InquiryComment(
+            inquiry = inquiry,
+            admin = user,
+            content = request.content
+        )
+        inquiryCommentRepository.save(comment)
         inquiry.status = InquiryStatus.ANSWERED
 
-        return InquiryResponse.from(inquiry)
+        val comments = inquiryCommentRepository.findByInquiryOrderByCreatedAtAsc(inquiry)
+        return InquiryResponse.from(inquiry, comments)
     }
 
     private fun findInquiryById(inquiryId: Long): Inquiry {

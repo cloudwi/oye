@@ -21,3 +21,9 @@ class CompatibilityGenerationException(message: String = "궁합 생성에 실�
 class SelfConnectionException(message: String = "자기 자신과는 연결할 수 없습니다.") : OyeException(message)
 
 class DuplicateConnectionException(message: String = "이미 연결된 사용자입니다.") : OyeException(message)
+
+class LottoRoundNotFoundException(message: String = "로또 회차를 찾을 수 없습니다.") : OyeException(message)
+
+class LottoAlreadyRecommendedException(message: String = "이미 해당 회차에 추천을 받았습니다.") : OyeException(message)
+
+class LottoDrawNotAvailableException(message: String = "아직 추첨 결과를 가져올 수 없습니다.") : OyeException(message)

@@ -63,6 +63,18 @@ class GlobalExceptionHandler {
     fun handleTooManyRequestsException(e: TooManyRequestsException) =
         errorResponse(HttpStatus.TOO_MANY_REQUESTS, e.message ?: "요청이 너무 많습니다.", "TOO_MANY_REQUESTS")
 
+    @ExceptionHandler(LottoRoundNotFoundException::class)
+    fun handleLottoRoundNotFoundException(e: LottoRoundNotFoundException) =
+        errorResponse(HttpStatus.NOT_FOUND, e.message ?: "로또 회차를 찾을 수 없습니다.", "LOTTO_ROUND_NOT_FOUND")
+
+    @ExceptionHandler(LottoAlreadyRecommendedException::class)
+    fun handleLottoAlreadyRecommendedException(e: LottoAlreadyRecommendedException) =
+        errorResponse(HttpStatus.CONFLICT, e.message ?: "이미 해당 회차에 추천을 받았습니다.", "LOTTO_ALREADY_RECOMMENDED")
+
+    @ExceptionHandler(LottoDrawNotAvailableException::class)
+    fun handleLottoDrawNotAvailableException(e: LottoDrawNotAvailableException) =
+        errorResponse(HttpStatus.NOT_FOUND, e.message ?: "아직 추첨 결과를 가져올 수 없습니다.", "LOTTO_DRAW_NOT_AVAILABLE")
+
     // --- Auth/access exceptions ---
 
     @ExceptionHandler(UnauthorizedException::class)

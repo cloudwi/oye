@@ -14,6 +14,8 @@ import com.mindbridge.oye.exception.ConnectionNotFoundException
 import com.mindbridge.oye.exception.ForbiddenException
 import com.mindbridge.oye.repository.CompatibilityRepository
 import com.mindbridge.oye.repository.UserConnectionRepository
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.dao.DataIntegrityViolationException
@@ -30,6 +32,7 @@ class CompatibilityService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val chatClient: ChatClient = chatClientBuilder.build()
+    private val objectMapper = jacksonObjectMapper()
 
     companion object {
         private const val MAX_RETRY_COUNT = 2
@@ -134,6 +137,10 @@ class CompatibilityService(
 
         repeat(MAX_RETRY_COUNT) { attempt ->
             try {
+                if (attempt > 0) {
+                    Thread.sleep(1000L * attempt)
+                }
+
                 val response = chatClient.prompt()
                     .system(SYSTEM_PROMPT)
                     .user(userPrompt)
@@ -144,6 +151,9 @@ class CompatibilityService(
                     return parseResponse(sanitizeResponse(response))
                 }
                 log.warn("AI 응답이 비어있습니다. 재시도 {}/{}", attempt + 1, MAX_RETRY_COUNT)
+            } catch (e: CompatibilityGenerationException) {
+                lastException = e
+                log.warn("AI 응답 파싱 실패 (재시도 {}/{}): {}", attempt + 1, MAX_RETRY_COUNT, e.message)
             } catch (e: Exception) {
                 lastException = e
                 log.warn("AI 호출 실패 (재시도 {}/{}): {}", attempt + 1, MAX_RETRY_COUNT, e.message)
@@ -209,27 +219,32 @@ class CompatibilityService(
     }
 
     private fun sanitizeResponse(response: String): String {
-        return response.trim()
+        val trimmed = response.trim()
+        val jsonStart = trimmed.indexOf('{')
+        val jsonEnd = trimmed.lastIndexOf('}')
+        if (jsonStart == -1 || jsonEnd == -1 || jsonEnd <= jsonStart) {
+            return trimmed
+        }
+        return trimmed.substring(jsonStart, jsonEnd + 1)
     }
 
     private fun parseResponse(response: String): AiCompatibilityResult {
         return try {
-            val scoreMatch = Regex(""""score"\s*:\s*(\d+)""").find(response)
-                ?: throw CompatibilityGenerationException("AI 응답에서 score를 파싱할 수 없습니다.")
-            val score = scoreMatch.groupValues[1].toInt().coerceIn(0, 100)
+            val json: Map<String, Any> = objectMapper.readValue(response)
 
-            val contentMatch = Regex(""""content"\s*:\s*"((?:[^"\\]|\\.)*)"""").find(response)
+            val score = when (val raw = json["score"]) {
+                is Number -> raw.toInt().coerceIn(0, 100)
+                else -> throw CompatibilityGenerationException("AI 응답에서 score를 파싱할 수 없습니다.")
+            }
+
+            val content = (json["content"] as? String)?.take(CONTENT_MAX_LENGTH)
                 ?: throw CompatibilityGenerationException("AI 응답에서 content를 파싱할 수 없습니다.")
-            val content = contentMatch.groupValues[1]
-                .replace("\\n", "\n")
-                .replace("\\\"", "\"")
-                .replace("\\\\", "\\")
-                .take(CONTENT_MAX_LENGTH)
 
             AiCompatibilityResult(score = score, content = content)
         } catch (e: CompatibilityGenerationException) {
             throw e
         } catch (e: Exception) {
+            log.error("AI 응답 파싱 실패. 원본 응답: {}", response, e)
             throw CompatibilityGenerationException("AI 응답 파싱에 실패했습니다: ${e.message}")
         }
     }

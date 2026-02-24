@@ -41,6 +41,24 @@ class GlobalExceptionHandler {
     fun handleInquiryNotFoundException(e: InquiryNotFoundException) =
         errorResponse(HttpStatus.NOT_FOUND, e.message ?: "문의를 찾을 수 없습니다.", "INQUIRY_NOT_FOUND")
 
+    @ExceptionHandler(ConnectionNotFoundException::class)
+    fun handleConnectionNotFoundException(e: ConnectionNotFoundException) =
+        errorResponse(HttpStatus.NOT_FOUND, e.message ?: "연결을 찾을 수 없습니다.", "CONNECTION_NOT_FOUND")
+
+    @ExceptionHandler(CompatibilityGenerationException::class)
+    fun handleCompatibilityGenerationException(e: CompatibilityGenerationException): ResponseEntity<ErrorResponse> {
+        log.error("궁합 생성 실패: {}", e.message)
+        return errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, e.message ?: "궁합 생성에 실패했습니다.", "COMPATIBILITY_GENERATION_FAILED")
+    }
+
+    @ExceptionHandler(SelfConnectionException::class)
+    fun handleSelfConnectionException(e: SelfConnectionException) =
+        errorResponse(HttpStatus.BAD_REQUEST, e.message ?: "자기 자신과는 연결할 수 없습니다.", "SELF_CONNECTION")
+
+    @ExceptionHandler(DuplicateConnectionException::class)
+    fun handleDuplicateConnectionException(e: DuplicateConnectionException) =
+        errorResponse(HttpStatus.CONFLICT, e.message ?: "이미 연결된 사용자입니다.", "DUPLICATE_CONNECTION")
+
     @ExceptionHandler(TooManyRequestsException::class)
     fun handleTooManyRequestsException(e: TooManyRequestsException) =
         errorResponse(HttpStatus.TOO_MANY_REQUESTS, e.message ?: "요청이 너무 많습니다.", "TOO_MANY_REQUESTS")

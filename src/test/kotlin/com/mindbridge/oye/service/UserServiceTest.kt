@@ -3,10 +3,12 @@ package com.mindbridge.oye.service
 import com.mindbridge.oye.domain.CalendarType
 import com.mindbridge.oye.domain.Gender
 import com.mindbridge.oye.domain.User
+import com.mindbridge.oye.repository.CompatibilityRepository
 import com.mindbridge.oye.repository.FortuneRepository
 import com.mindbridge.oye.repository.InquiryCommentRepository
 import com.mindbridge.oye.repository.InquiryRepository
 import com.mindbridge.oye.repository.SocialAccountRepository
+import com.mindbridge.oye.repository.UserConnectionRepository
 import com.mindbridge.oye.repository.UserRepository
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -36,6 +38,12 @@ class UserServiceTest {
     @Mock
     private lateinit var inquiryCommentRepository: InquiryCommentRepository
 
+    @Mock
+    private lateinit var userConnectionRepository: UserConnectionRepository
+
+    @Mock
+    private lateinit var compatibilityRepository: CompatibilityRepository
+
     @InjectMocks
     private lateinit var userService: UserService
 
@@ -49,11 +57,14 @@ class UserServiceTest {
 
     @Test
     fun `deleteUser - deletes fortunes and social accounts before deleting user`() {
+        `when`(userConnectionRepository.findByUserOrPartner(testUser, testUser)).thenReturn(emptyList())
         `when`(inquiryRepository.findAllByUser(testUser)).thenReturn(emptyList())
 
         userService.deleteUser(testUser)
 
-        val inOrder: InOrder = inOrder(inquiryRepository, fortuneRepository, socialAccountRepository, userRepository)
+        val inOrder: InOrder = inOrder(userConnectionRepository, inquiryRepository, fortuneRepository, socialAccountRepository, userRepository)
+        inOrder.verify(userConnectionRepository).findByUserOrPartner(testUser, testUser)
+        inOrder.verify(userConnectionRepository).deleteAllByUserOrPartner(testUser, testUser)
         inOrder.verify(inquiryRepository).findAllByUser(testUser)
         inOrder.verify(inquiryRepository).deleteAllByUser(testUser)
         inOrder.verify(fortuneRepository).deleteAllByUser(testUser)

@@ -60,6 +60,10 @@ class User(
     @Comment("관심사/취미")
     var interests: String? = null,
 
+    @Column(unique = true, length = 6)
+    @Comment("친구 초대 코드 (6자리 영숫자)")
+    var connectCode: String? = null,
+
     @Column(nullable = false, updatable = false)
     @Comment("가입일시")
     val createdAt: LocalDateTime = LocalDateTime.now()

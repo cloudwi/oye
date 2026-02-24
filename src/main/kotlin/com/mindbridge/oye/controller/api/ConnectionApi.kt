@@ -1,6 +1,5 @@
 package com.mindbridge.oye.controller.api
 
-import com.mindbridge.oye.dto.ApiResponse
 import com.mindbridge.oye.dto.ConnectRequest
 import com.mindbridge.oye.dto.ConnectionResponse
 import com.mindbridge.oye.dto.MyCodeResponse
@@ -29,7 +28,7 @@ interface ConnectionApi {
             content = [Content(schema = Schema(implementation = ErrorResponse::class))]
         )
     )
-    fun getMyCode(principal: Any?): ApiResponse<MyCodeResponse>
+    fun getMyCode(principal: Any?): MyCodeResponse
 
     @Operation(
         summary = "연결 생성",
@@ -61,7 +60,7 @@ interface ConnectionApi {
             content = [Content(schema = Schema(implementation = ErrorResponse::class))]
         )
     )
-    fun connect(principal: Any?, request: ConnectRequest): ApiResponse<ConnectionResponse>
+    fun connect(principal: Any?, request: ConnectRequest): ConnectionResponse
 
     @Operation(
         summary = "내 연결 목록 조회",
@@ -78,7 +77,7 @@ interface ConnectionApi {
             content = [Content(schema = Schema(implementation = ErrorResponse::class))]
         )
     )
-    fun getMyConnections(principal: Any?): ApiResponse<List<ConnectionResponse>>
+    fun getMyConnections(principal: Any?): List<ConnectionResponse>
 
     @Operation(
         summary = "연결 삭제",
@@ -105,5 +104,5 @@ interface ConnectionApi {
             content = [Content(schema = Schema(implementation = ErrorResponse::class))]
         )
     )
-    fun deleteConnection(principal: Any?, id: Long): ApiResponse<Unit>
+    fun deleteConnection(principal: Any?, id: Long)
 }

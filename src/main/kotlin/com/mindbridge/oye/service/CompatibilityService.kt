@@ -67,7 +67,7 @@ class CompatibilityService(
     }
 
     fun getCompatibility(user: User, connectionId: Long): CompatibilityResponse {
-        val connection = userConnectionRepository.findById(connectionId)
+        val connection = userConnectionRepository.findByIdWithUsers(connectionId)
             .orElseThrow { ConnectionNotFoundException() }
 
         if (connection.user.id != user.id && connection.partner.id != user.id) {
@@ -113,7 +113,7 @@ class CompatibilityService(
 
     @Transactional(readOnly = true)
     fun getCompatibilityHistory(user: User, connectionId: Long, page: Int, size: Int): PageResponse<CompatibilityResponse> {
-        val connection = userConnectionRepository.findById(connectionId)
+        val connection = userConnectionRepository.findByIdWithUsers(connectionId)
             .orElseThrow { ConnectionNotFoundException() }
 
         if (connection.user.id != user.id && connection.partner.id != user.id) {

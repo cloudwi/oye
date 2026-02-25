@@ -10,6 +10,7 @@ import com.mindbridge.oye.exception.LottoAlreadyRecommendedException
 import com.mindbridge.oye.exception.LottoRoundNotFoundException
 import com.mindbridge.oye.repository.LottoRecommendationRepository
 import com.mindbridge.oye.repository.LottoRoundRepository
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -52,8 +53,12 @@ class LottoService(
             )
         }
 
-        val saved = lottoRecommendationRepository.saveAll(recommendations)
-        return saved.map { LottoRecommendationResponse.from(it) }
+        try {
+            val saved = lottoRecommendationRepository.saveAll(recommendations)
+            return saved.map { LottoRecommendationResponse.from(it) }
+        } catch (e: DataIntegrityViolationException) {
+            throw LottoAlreadyRecommendedException()
+        }
     }
 
     @Transactional(readOnly = true)
@@ -74,12 +79,8 @@ class LottoService(
         val pageable = PageRequest.of(page, size)
         val winnerPage = lottoRecommendationRepository.findByRankIsNotNullOrderByRoundDescRankAsc(pageable)
 
-        val rounds = winnerPage.content
-            .map { it.round }
-            .distinct()
-            .let { roundNumbers ->
-                roundNumbers.associateWith { lottoRoundRepository.findByRound(it) }
-            }
+        val roundNumbers = winnerPage.content.map { it.round }.distinct()
+        val rounds = lottoRoundRepository.findByRoundIn(roundNumbers).associateBy { it.round }
 
         return PageResponse(
             content = winnerPage.content.map { recommendation ->
@@ -99,11 +100,12 @@ class LottoService(
         return LottoRoundResponse.from(lottoRound)
     }
 
-    fun getCurrentRound(): Int {
-        val today = LocalDate.now()
-        val daysSinceEpoch = ChronoUnit.DAYS.between(LOTTO_EPOCH, today)
+    fun getRoundForDate(date: LocalDate): Int {
+        val daysSinceEpoch = ChronoUnit.DAYS.between(LOTTO_EPOCH, date)
         return (daysSinceEpoch / 7 + 1).toInt()
     }
+
+    fun getCurrentRound(): Int = getRoundForDate(LocalDate.now())
 
     private fun generateNumbers(): List<Int> {
         return (MIN_NUMBER..MAX_NUMBER).shuffled().take(NUMBER_COUNT).sorted()

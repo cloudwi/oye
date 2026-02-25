@@ -14,7 +14,7 @@ class LottoScheduler(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    @Scheduled(cron = "0 0 6 * * SUN")
+    @Scheduled(cron = "0 0 22 * * SAT")
     fun fetchAndEvaluateLatestDraw() {
         val round = getLastSaturdayRound()
         log.info("로또 스케줄러 시작: 회차 {}", round)
@@ -29,7 +29,7 @@ class LottoScheduler(
     }
 
     private fun getLastSaturdayRound(): Int {
-        val lastSaturday = LocalDate.now().with(TemporalAdjusters.previous(DayOfWeek.SATURDAY))
+        val lastSaturday = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.SATURDAY))
         return lottoService.getRoundForDate(lastSaturday)
     }
 }

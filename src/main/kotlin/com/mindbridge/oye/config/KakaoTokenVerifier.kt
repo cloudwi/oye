@@ -1,5 +1,6 @@
 package com.mindbridge.oye.config
 
+import com.mindbridge.oye.exception.ExternalApiException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
@@ -36,10 +37,10 @@ class KakaoTokenVerifier(
             entity,
             Map::class.java
         )
-        val tokenInfo = tokenInfoResponse.body ?: throw IllegalStateException("카카오 토큰 정보 응답이 비어있습니다.")
-        val appId = tokenInfo["app_id"]?.toString() ?: throw IllegalStateException("카카오 앱 ID를 확인할 수 없습니다.")
+        val tokenInfo = tokenInfoResponse.body ?: throw ExternalApiException("카카오 토큰 정보 응답이 비어있습니다.")
+        val appId = tokenInfo["app_id"]?.toString() ?: throw ExternalApiException("카카오 앱 ID를 확인할 수 없습니다.")
         if (appId != nativeAppKey) {
-            throw IllegalStateException("카카오 토큰의 앱 ID가 일치하지 않습니다.")
+            throw ExternalApiException("카카오 토큰의 앱 ID가 일치하지 않습니다.")
         }
 
         // 2. 사용자 정보 조회
@@ -50,8 +51,8 @@ class KakaoTokenVerifier(
             Map::class.java
         )
 
-        val body = response.body ?: throw IllegalStateException("카카오 사용자 정보 응답이 비어있습니다.")
-        val id = body["id"]?.toString() ?: throw IllegalStateException("카카오 사용자 ID를 찾을 수 없습니다.")
+        val body = response.body ?: throw ExternalApiException("카카오 사용자 정보 응답이 비어있습니다.")
+        val id = body["id"]?.toString() ?: throw ExternalApiException("카카오 사용자 ID를 찾을 수 없습니다.")
         val properties = body["properties"] as? Map<*, *>
         val nickname = properties?.get("nickname") as? String ?: "사용자"
 

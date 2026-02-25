@@ -2,6 +2,7 @@ package com.mindbridge.oye.service
 
 import com.mindbridge.oye.domain.LottoRank
 import com.mindbridge.oye.domain.LottoRound
+import com.mindbridge.oye.exception.ExternalApiException
 import com.mindbridge.oye.repository.LottoRecommendationRepository
 import com.mindbridge.oye.repository.LottoRoundRepository
 import org.slf4j.LoggerFactory
@@ -20,10 +21,9 @@ class LottoDrawService(
 
     @Transactional
     fun fetchDrawResult(round: Int): LottoRound {
-        val existing = lottoRoundRepository.findByRound(round)
-        if (existing != null) {
+        lottoRoundRepository.findByRound(round)?.let {
             log.info("회차 {}의 당첨 결과가 이미 존재합니다.", round)
-            return existing
+            return it
         }
 
         log.info("동행복권 API에서 회차 {} 당첨 결과를 조회합니다.", round)
@@ -32,20 +32,20 @@ class LottoDrawService(
             .uri("https://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo={round}", round)
             .retrieve()
             .body(Map::class.java)
-            ?: throw IllegalStateException("동행복권 API 응답이 비어있습니다. round=$round")
+            ?: throw ExternalApiException("동행복권 API 응답이 비어있습니다. round=$round")
 
         val returnValue = response["returnValue"] as? String
         if (returnValue != "success") {
-            throw IllegalStateException("동행복권 API 오류: returnValue=$returnValue, round=$round")
+            throw ExternalApiException("동행복권 API 오류: returnValue=$returnValue, round=$round")
         }
 
         fun parseIntField(key: String): Int {
             return (response[key] as? Number)?.toInt()
-                ?: throw IllegalStateException("동행복권 API 응답에서 $key 필드를 파싱할 수 없습니다. round=$round")
+                ?: throw ExternalApiException("동행복권 API 응답에서 $key 필드를 파싱할 수 없습니다. round=$round")
         }
 
         val drawDateStr = response["drwNoDate"] as? String
-            ?: throw IllegalStateException("동행복권 API 응답에서 drwNoDate 필드를 파싱할 수 없습니다. round=$round")
+            ?: throw ExternalApiException("동행복권 API 응답에서 drwNoDate 필드를 파싱할 수 없습니다. round=$round")
 
         val lottoRound = LottoRound(
             round = round,

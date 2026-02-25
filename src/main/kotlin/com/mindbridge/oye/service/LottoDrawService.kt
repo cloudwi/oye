@@ -39,16 +39,24 @@ class LottoDrawService(
             throw IllegalStateException("동행복권 API 오류: returnValue=$returnValue, round=$round")
         }
 
+        fun parseIntField(key: String): Int {
+            return (response[key] as? Number)?.toInt()
+                ?: throw IllegalStateException("동행복권 API 응답에서 $key 필드를 파싱할 수 없습니다. round=$round")
+        }
+
+        val drawDateStr = response["drwNoDate"] as? String
+            ?: throw IllegalStateException("동행복권 API 응답에서 drwNoDate 필드를 파싱할 수 없습니다. round=$round")
+
         val lottoRound = LottoRound(
             round = round,
-            number1 = (response["drwtNo1"] as Number).toInt(),
-            number2 = (response["drwtNo2"] as Number).toInt(),
-            number3 = (response["drwtNo3"] as Number).toInt(),
-            number4 = (response["drwtNo4"] as Number).toInt(),
-            number5 = (response["drwtNo5"] as Number).toInt(),
-            number6 = (response["drwtNo6"] as Number).toInt(),
-            bonusNumber = (response["bnusNo"] as Number).toInt(),
-            drawDate = LocalDate.parse(response["drwNoDate"] as String)
+            number1 = parseIntField("drwtNo1"),
+            number2 = parseIntField("drwtNo2"),
+            number3 = parseIntField("drwtNo3"),
+            number4 = parseIntField("drwtNo4"),
+            number5 = parseIntField("drwtNo5"),
+            number6 = parseIntField("drwtNo6"),
+            bonusNumber = parseIntField("bnusNo"),
+            drawDate = LocalDate.parse(drawDateStr)
         )
 
         val saved = lottoRoundRepository.save(lottoRound)

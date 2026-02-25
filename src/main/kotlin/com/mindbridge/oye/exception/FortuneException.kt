@@ -27,3 +27,7 @@ class LottoRoundNotFoundException(message: String = "로또 회차를 찾을 수
 class LottoAlreadyRecommendedException(message: String = "이미 해당 회차에 추천을 받았습니다.") : OyeException(message)
 
 class LottoDrawNotAvailableException(message: String = "아직 추첨 결과를 가져올 수 없습니다.") : OyeException(message)
+
+class CodeGenerationException(message: String = "고유 코드 생성에 실패했습니다.") : OyeException(message)
+
+class ExternalApiException(message: String = "외부 API 호출에 실패했습니다.") : OyeException(message)

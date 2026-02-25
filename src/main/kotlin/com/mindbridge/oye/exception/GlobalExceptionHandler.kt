@@ -75,6 +75,18 @@ class GlobalExceptionHandler {
     fun handleLottoDrawNotAvailableException(e: LottoDrawNotAvailableException) =
         errorResponse(HttpStatus.NOT_FOUND, e.message ?: "아직 추첨 결과를 가져올 수 없습니다.", "LOTTO_DRAW_NOT_AVAILABLE")
 
+    @ExceptionHandler(CodeGenerationException::class)
+    fun handleCodeGenerationException(e: CodeGenerationException): ResponseEntity<ErrorResponse> {
+        log.error("코드 생성 실패: {}", e.message)
+        return errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, e.message ?: "코드 생성에 실패했습니다.", "CODE_GENERATION_FAILED")
+    }
+
+    @ExceptionHandler(ExternalApiException::class)
+    fun handleExternalApiException(e: ExternalApiException): ResponseEntity<ErrorResponse> {
+        log.error("외부 API 호출 실패: {}", e.message)
+        return errorResponse(HttpStatus.BAD_GATEWAY, e.message ?: "외부 API 호출에 실패했습니다.", "EXTERNAL_API_ERROR")
+    }
+
     // --- Auth/access exceptions ---
 
     @ExceptionHandler(UnauthorizedException::class)

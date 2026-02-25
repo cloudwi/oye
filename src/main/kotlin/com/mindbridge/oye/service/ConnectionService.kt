@@ -5,6 +5,7 @@ import com.mindbridge.oye.domain.UserConnection
 import com.mindbridge.oye.dto.ConnectRequest
 import com.mindbridge.oye.dto.ConnectionResponse
 import com.mindbridge.oye.dto.MyCodeResponse
+import com.mindbridge.oye.exception.CodeGenerationException
 import com.mindbridge.oye.exception.ConnectionNotFoundException
 import com.mindbridge.oye.exception.DuplicateConnectionException
 import com.mindbridge.oye.exception.ForbiddenException
@@ -35,9 +36,8 @@ class ConnectionService(
 
     @Transactional
     fun getMyCode(user: User): MyCodeResponse {
-        if (user.connectCode != null) {
-            return MyCodeResponse(code = user.connectCode!!)
-        }
+        user.connectCode?.let { return MyCodeResponse(code = it) }
+
         val code = generateUniqueCode()
         user.connectCode = code
         userRepository.save(user)
@@ -105,6 +105,6 @@ class ConnectionService(
                 return code
             }
         }
-        throw RuntimeException("고유 초대 코드 생성에 실패했습니다.")
+        throw CodeGenerationException("고유 초대 코드 생성에 실패했습니다.")
     }
 }

@@ -3,6 +3,7 @@ package com.mindbridge.oye.dto
 import com.mindbridge.oye.domain.BloodType
 import com.mindbridge.oye.domain.CalendarType
 import com.mindbridge.oye.domain.Gender
+import com.mindbridge.oye.domain.Role
 import com.mindbridge.oye.domain.SocialProvider
 import com.mindbridge.oye.domain.User
 import io.swagger.v3.oas.annotations.media.Schema
@@ -84,6 +85,9 @@ data class UserResponse(
     @Schema(description = "관심사/취미", example = "독서, 요리", nullable = true)
     val interests: String?,
 
+    @Schema(description = "사용자 권한", example = "USER")
+    val role: Role,
+
     @Schema(description = "가입일시", example = "2025-01-01T00:00:00")
     val createdAt: LocalDateTime
 ) {
@@ -101,6 +105,7 @@ data class UserResponse(
                 mbti = user.mbti,
                 bloodType = user.bloodType,
                 interests = user.interests,
+                role = user.role,
                 createdAt = user.createdAt
             )
         }

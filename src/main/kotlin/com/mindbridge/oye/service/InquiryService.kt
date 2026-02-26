@@ -1,9 +1,9 @@
 package com.mindbridge.oye.service
 
-import com.mindbridge.oye.config.AdminProperties
 import com.mindbridge.oye.domain.Inquiry
 import com.mindbridge.oye.domain.InquiryComment
 import com.mindbridge.oye.domain.InquiryStatus
+import com.mindbridge.oye.domain.Role
 import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.dto.InquiryCommentCreateRequest
 import com.mindbridge.oye.dto.InquiryCreateRequest
@@ -20,8 +20,7 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class InquiryService(
     private val inquiryRepository: InquiryRepository,
-    private val inquiryCommentRepository: InquiryCommentRepository,
-    private val adminProperties: AdminProperties
+    private val inquiryCommentRepository: InquiryCommentRepository
 ) {
     @Transactional
     fun createInquiry(user: User, request: InquiryCreateRequest): InquiryResponse {
@@ -81,7 +80,7 @@ class InquiryService(
     }
 
     private fun isAdmin(user: User): Boolean {
-        return user.id in adminProperties.adminUserIds
+        return user.role == Role.ADMIN
     }
 
     private fun requireAdmin(user: User) {

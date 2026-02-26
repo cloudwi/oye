@@ -98,7 +98,7 @@ class ConnectionService(
         log.info("연결 삭제: connectionId={}, userId={}", connectionId, user.id)
     }
 
-    private fun generateUniqueCode(): String {
+    fun generateUniqueCode(): String {
         repeat(10) {
             val code = buildString {
                 repeat(CODE_LENGTH) {

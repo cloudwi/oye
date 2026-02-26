@@ -131,6 +131,30 @@ class AuthController(
         )
     }
 
+    @PostMapping("/admin/login/kakao")
+    @Transactional(readOnly = true)
+    override fun adminLoginKakao(@RequestBody request: KakaoLoginRequest): TokenResponse {
+        val kakaoUser = try {
+            kakaoTokenVerifier.verify(request.accessToken)
+        } catch (e: Exception) {
+            log.error("관리자 카카오 토큰 검증 실패", e)
+            throw UnauthorizedException("유효하지 않은 카카오 토큰입니다.")
+        }
+
+        val socialAccount = socialAccountRepository.findByProviderAndProviderId(SocialProvider.KAKAO, kakaoUser.id)
+            ?: throw UnauthorizedException("가입되지 않은 사용자입니다.")
+
+        val user = socialAccount.user
+        if (user.role != Role.ADMIN) {
+            throw ForbiddenException("관리자 권한이 필요합니다.")
+        }
+
+        return TokenResponse(
+            accessToken = jwtTokenProvider.generateAccessToken(user.id!!),
+            refreshToken = jwtTokenProvider.generateRefreshToken(user.id!!)
+        )
+    }
+
     @PostMapping("/logout")
     override fun logout(): ResponseEntity<Map<String, String>> {
         return ResponseEntity.ok(mapOf("message" to "로그아웃되었습니다."))

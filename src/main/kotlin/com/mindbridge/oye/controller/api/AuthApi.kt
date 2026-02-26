@@ -141,4 +141,31 @@ interface AuthApi {
         )
     )
     fun adminLogin(request: AdminLoginRequest): TokenResponse
+
+    @Operation(
+        summary = "관리자 카카오 로그인",
+        description = """카카오 SDK로 받은 액세스 토큰으로 관리자 로그인합니다.
+
+- 카카오 토큰을 검증하여 기존 사용자를 확인합니다.
+- ADMIN 권한이 있는 사용자만 로그인할 수 있습니다.
+- 미가입 사용자는 로그인할 수 없습니다."""
+    )
+    @ApiResponses(
+        ApiResponse(
+            responseCode = "200",
+            description = "관리자 로그인 성공",
+            content = [Content(schema = Schema(implementation = TokenResponse::class))]
+        ),
+        ApiResponse(
+            responseCode = "401",
+            description = "유효하지 않은 카카오 토큰 또는 미가입 사용자",
+            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
+        ),
+        ApiResponse(
+            responseCode = "403",
+            description = "관리자 권한 없음",
+            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
+        )
+    )
+    fun adminLoginKakao(request: KakaoLoginRequest): TokenResponse
 }

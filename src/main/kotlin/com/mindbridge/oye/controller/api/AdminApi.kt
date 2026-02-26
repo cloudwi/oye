@@ -3,6 +3,8 @@ package com.mindbridge.oye.controller.api
 import com.mindbridge.oye.dto.AdminDashboardStats
 import com.mindbridge.oye.dto.AdminUserResponse
 import com.mindbridge.oye.dto.ApiResponse
+import com.mindbridge.oye.dto.AppVersionConfigResponse
+import com.mindbridge.oye.dto.AppVersionUpdateRequest
 import com.mindbridge.oye.dto.PageResponse
 import com.mindbridge.oye.dto.RoleUpdateRequest
 import com.mindbridge.oye.exception.ErrorResponse
@@ -89,4 +91,50 @@ interface AdminApi {
         @Parameter(description = "사용자 ID", example = "1") id: Long,
         request: RoleUpdateRequest
     ): AdminUserResponse
+
+    @Operation(
+        summary = "앱 버전 목록 조회",
+        description = """플랫폼별 앱 최소 버전 설정을 조회합니다.
+- 관리자만 사용 가능합니다."""
+    )
+    @ApiResponses(
+        SwaggerResponse(
+            responseCode = "200",
+            description = "조회 성공"
+        ),
+        SwaggerResponse(
+            responseCode = "403",
+            description = "권한 없음",
+            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
+        )
+    )
+    fun getAppVersions(principal: Any?): List<AppVersionConfigResponse>
+
+    @Operation(
+        summary = "앱 버전 수정",
+        description = """특정 플랫폼의 최소 버전과 스토어 URL을 수정합니다.
+- 관리자만 사용 가능합니다."""
+    )
+    @ApiResponses(
+        SwaggerResponse(
+            responseCode = "200",
+            description = "수정 성공",
+            content = [Content(schema = Schema(implementation = AppVersionConfigResponse::class))]
+        ),
+        SwaggerResponse(
+            responseCode = "403",
+            description = "권한 없음",
+            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
+        ),
+        SwaggerResponse(
+            responseCode = "404",
+            description = "플랫폼을 찾을 수 없음",
+            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
+        )
+    )
+    fun updateAppVersion(
+        principal: Any?,
+        @Parameter(description = "플랫폼 (ios, android)", example = "ios") platform: String,
+        request: AppVersionUpdateRequest
+    ): AppVersionConfigResponse
 }

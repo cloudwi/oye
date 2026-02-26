@@ -90,6 +90,7 @@ class SecurityConfig(
                     .requestMatchers("/actuator/**").denyAll()
                     .requestMatchers("/h2-console/**").permitAll()
                     .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers("/api/app/**").permitAll()
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                     .requestMatchers("/api/**").authenticated()
                     .anyRequest().denyAll()

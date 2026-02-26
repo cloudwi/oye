@@ -9,6 +9,8 @@ import com.mindbridge.oye.exception.FortuneGenerationException
 import com.mindbridge.oye.dto.FortuneResponse
 import com.mindbridge.oye.dto.PageResponse
 import com.mindbridge.oye.repository.FortuneRepository
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.dao.DataIntegrityViolationException
@@ -25,16 +27,19 @@ class FortuneService(
     private val log = LoggerFactory.getLogger(javaClass)
     private val chatClient: ChatClient = chatClientBuilder.build()
 
+    private data class FortuneAiResponse(val content: String, val score: Int)
+
     companion object {
         private const val MAX_RETRY_COUNT = 2
         private const val FORTUNE_MAX_LENGTH = 80
+        private val objectMapper = jacksonObjectMapper()
 
         private val SYSTEM_PROMPT = """
             당신은 하루의 분위기를 전해주는 예감 작가입니다.
 
-            짧고 임팩트 있는 한 문장 예감을 작성하세요.
+            짧고 임팩트 있는 한 문장 예감과 오늘의 예감 점수를 작성하세요.
 
-            규칙:
+            예감 규칙:
             - 반드시 한 문장, 40자 이내
             - 해요체로 작성 (~돼요, ~있어요, ~이에요)
             - 반말(~된다, ~있다) 금지
@@ -44,15 +49,22 @@ class FortuneService(
             - 감정만 나열하는 추상적 표현 금지 (설렘, 빛난다, 밝아진다 등)
             - 감각적 비유로 포장한 모호한 표현 금지 (다른 맛, 특별한 향, 새로운 색 등)
             - 이모지 없이 텍스트만
-            - 따옴표나 부가 설명 없이 문장만 출력
             - 나쁜 습관을 조장하는 내용 금지
 
+            점수 규칙:
+            - 1~100 사이 정수
+            - 예감 내용의 분위기와 일치하는 점수
+            - 40~60: 평범한 날, 60~80: 좋은 기운, 80~100: 특별히 좋은 날, 20~40: 조심하면 좋은 날
+
+            출력 형식 (반드시 JSON만 출력):
+            {"content": "예감 문장", "score": 75}
+
             좋은 예시 (일상 상황 + 열린 결말):
-            "오늘 점심 메뉴 고르는 감이 유독 좋은 날이에요."
-            "평소 안 보이던 것들이 눈에 들어오는 하루예요."
-            "누군가와 나누는 짧은 대화가 오래 기억에 남아요."
-            "익숙한 길에서 새로운 걸 발견할 수 있는 날이에요."
-            "오늘 내린 작은 결정이 꽤 괜찮은 방향이에요."
+            {"content": "오늘 점심 메뉴 고르는 감이 유독 좋은 날이에요.", "score": 72}
+            {"content": "평소 안 보이던 것들이 눈에 들어오는 하루예요.", "score": 68}
+            {"content": "누군가와 나누는 짧은 대화가 오래 기억에 남아요.", "score": 65}
+            {"content": "익숙한 길에서 새로운 걸 발견할 수 있는 날이에요.", "score": 70}
+            {"content": "오늘 내린 작은 결정이 꽤 괜찮은 방향이에요.", "score": 74}
 
             나쁜 예시 - 너무 구체적 (검증 가능해서 실망할 수 있음):
             "오후에 잊고 있던 물건을 찾게 돼요."
@@ -84,11 +96,11 @@ class FortuneService(
         }
 
         // 2. AI 호출 (트랜잭션 외부 - DB 커넥션 점유하지 않음)
-        val content = callAiWithRetry(user)
+        val aiResponse = callAiWithRetry(user)
 
         // 3. 저장 시도 (별도 쓰기 트랜잭션)
         return try {
-            saveFortune(user, content)
+            saveFortune(user, aiResponse.content, aiResponse.score)
         } catch (e: DataIntegrityViolationException) {
             // 동시 요청으로 이미 저장된 경우 새 트랜잭션으로 조회
             log.warn("중복 fortune 저장 시도 감지: userId={}", user.id)
@@ -98,7 +110,7 @@ class FortuneService(
     }
 
     @Transactional
-    fun saveFortune(user: User, content: String): Fortune {
+    fun saveFortune(user: User, content: String, score: Int): Fortune {
         // 트랜잭션 내에서 다시 한번 확인 (동시성 보호)
         val existingFortune = fortuneRepository.findByUserAndDate(user, LocalDate.now())
         if (existingFortune != null) {
@@ -108,6 +120,7 @@ class FortuneService(
         val fortune = Fortune(
             user = user,
             content = content,
+            score = score,
             date = LocalDate.now()
         )
         return fortuneRepository.save(fortune)
@@ -126,7 +139,7 @@ class FortuneService(
         )
     }
 
-    private fun callAiWithRetry(user: User): String {
+    private fun callAiWithRetry(user: User): FortuneAiResponse {
         val userPrompt = buildUserPrompt(user)
         var lastException: Exception? = null
 
@@ -139,7 +152,7 @@ class FortuneService(
                     .content()
 
                 if (!response.isNullOrBlank()) {
-                    return sanitizeResponse(response)
+                    return parseAiResponse(response)
                 }
                 log.warn("AI 응답이 비어있습니다. 재시도 {}/{}", attempt + 1, MAX_RETRY_COUNT)
             } catch (e: Exception) {
@@ -185,10 +198,22 @@ class FortuneService(
         return parts.joinToString(", ")
     }
 
-    private fun sanitizeResponse(response: String): String {
-        return response
-            .trim()
-            .removeSurrounding("\"")
-            .take(FORTUNE_MAX_LENGTH)
+    private fun parseAiResponse(response: String): FortuneAiResponse {
+        val trimmed = response.trim()
+        return try {
+            val jsonStr = if (trimmed.startsWith("{")) trimmed
+                else trimmed.substringAfter("{").let { "{$it" }.substringBeforeLast("}").let { "$it}" }
+            val parsed = objectMapper.readValue<Map<String, Any>>(jsonStr)
+            val content = (parsed["content"] as? String ?: "").removeSurrounding("\"").take(FORTUNE_MAX_LENGTH)
+            val score = when (val s = parsed["score"]) {
+                is Int -> s.coerceIn(1, 100)
+                is Number -> s.toInt().coerceIn(1, 100)
+                else -> 50
+            }
+            FortuneAiResponse(content, score)
+        } catch (e: Exception) {
+            log.warn("AI 응답 JSON 파싱 실패, 텍스트로 폴백: {}", e.message)
+            FortuneAiResponse(trimmed.removeSurrounding("\"").take(FORTUNE_MAX_LENGTH), 50)
+        }
     }
 }

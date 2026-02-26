@@ -16,6 +16,9 @@ data class FortuneResponse(
     @Schema(description = "예감 대상 날짜 (YYYY-MM-DD)", example = "2025-06-15")
     val date: LocalDate,
 
+    @Schema(description = "예감 점수 (1~100)", example = "75")
+    val score: Int?,
+
     @Schema(description = "예감 생성일시", example = "2025-06-15T08:00:00")
     val createdAt: LocalDateTime
 ) {
@@ -25,6 +28,7 @@ data class FortuneResponse(
                 id = fortune.id!!,
                 content = fortune.content,
                 date = fortune.date,
+                score = fortune.score,
                 createdAt = fortune.createdAt
             )
         }

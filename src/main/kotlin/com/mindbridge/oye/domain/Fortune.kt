@@ -37,6 +37,10 @@ class Fortune(
     @Comment("예감 대상 날짜")
     val date: LocalDate,
 
+    @Column
+    @Comment("예감 점수 (1~100)")
+    val score: Int? = null,
+
     @Column(nullable = false, updatable = false)
     @Comment("예감 생성일시")
     val createdAt: LocalDateTime = LocalDateTime.now()

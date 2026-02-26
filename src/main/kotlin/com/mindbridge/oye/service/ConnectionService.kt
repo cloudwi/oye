@@ -76,7 +76,7 @@ class ConnectionService(
         val today = LocalDate.now()
         return connections.map { connection ->
             val latestCompatibility = compatibilityRepository.findByConnectionAndDate(connection, today)
-            ConnectionResponse.from(connection, user, latestCompatibility?.score)
+            ConnectionResponse.from(connection, user, latestCompatibility?.score, latestCompatibility?.content)
         }
     }
 

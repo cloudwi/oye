@@ -8,11 +8,15 @@ import com.mindbridge.oye.domain.CalendarType
 import com.mindbridge.oye.domain.SocialAccount
 import com.mindbridge.oye.domain.SocialProvider
 import com.mindbridge.oye.domain.User
+import com.mindbridge.oye.domain.Role
+import com.mindbridge.oye.dto.AdminLoginRequest
 import com.mindbridge.oye.dto.AppleLoginRequest
 import com.mindbridge.oye.dto.KakaoLoginRequest
 import com.mindbridge.oye.dto.RefreshTokenRequest
 import com.mindbridge.oye.dto.TokenResponse
+import com.mindbridge.oye.exception.ForbiddenException
 import com.mindbridge.oye.exception.UnauthorizedException
+import com.mindbridge.oye.exception.UserNotFoundException
 import com.mindbridge.oye.repository.SocialAccountRepository
 import com.mindbridge.oye.repository.UserRepository
 import jakarta.servlet.http.HttpServletRequest
@@ -104,6 +108,26 @@ class AuthController(
             accessToken = jwtTokenProvider.generateAccessToken(user.id!!),
             refreshToken = jwtTokenProvider.generateRefreshToken(user.id!!),
             isNewUser = isNewUser
+        )
+    }
+
+    @PostMapping("/admin/login")
+    override fun adminLogin(@RequestBody request: AdminLoginRequest): TokenResponse {
+        if (!jwtTokenProvider.validateToken(request.refreshToken)) {
+            throw UnauthorizedException("유효하지 않은 리프레시 토큰입니다.")
+        }
+
+        val userId = jwtTokenProvider.getUserIdFromToken(request.refreshToken)
+        val user = userRepository.findById(userId)
+            .orElseThrow { UserNotFoundException() }
+
+        if (user.role != Role.ADMIN) {
+            throw ForbiddenException("관리자 권한이 필요합니다.")
+        }
+
+        return TokenResponse(
+            accessToken = jwtTokenProvider.generateAccessToken(user.id!!),
+            refreshToken = jwtTokenProvider.generateRefreshToken(user.id!!)
         )
     }
 

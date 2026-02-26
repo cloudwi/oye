@@ -13,10 +13,11 @@ class WebConfig : WebMvcConfigurer {
                 "https://*.yegam.today",
                 "https://yegam.today",
                 "https://*.vercel.app",
+                "https://*.onrender.com",
                 "http://localhost:[*]",
                 "http://192.168.[*].[*]:[*]"
             )
-            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+            .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
             .allowedHeaders("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With")
             .allowCredentials(true)
             .maxAge(3600)

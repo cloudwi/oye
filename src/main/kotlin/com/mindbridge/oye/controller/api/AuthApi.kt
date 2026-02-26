@@ -1,5 +1,6 @@
 package com.mindbridge.oye.controller.api
 
+import com.mindbridge.oye.dto.AdminLoginRequest
 import com.mindbridge.oye.dto.AppleLoginRequest
 import com.mindbridge.oye.dto.KakaoLoginRequest
 import com.mindbridge.oye.dto.RefreshTokenRequest
@@ -114,4 +115,30 @@ interface AuthApi {
         ApiResponse(responseCode = "200", description = "로그아웃 성공")
     )
     fun logout(): ResponseEntity<Map<String, String>>
+
+    @Operation(
+        summary = "관리자 로그인",
+        description = """기존 리프레시 토큰으로 관리자 전용 토큰을 발급받습니다.
+
+- 리프레시 토큰을 검증하여 사용자를 확인합니다.
+- ADMIN 권한이 있는 사용자만 로그인할 수 있습니다."""
+    )
+    @ApiResponses(
+        ApiResponse(
+            responseCode = "200",
+            description = "관리자 로그인 성공",
+            content = [Content(schema = Schema(implementation = TokenResponse::class))]
+        ),
+        ApiResponse(
+            responseCode = "401",
+            description = "유효하지 않은 리프레시 토큰",
+            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
+        ),
+        ApiResponse(
+            responseCode = "403",
+            description = "관리자 권한 없음",
+            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
+        )
+    )
+    fun adminLogin(request: AdminLoginRequest): TokenResponse
 }

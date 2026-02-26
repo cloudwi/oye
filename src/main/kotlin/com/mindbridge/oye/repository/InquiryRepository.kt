@@ -1,6 +1,7 @@
 package com.mindbridge.oye.repository
 
 import com.mindbridge.oye.domain.Inquiry
+import com.mindbridge.oye.domain.InquiryStatus
 import com.mindbridge.oye.domain.User
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -11,4 +12,5 @@ interface InquiryRepository : JpaRepository<Inquiry, Long> {
     fun findAllByOrderByCreatedAtDesc(pageable: Pageable): Page<Inquiry>
     fun findAllByUser(user: User): List<Inquiry>
     fun deleteAllByUser(user: User)
+    fun countByStatus(status: InquiryStatus): Long
 }

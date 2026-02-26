@@ -5,9 +5,12 @@ import com.mindbridge.oye.domain.Role
 import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.dto.AdminDashboardStats
 import com.mindbridge.oye.dto.AdminUserResponse
+import com.mindbridge.oye.dto.AppVersionConfigResponse
+import com.mindbridge.oye.dto.AppVersionUpdateRequest
 import com.mindbridge.oye.dto.PageResponse
 import com.mindbridge.oye.exception.ForbiddenException
 import com.mindbridge.oye.exception.UserNotFoundException
+import com.mindbridge.oye.repository.AppVersionConfigRepository
 import com.mindbridge.oye.repository.InquiryRepository
 import com.mindbridge.oye.repository.UserRepository
 import org.springframework.data.domain.PageRequest
@@ -17,7 +20,8 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class AdminService(
     private val userRepository: UserRepository,
-    private val inquiryRepository: InquiryRepository
+    private val inquiryRepository: InquiryRepository,
+    private val appVersionConfigRepository: AppVersionConfigRepository
 ) {
     @Transactional(readOnly = true)
     fun getStats(user: User): AdminDashboardStats {
@@ -54,6 +58,23 @@ class AdminService(
             .orElseThrow { UserNotFoundException() }
         targetUser.role = role
         return AdminUserResponse.from(userRepository.save(targetUser))
+    }
+
+    @Transactional(readOnly = true)
+    fun getAppVersions(user: User): List<AppVersionConfigResponse> {
+        requireAdmin(user)
+        return appVersionConfigRepository.findAll().map { AppVersionConfigResponse.from(it) }
+    }
+
+    @Transactional
+    fun updateAppVersion(user: User, platform: String, request: AppVersionUpdateRequest): AppVersionConfigResponse {
+        requireAdmin(user)
+        val config = appVersionConfigRepository.findByPlatform(platform.lowercase())
+            ?: throw IllegalArgumentException("플랫폼을 찾을 수 없습니다: $platform")
+        config.minVersion = request.minVersion
+        config.storeUrl = request.storeUrl
+        config.updatedAt = java.time.LocalDateTime.now()
+        return AppVersionConfigResponse.from(appVersionConfigRepository.save(config))
     }
 
     private fun requireAdmin(user: User) {

@@ -66,6 +66,19 @@ class CompatibilityService(
         return compatibilityRepository.findByConnectionAndDate(connection, LocalDate.now())
     }
 
+    fun generateCompatibility(connection: UserConnection): Compatibility {
+        val existing = getTodayCompatibility(connection)
+        if (existing != null) return existing
+
+        val result = callAiWithRetry(connection)
+        return try {
+            saveCompatibility(connection, result.score, result.content)
+        } catch (e: DataIntegrityViolationException) {
+            getTodayCompatibility(connection)
+                ?: throw CompatibilityGenerationException("궁합 저장 중 오류가 발생했습니다.")
+        }
+    }
+
     fun getCompatibility(user: User, connectionId: Long): CompatibilityResponse {
         val connection = userConnectionRepository.findByIdWithUsers(connectionId)
             .orElseThrow { ConnectionNotFoundException() }

@@ -59,6 +59,15 @@ data class AdminUserResponse(
     }
 }
 
+@Schema(description = "관리자 카카오 인가코드 로그인 요청")
+data class AdminKakaoCodeRequest(
+    @Schema(description = "카카오 인가코드", requiredMode = Schema.RequiredMode.REQUIRED)
+    val code: String,
+
+    @Schema(description = "인가코드 발급 시 사용한 redirect_uri", requiredMode = Schema.RequiredMode.REQUIRED)
+    val redirectUri: String
+)
+
 @Schema(description = "권한 변경 요청")
 data class RoleUpdateRequest(
     @Schema(description = "변경할 권한", example = "ADMIN", requiredMode = Schema.RequiredMode.REQUIRED)

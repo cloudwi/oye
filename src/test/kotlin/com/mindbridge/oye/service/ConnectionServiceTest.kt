@@ -16,6 +16,7 @@ import com.mindbridge.oye.exception.UserNotFoundException
 import com.mindbridge.oye.repository.CompatibilityRepository
 import com.mindbridge.oye.repository.UserConnectionRepository
 import com.mindbridge.oye.repository.UserRepository
+import org.springframework.context.ApplicationEventPublisher
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -42,6 +43,9 @@ class ConnectionServiceTest {
 
     @Mock
     private lateinit var compatibilityRepository: CompatibilityRepository
+
+    @Mock
+    private lateinit var eventPublisher: ApplicationEventPublisher
 
     @InjectMocks
     private lateinit var connectionService: ConnectionService

@@ -145,12 +145,12 @@ class AuthController(
     @GetMapping("/admin/kakao")
     override fun adminKakaoRedirect(
         @RequestParam("redirect_uri") redirectUri: String
-    ): RedirectView {
+    ): Map<String, String> {
         val url = "https://kauth.kakao.com/oauth/authorize" +
             "?client_id=$kakaoClientId" +
             "&redirect_uri=$redirectUri" +
             "&response_type=code"
-        return RedirectView(url)
+        return mapOf("url" to url)
     }
 
     @PostMapping("/admin/login/kakao")

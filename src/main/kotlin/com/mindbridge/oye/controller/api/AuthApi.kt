@@ -171,18 +171,18 @@ interface AuthApi {
     fun adminLoginKakao(request: KakaoLoginRequest): TokenResponse
 
     @Operation(
-        summary = "관리자 카카오 OAuth 리다이렉트",
-        description = """관리자용 카카오 OAuth 인가 페이지로 리다이렉트합니다.
+        summary = "관리자 카카오 OAuth URL 조회",
+        description = """관리자용 카카오 OAuth 인가 URL을 반환합니다.
 
-- redirect_uri를 전달하면 카카오 로그인 후 해당 URI로 인가코드와 함께 리다이렉트됩니다."""
+- redirect_uri를 전달하면 카카오 로그인 URL을 생성하여 반환합니다."""
     )
     @ApiResponses(
-        ApiResponse(responseCode = "302", description = "카카오 인가 페이지로 리다이렉트")
+        ApiResponse(responseCode = "200", description = "카카오 OAuth URL 반환")
     )
     fun adminKakaoRedirect(
         @Parameter(description = "카카오 인가코드를 받을 redirect URI", required = true)
         redirectUri: String
-    ): RedirectView
+    ): Map<String, String>
 
     @Operation(
         summary = "관리자 카카오 인가코드 로그인",

@@ -9,6 +9,7 @@ import com.mindbridge.oye.domain.SocialAccount
 import com.mindbridge.oye.domain.SocialProvider
 import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.domain.Role
+import com.mindbridge.oye.dto.AdminKakaoCodeRequest
 import com.mindbridge.oye.dto.AdminLoginRequest
 import com.mindbridge.oye.dto.AppleLoginRequest
 import com.mindbridge.oye.dto.KakaoLoginRequest
@@ -29,6 +30,12 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
+import org.springframework.util.LinkedMultiValueMap
+import org.springframework.web.client.RestTemplate
 import org.springframework.web.servlet.view.RedirectView
 import java.time.LocalDate
 
@@ -39,7 +46,11 @@ class AuthController(
     private val appleTokenVerifier: AppleTokenVerifier,
     private val kakaoTokenVerifier: KakaoTokenVerifier,
     private val userRepository: UserRepository,
-    private val socialAccountRepository: SocialAccountRepository
+    private val socialAccountRepository: SocialAccountRepository,
+    @Value("\${spring.security.oauth2.client.registration.kakao.client-id}")
+    private val kakaoClientId: String,
+    @Value("\${spring.security.oauth2.client.registration.kakao.client-secret}")
+    private val kakaoClientSecret: String
 ) : AuthApi {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -131,6 +142,17 @@ class AuthController(
         )
     }
 
+    @GetMapping("/admin/kakao")
+    override fun adminKakaoRedirect(
+        @RequestParam("redirect_uri") redirectUri: String
+    ): RedirectView {
+        val url = "https://kauth.kakao.com/oauth/authorize" +
+            "?client_id=$kakaoClientId" +
+            "&redirect_uri=$redirectUri" +
+            "&response_type=code"
+        return RedirectView(url)
+    }
+
     @PostMapping("/admin/login/kakao")
     @Transactional(readOnly = true)
     override fun adminLoginKakao(@RequestBody request: KakaoLoginRequest): TokenResponse {
@@ -153,6 +175,54 @@ class AuthController(
             accessToken = jwtTokenProvider.generateAccessToken(user.id!!),
             refreshToken = jwtTokenProvider.generateRefreshToken(user.id!!)
         )
+    }
+
+    @PostMapping("/admin/login/kakao/code")
+    @Transactional(readOnly = true)
+    override fun adminLoginKakaoCode(@RequestBody request: AdminKakaoCodeRequest): TokenResponse {
+        val kakaoAccessToken = exchangeKakaoCode(request.code, request.redirectUri)
+
+        val kakaoUser = try {
+            kakaoTokenVerifier.verify(kakaoAccessToken)
+        } catch (e: Exception) {
+            log.error("관리자 카카오 토큰 검증 실패", e)
+            throw UnauthorizedException("유효하지 않은 카카오 토큰입니다.")
+        }
+
+        val socialAccount = socialAccountRepository.findByProviderAndProviderId(SocialProvider.KAKAO, kakaoUser.id)
+            ?: throw UnauthorizedException("가입되지 않은 사용자입니다.")
+
+        val user = socialAccount.user
+        if (user.role != Role.ADMIN) {
+            throw ForbiddenException("관리자 권한이 필요합니다.")
+        }
+
+        return TokenResponse(
+            accessToken = jwtTokenProvider.generateAccessToken(user.id!!),
+            refreshToken = jwtTokenProvider.generateRefreshToken(user.id!!)
+        )
+    }
+
+    private fun exchangeKakaoCode(code: String, redirectUri: String): String {
+        val restTemplate = RestTemplate()
+        val headers = HttpHeaders()
+        headers.contentType = MediaType.APPLICATION_FORM_URLENCODED
+
+        val body = LinkedMultiValueMap<String, String>()
+        body.add("grant_type", "authorization_code")
+        body.add("client_id", kakaoClientId)
+        body.add("client_secret", kakaoClientSecret)
+        body.add("redirect_uri", redirectUri)
+        body.add("code", code)
+
+        val response = restTemplate.postForEntity(
+            "https://kauth.kakao.com/oauth/token",
+            HttpEntity(body, headers),
+            Map::class.java
+        )
+
+        return response.body?.get("access_token")?.toString()
+            ?: throw UnauthorizedException("카카오 토큰 교환에 실패했습니다.")
     }
 
     @PostMapping("/logout")

@@ -1,5 +1,6 @@
 package com.mindbridge.oye.controller.api
 
+import com.mindbridge.oye.dto.AdminKakaoCodeRequest
 import com.mindbridge.oye.dto.AdminLoginRequest
 import com.mindbridge.oye.dto.AppleLoginRequest
 import com.mindbridge.oye.dto.KakaoLoginRequest
@@ -168,4 +169,44 @@ interface AuthApi {
         )
     )
     fun adminLoginKakao(request: KakaoLoginRequest): TokenResponse
+
+    @Operation(
+        summary = "관리자 카카오 OAuth 리다이렉트",
+        description = """관리자용 카카오 OAuth 인가 페이지로 리다이렉트합니다.
+
+- redirect_uri를 전달하면 카카오 로그인 후 해당 URI로 인가코드와 함께 리다이렉트됩니다."""
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "302", description = "카카오 인가 페이지로 리다이렉트")
+    )
+    fun adminKakaoRedirect(
+        @Parameter(description = "카카오 인가코드를 받을 redirect URI", required = true)
+        redirectUri: String
+    ): RedirectView
+
+    @Operation(
+        summary = "관리자 카카오 인가코드 로그인",
+        description = """카카오 인가코드로 관리자 로그인합니다.
+
+- 인가코드를 카카오 액세스 토큰으로 교환합니다.
+- 기존 가입자 + ADMIN 권한 확인 후 JWT를 발급합니다."""
+    )
+    @ApiResponses(
+        ApiResponse(
+            responseCode = "200",
+            description = "관리자 로그인 성공",
+            content = [Content(schema = Schema(implementation = TokenResponse::class))]
+        ),
+        ApiResponse(
+            responseCode = "401",
+            description = "유효하지 않은 인가코드 또는 미가입 사용자",
+            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
+        ),
+        ApiResponse(
+            responseCode = "403",
+            description = "관리자 권한 없음",
+            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
+        )
+    )
+    fun adminLoginKakaoCode(request: AdminKakaoCodeRequest): TokenResponse
 }

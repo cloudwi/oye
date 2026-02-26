@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpEntity
@@ -36,6 +37,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.RestTemplate
+import com.mindbridge.oye.event.UserCreatedEvent
 import org.springframework.web.servlet.view.RedirectView
 import java.time.LocalDate
 
@@ -47,6 +49,7 @@ class AuthController(
     private val kakaoTokenVerifier: KakaoTokenVerifier,
     private val userRepository: UserRepository,
     private val socialAccountRepository: SocialAccountRepository,
+    private val eventPublisher: ApplicationEventPublisher,
     @Value("\${spring.security.oauth2.client.registration.kakao.client-id}")
     private val kakaoClientId: String,
     @Value("\${spring.security.oauth2.client.registration.kakao.client-secret}")
@@ -245,6 +248,7 @@ class AuthController(
                 providerId = kakaoId
             )
         )
+        eventPublisher.publishEvent(UserCreatedEvent(user))
         return user
     }
 
@@ -263,6 +267,7 @@ class AuthController(
                 providerId = appleUserId
             )
         )
+        eventPublisher.publishEvent(UserCreatedEvent(user))
         return user
     }
 }

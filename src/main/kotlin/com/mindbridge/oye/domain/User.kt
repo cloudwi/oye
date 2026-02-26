@@ -22,9 +22,8 @@ class User(
     @Comment("사용자 고유 ID")
     val id: Long? = null,
 
-    @Column(nullable = false)
     @Comment("사용자 이름")
-    var name: String,
+    var name: String? = null,
 
     @Column(nullable = false)
     @Comment("생년월일")

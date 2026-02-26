@@ -58,8 +58,8 @@ data class UserResponse(
     @Schema(description = "소셜 로그인 제공자 (KAKAO, APPLE)", example = "KAKAO", nullable = true)
     val provider: SocialProvider?,
 
-    @Schema(description = "사용자 이름", example = "홍길동")
-    val name: String,
+    @Schema(description = "사용자 이름", example = "홍길동", nullable = true)
+    val name: String?,
 
     @Schema(description = "생년월일 (YYYY-MM-DD)", example = "1990-01-15")
     val birthDate: LocalDate,

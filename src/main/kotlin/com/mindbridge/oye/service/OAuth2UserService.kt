@@ -45,11 +45,11 @@ class OAuth2UserService(
 
     private fun createUser(kakaoId: String, oAuth2User: OAuth2User): User {
         val properties = oAuth2User.attributes["properties"] as? Map<*, *>
-        val nickname = properties?.get("nickname") as? String ?: "사용자"
+        val nickname = properties?.get("nickname") as? String
 
         val user = userRepository.save(
             User(
-                name = nickname,
+                name = nickname?.ifBlank { null },
                 birthDate = LocalDate.of(2000, 1, 1),
                 calendarType = CalendarType.SOLAR
             )

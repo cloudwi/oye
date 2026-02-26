@@ -20,8 +20,8 @@ data class ConnectionResponse(
     @Schema(description = "연결 고유 ID", example = "1")
     val id: Long,
 
-    @Schema(description = "상대방 이름", example = "홍길동")
-    val partnerName: String,
+    @Schema(description = "상대방 이름", example = "홍길동", nullable = true)
+    val partnerName: String?,
 
     @Schema(description = "관계 유형")
     val relationType: RelationType,

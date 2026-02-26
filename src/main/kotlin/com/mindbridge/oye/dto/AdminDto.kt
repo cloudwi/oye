@@ -30,8 +30,8 @@ data class AdminUserResponse(
     @Schema(description = "사용자 고유 ID", example = "1")
     val id: Long,
 
-    @Schema(description = "사용자 이름", example = "홍길동")
-    val name: String,
+    @Schema(description = "사용자 이름", example = "홍길동", nullable = true)
+    val name: String?,
 
     @Schema(description = "생년월일", example = "1995-03-15")
     val birthDate: LocalDate,

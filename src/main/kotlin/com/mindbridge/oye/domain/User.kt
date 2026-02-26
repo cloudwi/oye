@@ -64,6 +64,11 @@ class User(
     @Comment("친구 초대 코드 (6자리 영숫자)")
     var connectCode: String? = null,
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    @Comment("사용자 권한 (USER, ADMIN)")
+    var role: Role = Role.USER,
+
     @Column(nullable = false, updatable = false)
     @Comment("가입일시")
     val createdAt: LocalDateTime = LocalDateTime.now()

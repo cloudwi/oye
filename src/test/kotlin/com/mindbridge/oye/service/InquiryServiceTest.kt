@@ -1,11 +1,11 @@
 package com.mindbridge.oye.service
 
-import com.mindbridge.oye.config.AdminProperties
 import com.mindbridge.oye.domain.CalendarType
 import com.mindbridge.oye.domain.Gender
 import com.mindbridge.oye.domain.Inquiry
 import com.mindbridge.oye.domain.InquiryComment
 import com.mindbridge.oye.domain.InquiryStatus
+import com.mindbridge.oye.domain.Role
 import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.dto.InquiryCommentCreateRequest
 import com.mindbridge.oye.dto.InquiryCreateRequest
@@ -36,9 +36,6 @@ class InquiryServiceTest {
     @Mock
     private lateinit var inquiryCommentRepository: InquiryCommentRepository
 
-    @Mock
-    private lateinit var adminProperties: AdminProperties
-
     @InjectMocks
     private lateinit var inquiryService: InquiryService
 
@@ -55,7 +52,8 @@ class InquiryServiceTest {
         name = "관리자",
         birthDate = LocalDate.of(1985, 5, 10),
         gender = Gender.MALE,
-        calendarType = CalendarType.SOLAR
+        calendarType = CalendarType.SOLAR,
+        role = Role.ADMIN
     )
 
     private val otherUser = User(
@@ -136,7 +134,6 @@ class InquiryServiceTest {
         val inquiry = Inquiry(id = 1L, user = testUser, title = "테스트 문의", content = "내용")
         whenever(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry))
         whenever(inquiryCommentRepository.findByInquiryOrderByCreatedAtAsc(inquiry)).thenReturn(emptyList())
-        whenever(adminProperties.adminUserIds).thenReturn(listOf(100L))
 
         val result = inquiryService.getInquiry(adminUser, 1L)
 
@@ -147,7 +144,6 @@ class InquiryServiceTest {
     fun `getInquiry - 타인 문의 조회 시 ForbiddenException`() {
         val inquiry = Inquiry(id = 1L, user = testUser, title = "테스트 문의", content = "내용")
         whenever(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry))
-        whenever(adminProperties.adminUserIds).thenReturn(emptyList())
 
         assertThrows<ForbiddenException> {
             inquiryService.getInquiry(otherUser, 1L)
@@ -169,7 +165,6 @@ class InquiryServiceTest {
         val request = InquiryCommentCreateRequest(content = "답변 내용입니다")
         val comment = InquiryComment(id = 1L, inquiry = inquiry, admin = adminUser, content = request.content)
 
-        whenever(adminProperties.adminUserIds).thenReturn(listOf(100L))
         whenever(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry))
         whenever(inquiryCommentRepository.save(any<InquiryComment>())).thenReturn(comment)
         whenever(inquiryCommentRepository.findByInquiryOrderByCreatedAtAsc(inquiry)).thenReturn(listOf(comment))
@@ -184,8 +179,6 @@ class InquiryServiceTest {
 
     @Test
     fun `addComment - 관리자가 아닌 사용자가 댓글 작성 시 ForbiddenException`() {
-        whenever(adminProperties.adminUserIds).thenReturn(listOf(100L))
-
         assertThrows<ForbiddenException> {
             inquiryService.addComment(testUser, 1L, InquiryCommentCreateRequest(content = "댓글"))
         }
@@ -193,7 +186,6 @@ class InquiryServiceTest {
 
     @Test
     fun `addComment - 존재하지 않는 문의에 댓글 작성 시 InquiryNotFoundException`() {
-        whenever(adminProperties.adminUserIds).thenReturn(listOf(100L))
         whenever(inquiryRepository.findById(999L)).thenReturn(Optional.empty())
 
         assertThrows<InquiryNotFoundException> {

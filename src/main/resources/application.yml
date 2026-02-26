@@ -1,6 +1,3 @@
-oye:
-  admin-user-ids: ${OYE_ADMIN_USER_IDS:}
-
 apple:
   bundle-id: ${APPLE_BUNDLE_ID:com.oyeapp.fortune}
 

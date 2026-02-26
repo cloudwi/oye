@@ -44,6 +44,16 @@ class InquiryController(
         return ApiResponse.success(inquiryService.getMyInquiries(user, page, size))
     }
 
+    @GetMapping("/all")
+    override fun getAllInquiries(
+        @AuthenticationPrincipal principal: Any?,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int
+    ): ApiResponse<PageResponse<InquiryResponse>> {
+        val user = authenticationResolver.getCurrentUser(principal)
+        return ApiResponse.success(inquiryService.getAllInquiries(user, page, size))
+    }
+
     @GetMapping("/{id}")
     override fun getInquiry(
         @AuthenticationPrincipal principal: Any?,

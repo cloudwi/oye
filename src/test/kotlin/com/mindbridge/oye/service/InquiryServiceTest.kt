@@ -117,6 +117,30 @@ class InquiryServiceTest {
     }
 
     @Test
+    fun `getAllInquiries - 관리자 전체 문의 목록 조회 성공`() {
+        val inquiries = listOf(
+            Inquiry(id = 2L, user = otherUser, title = "다른유저 문의", content = "내용2"),
+            Inquiry(id = 1L, user = testUser, title = "테스트 문의", content = "내용1")
+        )
+        val pageable = PageRequest.of(0, 20)
+        val page = PageImpl(inquiries, pageable, 2)
+
+        whenever(inquiryRepository.findAllByOrderByCreatedAtDesc(pageable)).thenReturn(page)
+
+        val result = inquiryService.getAllInquiries(adminUser, 0, 20)
+
+        assertEquals(2, result.content.size)
+        assertEquals(2L, result.totalElements)
+    }
+
+    @Test
+    fun `getAllInquiries - 관리자가 아닌 사용자가 조회 시 ForbiddenException`() {
+        assertThrows<ForbiddenException> {
+            inquiryService.getAllInquiries(testUser, 0, 20)
+        }
+    }
+
+    @Test
     fun `getInquiry - 본인 문의 상세 조회 성공`() {
         val inquiry = Inquiry(id = 1L, user = testUser, title = "테스트 문의", content = "내용")
         whenever(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry))

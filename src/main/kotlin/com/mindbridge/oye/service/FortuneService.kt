@@ -1,16 +1,14 @@
 package com.mindbridge.oye.service
 
-import com.mindbridge.oye.domain.BloodType
-import com.mindbridge.oye.domain.CalendarType
 import com.mindbridge.oye.domain.Fortune
-import com.mindbridge.oye.domain.Gender
 import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.exception.FortuneGenerationException
 import com.mindbridge.oye.dto.FortuneResponse
 import com.mindbridge.oye.dto.PageResponse
 import com.mindbridge.oye.repository.FortuneRepository
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
+import com.mindbridge.oye.util.UserProfileBuilder
+import tools.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.dao.DataIntegrityViolationException
@@ -167,34 +165,9 @@ class FortuneService(
     }
 
     private fun buildUserPrompt(user: User): String {
-        val genderText = when (user.gender) {
-            Gender.MALE -> "남성"
-            Gender.FEMALE -> "여성"
-            null -> "미지정"
-        }
-        val calendarText = when (user.calendarType) {
-            CalendarType.SOLAR -> "양력"
-            CalendarType.LUNAR -> "음력"
-            null -> "양력"
-        }
-        val bloodTypeText = when (user.bloodType) {
-            BloodType.A -> "A형"
-            BloodType.B -> "B형"
-            BloodType.O -> "O형"
-            BloodType.AB -> "AB형"
-            null -> null
-        }
-
-        val parts = mutableListOf<String>()
-        parts.add("사용자: ${user.name}")
-        parts.add("${genderText}, ${user.birthDate}생 (${calendarText})")
-        user.birthTime?.let { parts.add("태어난 시각: ${it}") }
-        user.occupation?.let { parts.add("직업: $it") }
-        user.mbti?.let { parts.add("MBTI: $it") }
-        bloodTypeText?.let { parts.add("혈액형: $it") }
-        user.interests?.let { parts.add("관심사: $it") }
+        val parts = UserProfileBuilder.buildProfileParts(user, nameLabel = "사용자")
+            .toMutableList()
         parts.add("오늘: ${LocalDate.now()}")
-
         return parts.joinToString(", ")
     }
 

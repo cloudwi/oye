@@ -4,8 +4,10 @@ import com.mindbridge.oye.domain.CalendarType
 import com.mindbridge.oye.domain.SocialAccount
 import com.mindbridge.oye.domain.SocialProvider
 import com.mindbridge.oye.domain.User
+import com.mindbridge.oye.event.UserCreatedEvent
 import com.mindbridge.oye.repository.SocialAccountRepository
 import com.mindbridge.oye.repository.UserRepository
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User
@@ -17,7 +19,8 @@ import java.time.LocalDate
 @Service
 class OAuth2UserService(
     private val userRepository: UserRepository,
-    private val socialAccountRepository: SocialAccountRepository
+    private val socialAccountRepository: SocialAccountRepository,
+    private val eventPublisher: ApplicationEventPublisher
 ) : DefaultOAuth2UserService() {
 
     @Transactional
@@ -60,6 +63,7 @@ class OAuth2UserService(
             )
         )
 
+        eventPublisher.publishEvent(UserCreatedEvent(user))
         return user
     }
 }

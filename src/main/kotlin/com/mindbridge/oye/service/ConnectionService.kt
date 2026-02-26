@@ -2,6 +2,7 @@ package com.mindbridge.oye.service
 
 import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.domain.UserConnection
+import com.mindbridge.oye.event.ConnectionCreatedEvent
 import com.mindbridge.oye.dto.ConnectRequest
 import com.mindbridge.oye.dto.ConnectionResponse
 import com.mindbridge.oye.dto.MyCodeResponse
@@ -15,6 +16,7 @@ import com.mindbridge.oye.repository.CompatibilityRepository
 import com.mindbridge.oye.repository.UserConnectionRepository
 import com.mindbridge.oye.repository.UserRepository
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.security.SecureRandom
@@ -24,7 +26,8 @@ import java.time.LocalDate
 class ConnectionService(
     private val userRepository: UserRepository,
     private val userConnectionRepository: UserConnectionRepository,
-    private val compatibilityRepository: CompatibilityRepository
+    private val compatibilityRepository: CompatibilityRepository,
+    private val eventPublisher: ApplicationEventPublisher
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -67,6 +70,7 @@ class ConnectionService(
         )
         val saved = userConnectionRepository.save(connection)
         log.info("새 연결 생성: userId={}, partnerId={}, type={}", user.id, partner.id, request.relationType)
+        eventPublisher.publishEvent(ConnectionCreatedEvent(saved))
         return ConnectionResponse.from(saved, user, null)
     }
 

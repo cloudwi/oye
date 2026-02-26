@@ -1,4 +1,6 @@
 spring:
+  flyway:
+    enabled: false
   ai:
     openai:
       api-key: test-api-key

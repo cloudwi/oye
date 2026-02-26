@@ -27,7 +27,7 @@ object UserProfileBuilder {
         }
 
         val parts = mutableListOf<String>()
-        parts.add("$nameLabel: ${user.name}")
+        user.name?.let { parts.add("$nameLabel: $it") }
         parts.add("$genderText, ${user.birthDate}생 ($calendarText)")
         user.birthTime?.let { parts.add("태어난 시각: $it") }
         user.occupation?.let { parts.add("직업: $it") }

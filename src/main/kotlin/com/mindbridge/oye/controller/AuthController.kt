@@ -236,7 +236,7 @@ class AuthController(
     private fun createKakaoUser(kakaoId: String, nickname: String): User {
         val user = userRepository.save(
             User(
-                name = nickname,
+                name = nickname.ifBlank { null },
                 birthDate = LocalDate.of(2000, 1, 1),
                 calendarType = CalendarType.SOLAR
             )
@@ -255,7 +255,7 @@ class AuthController(
     private fun createAppleUser(appleUserId: String, fullName: String?): User {
         val user = userRepository.save(
             User(
-                name = fullName ?: "사용자",
+                name = fullName?.ifBlank { null },
                 birthDate = LocalDate.of(2000, 1, 1),
                 calendarType = CalendarType.SOLAR
             )

@@ -34,8 +34,8 @@ data class InquiryCommentResponse(
     @Schema(description = "댓글 고유 ID", example = "1")
     val id: Long,
 
-    @Schema(description = "관리자 이름", example = "관리자")
-    val adminName: String,
+    @Schema(description = "관리자 이름", example = "관리자", nullable = true)
+    val adminName: String?,
 
     @Schema(description = "댓글 내용", example = "확인 후 수정하겠습니다.")
     val content: String,

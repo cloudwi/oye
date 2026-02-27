@@ -19,6 +19,7 @@ class PushNotification(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
+    @Column(nullable = false)
     @Comment("알림 제목")
     val title: String,
 
@@ -27,7 +28,7 @@ class PushNotification(
     val body: String,
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 20)
+    @Column(length = 20, nullable = false)
     @Comment("발송 대상 유형 (ALL: 전체, SPECIFIC: 특정 사용자)")
     val targetType: TargetType,
 
@@ -35,12 +36,15 @@ class PushNotification(
     @Comment("대상 사용자 ID 목록 (콤마 구분)")
     val targetUserIds: String? = null,
 
+    @Column(nullable = false)
     @Comment("발송 성공 수")
     var sentCount: Int = 0,
 
+    @Column(nullable = false)
     @Comment("발송 실패 수")
     var failCount: Int = 0,
 
+    @Column(nullable = false)
     @Comment("발송한 관리자 ID")
     val sentBy: Long,
 

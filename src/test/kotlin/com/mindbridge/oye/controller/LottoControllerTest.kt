@@ -26,6 +26,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDate
@@ -93,6 +94,47 @@ class LottoControllerTest {
             )
         )
         accessToken = jwtTokenProvider.generateAccessToken(testUser.id!!)
+    }
+
+    @Test
+    fun `POST recommendations - 추천 번호 5세트를 생성한다`() {
+        mockMvc.perform(
+            post("/api/lotto/recommendations")
+                .header("Authorization", "Bearer $accessToken")
+                .param("round", "1130")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data.length()").value(5))
+            .andExpect(jsonPath("$.data[0].round").value(1130))
+            .andExpect(jsonPath("$.data[0].setNumber").value(1))
+            .andExpect(jsonPath("$.data[0].numbers.length()").value(6))
+    }
+
+    @Test
+    fun `POST recommendations - 이미 추천받은 회차이면 409`() {
+        lottoRecommendationRepository.save(
+            LottoRecommendation(
+                user = testUser, round = 1130, setNumber = 1,
+                number1 = 1, number2 = 10, number3 = 20, number4 = 30, number5 = 40, number6 = 45
+            )
+        )
+
+        mockMvc.perform(
+            post("/api/lotto/recommendations")
+                .header("Authorization", "Bearer $accessToken")
+                .param("round", "1130")
+        )
+            .andExpect(status().isConflict)
+    }
+
+    @Test
+    fun `POST recommendations - 인증 없이 요청하면 401`() {
+        mockMvc.perform(
+            post("/api/lotto/recommendations")
+                .param("round", "1130")
+        )
+            .andExpect(status().isUnauthorized)
     }
 
     @Test

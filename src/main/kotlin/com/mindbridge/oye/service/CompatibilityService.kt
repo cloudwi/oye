@@ -81,15 +81,15 @@ class CompatibilityService(
         return compatibilityRepository.findByConnectionAndDate(connection, LocalDate.now())
     }
 
-    fun generateCompatibility(connection: UserConnection): Compatibility {
-        val existing = getTodayCompatibility(connection)
+    fun generateCompatibility(connection: UserConnection, date: LocalDate = LocalDate.now()): Compatibility {
+        val existing = compatibilityRepository.findByConnectionAndDate(connection, date)
         if (existing != null) return existing
 
-        val result = callAiWithRetry(connection)
+        val result = callAiWithRetry(connection, date)
         return try {
-            saveCompatibility(connection, result.score, result.content)
+            saveCompatibility(connection, result.score, result.content, date)
         } catch (e: DataIntegrityViolationException) {
-            getTodayCompatibility(connection)
+            compatibilityRepository.findByConnectionAndDate(connection, date)
                 ?: throw CompatibilityGenerationException("궁합 저장 중 오류가 발생했습니다.")
         }
     }
@@ -124,8 +124,8 @@ class CompatibilityService(
     }
 
     @Transactional
-    fun saveCompatibility(connection: UserConnection, score: Int, content: String): Compatibility {
-        val existing = compatibilityRepository.findByConnectionAndDate(connection, LocalDate.now())
+    fun saveCompatibility(connection: UserConnection, score: Int, content: String, date: LocalDate = LocalDate.now()): Compatibility {
+        val existing = compatibilityRepository.findByConnectionAndDate(connection, date)
         if (existing != null) {
             return existing
         }
@@ -134,7 +134,7 @@ class CompatibilityService(
             connection = connection,
             score = score,
             content = content,
-            date = LocalDate.now()
+            date = date
         )
         return compatibilityRepository.save(compatibility)
     }
@@ -159,8 +159,8 @@ class CompatibilityService(
         )
     }
 
-    private fun callAiWithRetry(connection: UserConnection): AiCompatibilityResult {
-        val userPrompt = buildUserPrompt(connection)
+    private fun callAiWithRetry(connection: UserConnection, date: LocalDate = LocalDate.now()): AiCompatibilityResult {
+        val userPrompt = buildUserPrompt(connection, date)
         var lastException: Exception? = null
 
         repeat(MAX_RETRY_COUNT) { attempt ->
@@ -189,7 +189,7 @@ class CompatibilityService(
         )
     }
 
-    private fun buildUserPrompt(connection: UserConnection): String {
+    private fun buildUserPrompt(connection: UserConnection, date: LocalDate = LocalDate.now()): String {
         val user1 = connection.user
         val user2 = connection.partner
         val relationText = when (connection.relationType) {
@@ -207,7 +207,7 @@ class CompatibilityService(
         parts.addAll(buildUserProfile(user2))
         parts.add("")
         parts.add("관계: $relationText")
-        parts.add("오늘: ${LocalDate.now()}")
+        parts.add("오늘: $date")
 
         return parts.joinToString("\n")
     }

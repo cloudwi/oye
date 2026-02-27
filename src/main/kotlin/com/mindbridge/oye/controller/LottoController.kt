@@ -11,7 +11,6 @@ import com.mindbridge.oye.service.LottoService
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -22,16 +21,6 @@ class LottoController(
     private val lottoService: LottoService,
     private val authenticationResolver: AuthenticationResolver
 ) : LottoApi {
-
-    @PostMapping("/recommendations")
-    override fun recommend(
-        @AuthenticationPrincipal principal: Any?,
-        @RequestParam(required = false) round: Int?
-    ): ApiResponse<List<LottoRecommendationResponse>> {
-        val user = authenticationResolver.getCurrentUser(principal)
-        val targetRound = round ?: lottoService.getCurrentRound()
-        return ApiResponse.success(lottoService.recommend(user, targetRound))
-    }
 
     @GetMapping("/recommendations")
     override fun getMyHistory(

@@ -22,7 +22,7 @@ class PushNotification(
     @Comment("알림 제목")
     val title: String,
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", nullable = false)
     @Comment("알림 내용")
     val body: String,
 

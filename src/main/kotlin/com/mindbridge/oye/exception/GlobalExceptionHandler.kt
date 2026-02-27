@@ -71,6 +71,10 @@ class GlobalExceptionHandler {
     fun handleLottoAlreadyRecommendedException(e: LottoAlreadyRecommendedException) =
         errorResponse(HttpStatus.CONFLICT, e.message ?: "이미 해당 회차에 추천을 받았습니다.", "LOTTO_ALREADY_RECOMMENDED")
 
+    @ExceptionHandler(LottoRecommendationClosedException::class)
+    fun handleLottoRecommendationClosedException(e: LottoRecommendationClosedException) =
+        errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, e.message ?: "추첨 마감으로 로또 추천이 불가합니다.", "LOTTO_RECOMMENDATION_CLOSED")
+
     @ExceptionHandler(LottoDrawNotAvailableException::class)
     fun handleLottoDrawNotAvailableException(e: LottoDrawNotAvailableException) =
         errorResponse(HttpStatus.NOT_FOUND, e.message ?: "아직 추첨 결과를 가져올 수 없습니다.", "LOTTO_DRAW_NOT_AVAILABLE")

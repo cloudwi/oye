@@ -17,34 +17,6 @@ import io.swagger.v3.oas.annotations.tags.Tag
 interface LottoApi {
 
     @Operation(
-        summary = "추천 번호 생성",
-        description = """로또 추천 번호 5세트를 생성합니다.
-
-- 회차당 1회만 생성 가능합니다.
-- round 파라미터를 생략하면 현재 회차를 사용합니다."""
-    )
-    @ApiResponses(
-        io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "200",
-            description = "추천 번호 생성 성공"
-        ),
-        io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "401",
-            description = "인증 실패",
-            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
-        ),
-        io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "409",
-            description = "해당 회차에 이미 추천 번호가 존재",
-            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
-        )
-    )
-    fun recommend(
-        principal: Any?,
-        @Parameter(description = "회차 번호 (생략 시 현재 회차)", example = "1130") round: Int?
-    ): ApiResponse<List<LottoRecommendationResponse>>
-
-    @Operation(
         summary = "내 추천 히스토리 조회",
         description = """내 로또 추천 번호 히스토리를 최신순으로 조회합니다.
 

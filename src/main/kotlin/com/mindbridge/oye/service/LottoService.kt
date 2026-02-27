@@ -7,6 +7,7 @@ import com.mindbridge.oye.dto.LottoRoundResponse
 import com.mindbridge.oye.dto.LottoWinnerResponse
 import com.mindbridge.oye.dto.PageResponse
 import com.mindbridge.oye.exception.LottoAlreadyRecommendedException
+import com.mindbridge.oye.exception.LottoRecommendationClosedException
 import com.mindbridge.oye.exception.LottoRoundNotFoundException
 import com.mindbridge.oye.repository.LottoRecommendationRepository
 import com.mindbridge.oye.repository.LottoRoundRepository
@@ -14,7 +15,11 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
 @Service
@@ -25,6 +30,8 @@ class LottoService(
 
     companion object {
         private val LOTTO_EPOCH: LocalDate = LocalDate.of(2002, 12, 7)
+        private val KST = ZoneId.of("Asia/Seoul")
+        private val DRAW_CUTOFF_TIME = LocalTime.of(20, 30)
         private const val NUMBER_COUNT = 6
         private const val SET_COUNT = 5
         private const val MIN_NUMBER = 1
@@ -33,6 +40,7 @@ class LottoService(
 
     @Transactional
     fun recommend(user: User, round: Int): List<LottoRecommendationResponse> {
+        validateNotInDrawTime()
         val existing = lottoRecommendationRepository.findByUserAndRound(user, round)
         if (existing.isNotEmpty()) {
             throw LottoAlreadyRecommendedException()
@@ -106,6 +114,13 @@ class LottoService(
     }
 
     fun getCurrentRound(): Int = getRoundForDate(LocalDate.now())
+
+    private fun validateNotInDrawTime() {
+        val now = LocalDateTime.now(KST)
+        if (now.dayOfWeek == DayOfWeek.SATURDAY && now.toLocalTime() >= DRAW_CUTOFF_TIME) {
+            throw LottoRecommendationClosedException()
+        }
+    }
 
     private fun generateNumbers(): List<Int> {
         return (MIN_NUMBER..MAX_NUMBER).shuffled().take(NUMBER_COUNT).sorted()

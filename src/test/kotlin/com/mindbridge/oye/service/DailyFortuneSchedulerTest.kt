@@ -60,7 +60,7 @@ class DailyFortuneSchedulerTest {
 
         scheduler.generateDailyFortunes()
 
-        verify(fortuneService, never()).generateFortune(any())
+        verify(fortuneService, never()).generateFortune(any(), any())
     }
 
     @Test
@@ -72,7 +72,7 @@ class DailyFortuneSchedulerTest {
         scheduler.generateDailyFortunes()
 
         users.forEach { user ->
-            verify(fortuneService).generateFortune(user)
+            verify(fortuneService).generateFortune(eq(user), any())
         }
     }
 
@@ -88,13 +88,13 @@ class DailyFortuneSchedulerTest {
             val user = invocation.getArgument<User>(0)
             if (user.id == 2L) throw RuntimeException("AI 오류")
             null
-        }.whenever(fortuneService).generateFortune(any())
+        }.whenever(fortuneService).generateFortune(any(), any())
 
         scheduler.generateDailyFortunes()
 
-        verify(fortuneService).generateFortune(user1)
-        verify(fortuneService).generateFortune(user2)
-        verify(fortuneService).generateFortune(user3)
+        verify(fortuneService).generateFortune(eq(user1), any())
+        verify(fortuneService).generateFortune(eq(user2), any())
+        verify(fortuneService).generateFortune(eq(user3), any())
     }
 
     @Test
@@ -111,7 +111,7 @@ class DailyFortuneSchedulerTest {
 
         scheduler.generateDailyFortunes()
 
-        verify(fortuneService, times(75)).generateFortune(any())
+        verify(fortuneService, times(75)).generateFortune(any(), any())
         verify(userRepository).findAll(eq(PageRequest.of(0, 50)))
         verify(userRepository).findAll(eq(PageRequest.of(1, 50)))
     }
@@ -121,12 +121,12 @@ class DailyFortuneSchedulerTest {
         val users = (1L..3L).map { createUser(it) }
         val page = PageImpl(users, PageRequest.of(0, 50), 3)
         whenever(userRepository.findAll(any<Pageable>())).thenReturn(page)
-        doThrow(RuntimeException("실패")).whenever(fortuneService).generateFortune(any())
+        doThrow(RuntimeException("실패")).whenever(fortuneService).generateFortune(any(), any())
 
         // 예외 없이 정상 완료되어야 한다
         scheduler.generateDailyFortunes()
 
-        verify(fortuneService, times(3)).generateFortune(any())
+        verify(fortuneService, times(3)).generateFortune(any(), any())
     }
 
     // === generateDailyCompatibilities ===
@@ -137,7 +137,7 @@ class DailyFortuneSchedulerTest {
 
         scheduler.generateDailyCompatibilities()
 
-        verify(compatibilityService, never()).generateCompatibility(any())
+        verify(compatibilityService, never()).generateCompatibility(any(), any())
     }
 
     @Test
@@ -151,8 +151,8 @@ class DailyFortuneSchedulerTest {
 
         scheduler.generateDailyCompatibilities()
 
-        verify(compatibilityService).generateCompatibility(conn1)
-        verify(compatibilityService).generateCompatibility(conn2)
+        verify(compatibilityService).generateCompatibility(eq(conn1), any())
+        verify(compatibilityService).generateCompatibility(eq(conn2), any())
     }
 
     @Test
@@ -163,12 +163,12 @@ class DailyFortuneSchedulerTest {
         val conn1 = UserConnection(id = 1L, user = user1, partner = user2, relationType = RelationType.FRIEND)
         val conn2 = UserConnection(id = 2L, user = user1, partner = user3, relationType = RelationType.FAMILY)
         whenever(userConnectionRepository.findAllWithUsers()).thenReturn(listOf(conn1, conn2))
-        doThrow(RuntimeException("궁합 생성 오류")).whenever(compatibilityService).generateCompatibility(conn1)
+        doThrow(RuntimeException("궁합 생성 오류")).whenever(compatibilityService).generateCompatibility(eq(conn1), any())
 
         scheduler.generateDailyCompatibilities()
 
-        verify(compatibilityService).generateCompatibility(conn1)
-        verify(compatibilityService).generateCompatibility(conn2)
+        verify(compatibilityService).generateCompatibility(eq(conn1), any())
+        verify(compatibilityService).generateCompatibility(eq(conn2), any())
     }
 
     @Test
@@ -179,10 +179,10 @@ class DailyFortuneSchedulerTest {
             UserConnection(id = 1L, user = user1, partner = user2, relationType = RelationType.LOVER)
         )
         whenever(userConnectionRepository.findAllWithUsers()).thenReturn(connections)
-        doThrow(RuntimeException("실패")).whenever(compatibilityService).generateCompatibility(any())
+        doThrow(RuntimeException("실패")).whenever(compatibilityService).generateCompatibility(any(), any())
 
         scheduler.generateDailyCompatibilities()
 
-        verify(compatibilityService, times(1)).generateCompatibility(any())
+        verify(compatibilityService, times(1)).generateCompatibility(any(), any())
     }
 }

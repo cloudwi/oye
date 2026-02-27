@@ -87,31 +87,31 @@ class FortuneService(
         return fortuneRepository.findByUserAndDate(user, LocalDate.now())
     }
 
-    fun generateFortune(user: User): Fortune {
+    fun generateFortune(user: User, date: LocalDate = LocalDate.now()): Fortune {
         // 1. 기존 fortune 확인 (별도 읽기 트랜잭션)
-        val existingFortune = getTodayFortune(user)
+        val existingFortune = fortuneRepository.findByUserAndDate(user, date)
         if (existingFortune != null) {
             return existingFortune
         }
 
         // 2. AI 호출 (트랜잭션 외부 - DB 커넥션 점유하지 않음)
-        val aiResponse = callAiWithRetry(user)
+        val aiResponse = callAiWithRetry(user, date)
 
         // 3. 저장 시도 (별도 쓰기 트랜잭션)
         return try {
-            saveFortune(user, aiResponse.content, aiResponse.score)
+            saveFortune(user, aiResponse.content, aiResponse.score, date)
         } catch (e: DataIntegrityViolationException) {
             // 동시 요청으로 이미 저장된 경우 새 트랜잭션으로 조회
             log.warn("중복 fortune 저장 시도 감지: userId={}", user.id)
-            getTodayFortune(user)
+            fortuneRepository.findByUserAndDate(user, date)
                 ?: throw FortuneGenerationException("예감 저장 중 오류가 발생했습니다.")
         }
     }
 
     @Transactional
-    fun saveFortune(user: User, content: String, score: Int): Fortune {
+    fun saveFortune(user: User, content: String, score: Int, date: LocalDate = LocalDate.now()): Fortune {
         // 트랜잭션 내에서 다시 한번 확인 (동시성 보호)
-        val existingFortune = fortuneRepository.findByUserAndDate(user, LocalDate.now())
+        val existingFortune = fortuneRepository.findByUserAndDate(user, date)
         if (existingFortune != null) {
             return existingFortune
         }
@@ -120,7 +120,7 @@ class FortuneService(
             user = user,
             content = content,
             score = score,
-            date = LocalDate.now()
+            date = date
         )
         return fortuneRepository.save(fortune)
     }
@@ -138,8 +138,8 @@ class FortuneService(
         )
     }
 
-    private fun callAiWithRetry(user: User): FortuneAiResponse {
-        val userPrompt = buildUserPrompt(user)
+    private fun callAiWithRetry(user: User, date: LocalDate = LocalDate.now()): FortuneAiResponse {
+        val userPrompt = buildUserPrompt(user, date)
         var lastException: Exception? = null
 
         repeat(MAX_RETRY_COUNT) { attempt ->
@@ -165,10 +165,10 @@ class FortuneService(
         )
     }
 
-    private fun buildUserPrompt(user: User): String {
+    private fun buildUserPrompt(user: User, date: LocalDate = LocalDate.now()): String {
         val parts = UserProfileBuilder.buildProfileParts(user, nameLabel = "사용자")
             .toMutableList()
-        parts.add("오늘: ${LocalDate.now()}")
+        parts.add("오늘: $date")
         return parts.joinToString(", ")
     }
 

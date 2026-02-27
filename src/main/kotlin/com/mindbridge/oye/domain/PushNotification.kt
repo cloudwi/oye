@@ -44,6 +44,7 @@ class PushNotification(
     @Comment("발송한 관리자 ID")
     val sentBy: Long,
 
+    @Column(nullable = false)
     @Comment("생성일시")
     val createdAt: LocalDateTime = LocalDateTime.now()
 )

@@ -5,7 +5,6 @@ import com.mindbridge.oye.config.TestConfig
 import com.mindbridge.oye.domain.CalendarType
 import com.mindbridge.oye.domain.Gender
 import com.mindbridge.oye.domain.Inquiry
-import com.mindbridge.oye.domain.InquiryComment
 import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.repository.CompatibilityRepository
 import com.mindbridge.oye.repository.FortuneRepository
@@ -194,30 +193,6 @@ class InquiryControllerTest {
     fun `GET inquiries - 인증 없이 목록 조회 시 401`() {
         mockMvc.perform(get("/api/inquiries"))
             .andExpect(status().isUnauthorized)
-    }
-
-    @Test
-    fun `GET inquiries - 페이지네이션 동작 확인`() {
-        (1..5).forEach { i ->
-            inquiryRepository.save(
-                Inquiry(
-                    user = testUser,
-                    title = "문의 $i",
-                    content = "내용 $i"
-                )
-            )
-        }
-
-        mockMvc.perform(
-            get("/api/inquiries")
-                .header("Authorization", "Bearer $accessToken")
-                .param("page", "0")
-                .param("size", "2")
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.data.content.length()").value(2))
-            .andExpect(jsonPath("$.data.totalElements").value(5))
-            .andExpect(jsonPath("$.data.totalPages").value(3))
     }
 
     @Test

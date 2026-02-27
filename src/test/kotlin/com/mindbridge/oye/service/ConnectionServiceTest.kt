@@ -165,10 +165,10 @@ class ConnectionServiceTest {
             partner = partnerUser,
             relationType = RelationType.FRIEND
         )
-        whenever(userConnectionRepository.findByUserOrPartner(testUser, testUser))
+        whenever(userConnectionRepository.findByUserOrPartnerWithUsers(testUser))
             .thenReturn(listOf(connection))
-        whenever(compatibilityRepository.findByConnectionAndDate(any(), any()))
-            .thenReturn(null)
+        whenever(compatibilityRepository.findByConnectionInAndDate(listOf(connection), LocalDate.now()))
+            .thenReturn(emptyList())
 
         val result = connectionService.getMyConnections(testUser)
 
@@ -192,10 +192,10 @@ class ConnectionServiceTest {
             content = "좋은 궁합",
             date = LocalDate.now()
         )
-        whenever(userConnectionRepository.findByUserOrPartner(testUser, testUser))
+        whenever(userConnectionRepository.findByUserOrPartnerWithUsers(testUser))
             .thenReturn(listOf(connection))
-        whenever(compatibilityRepository.findByConnectionAndDate(connection, LocalDate.now()))
-            .thenReturn(compatibility)
+        whenever(compatibilityRepository.findByConnectionInAndDate(listOf(connection), LocalDate.now()))
+            .thenReturn(listOf(compatibility))
 
         val result = connectionService.getMyConnections(testUser)
 
@@ -205,7 +205,7 @@ class ConnectionServiceTest {
 
     @Test
     fun `getMyConnections - 연결이 없으면 빈 리스트를 반환한다`() {
-        whenever(userConnectionRepository.findByUserOrPartner(testUser, testUser))
+        whenever(userConnectionRepository.findByUserOrPartnerWithUsers(testUser))
             .thenReturn(emptyList())
 
         val result = connectionService.getMyConnections(testUser)

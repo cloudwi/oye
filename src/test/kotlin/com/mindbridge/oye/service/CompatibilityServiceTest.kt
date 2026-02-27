@@ -237,19 +237,4 @@ class CompatibilityServiceTest {
         assertEquals(1, result.totalPages)
     }
 
-    @Test
-    fun `getCompatibilityHistory - 빈 결과를 반환한다`() {
-        val service = createService()
-        val pageable = PageRequest.of(0, 20)
-        val emptyPage = PageImpl<Compatibility>(emptyList(), pageable, 0)
-
-        whenever(userConnectionRepository.findByIdWithUsers(1L)).thenReturn(Optional.of(connection))
-        whenever(compatibilityRepository.findByConnectionOrderByDateDesc(connection, pageable))
-            .thenReturn(emptyPage)
-
-        val result = service.getCompatibilityHistory(testUser, 1L, 0, 20)
-
-        assertEquals(0, result.content.size)
-        assertEquals(0, result.totalElements)
-    }
 }

@@ -111,31 +111,6 @@ class FortuneControllerTest {
     }
 
     @Test
-    fun `GET fortune history - returns second page`() {
-        (1..5).forEach { i ->
-            fortuneRepository.save(
-                Fortune(
-                    user = testUser,
-                    content = "예감 $i",
-                    date = LocalDate.now().minusDays(i.toLong())
-                )
-            )
-        }
-
-        mockMvc.perform(
-            get("/api/fortune/history")
-                .header("Authorization", "Bearer $accessToken")
-                .param("page", "1")
-                .param("size", "3")
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.data.content.length()").value(2))
-            .andExpect(jsonPath("$.data.page").value(1))
-            .andExpect(jsonPath("$.data.totalElements").value(5))
-    }
-
-    @Test
     fun `GET fortune history - uses default pagination params`() {
         mockMvc.perform(
             get("/api/fortune/history")

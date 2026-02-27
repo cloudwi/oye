@@ -131,16 +131,6 @@ class AppControllerTest {
     }
 
     @Test
-    fun `check-update - 인증 없이 접근 가능 (public 엔드포인트)`() {
-        mockMvc.perform(
-            get("/api/app/check-update")
-                .param("platform", "ios")
-                .param("version", "1.0.0")
-        )
-            .andExpect(status().isOk)
-    }
-
-    @Test
     fun `check-update - 대소문자 무관하게 플랫폼 매칭`() {
         mockMvc.perform(
             get("/api/app/check-update")

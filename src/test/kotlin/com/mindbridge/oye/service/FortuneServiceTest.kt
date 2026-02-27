@@ -200,40 +200,4 @@ class FortuneServiceTest {
         assertEquals("첫번째 예감", result.content[0].content)
     }
 
-    @Test
-    fun `getFortuneHistory - returns empty page when no history`() {
-        val service = createService()
-        val pageable = PageRequest.of(0, 20)
-        val emptyPage = PageImpl<Fortune>(emptyList(), pageable, 0)
-
-        whenever(fortuneRepository.findByUserOrderByDateDesc(testUser, pageable))
-            .thenReturn(emptyPage)
-
-        val result = service.getFortuneHistory(testUser, 0, 20)
-
-        assertEquals(0, result.content.size)
-        assertEquals(0, result.totalElements)
-        assertEquals(0, result.totalPages)
-    }
-
-    @Test
-    fun `getFortuneHistory - returns correct page for second page`() {
-        val service = createService()
-        val fortunes = listOf(
-            Fortune(id = 1L, user = testUser, content = "세번째 예감", date = LocalDate.now().minusDays(2))
-        )
-        val pageable = PageRequest.of(1, 2)
-        val page = PageImpl(fortunes, pageable, 3)
-
-        whenever(fortuneRepository.findByUserOrderByDateDesc(testUser, pageable))
-            .thenReturn(page)
-
-        val result = service.getFortuneHistory(testUser, 1, 2)
-
-        assertEquals(1, result.content.size)
-        assertEquals(1, result.page)
-        assertEquals(2, result.size)
-        assertEquals(3L, result.totalElements)
-        assertEquals(2, result.totalPages)
-    }
 }

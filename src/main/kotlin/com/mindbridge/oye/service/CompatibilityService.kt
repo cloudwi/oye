@@ -11,11 +11,12 @@ import com.mindbridge.oye.exception.ConnectionNotFoundException
 import com.mindbridge.oye.exception.ForbiddenException
 import com.mindbridge.oye.repository.CompatibilityRepository
 import com.mindbridge.oye.repository.UserConnectionRepository
+import com.mindbridge.oye.util.AiResponseParser
 import com.mindbridge.oye.util.UserProfileBuilder
-import tools.jackson.module.kotlin.jacksonObjectMapper
-import tools.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
+import com.mindbridge.oye.config.CacheConfig
 import org.springframework.ai.chat.client.ChatClient
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
@@ -30,7 +31,6 @@ class CompatibilityService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val chatClient: ChatClient = chatClientBuilder.build()
-    private val objectMapper = jacksonObjectMapper()
 
     companion object {
         private const val MAX_RETRY_COUNT = 2
@@ -75,6 +75,7 @@ class CompatibilityService(
         """.trimIndent()
     }
 
+    @Cacheable(value = [CacheConfig.COMPATIBILITY_TODAY], key = "#connection.id")
     @Transactional(readOnly = true)
     fun getTodayCompatibility(connection: UserConnection): Compatibility? {
         return compatibilityRepository.findByConnectionAndDate(connection, LocalDate.now())
@@ -164,10 +165,6 @@ class CompatibilityService(
 
         repeat(MAX_RETRY_COUNT) { attempt ->
             try {
-                if (attempt > 0) {
-                    Thread.sleep(1000L * attempt)
-                }
-
                 val response = chatClient.prompt()
                     .system(SYSTEM_PROMPT)
                     .user(userPrompt)
@@ -175,7 +172,7 @@ class CompatibilityService(
                     .content()
 
                 if (!response.isNullOrBlank()) {
-                    return parseResponse(sanitizeResponse(response))
+                    return parseResponse(response)
                 }
                 log.warn("AI 응답이 비어있습니다. 재시도 {}/{}", attempt + 1, MAX_RETRY_COUNT)
             } catch (e: CompatibilityGenerationException) {
@@ -219,31 +216,15 @@ class CompatibilityService(
         return UserProfileBuilder.buildProfileParts(user)
     }
 
-    private fun sanitizeResponse(response: String): String {
-        val trimmed = response.trim()
-        val jsonStart = trimmed.indexOf('{')
-        val jsonEnd = trimmed.lastIndexOf('}')
-        if (jsonStart == -1 || jsonEnd == -1 || jsonEnd <= jsonStart) {
-            return trimmed
-        }
-        return trimmed.substring(jsonStart, jsonEnd + 1)
-    }
-
     private fun parseResponse(response: String): AiCompatibilityResult {
         return try {
-            val json: Map<String, Any> = objectMapper.readValue(response)
-
-            val score = when (val raw = json["score"]) {
-                is Number -> raw.toInt().coerceIn(0, 100)
-                else -> throw CompatibilityGenerationException("AI 응답에서 score를 파싱할 수 없습니다.")
-            }
-
-            val content = (json["content"] as? String)?.take(CONTENT_MAX_LENGTH)
-                ?: throw CompatibilityGenerationException("AI 응답에서 content를 파싱할 수 없습니다.")
-
-            AiCompatibilityResult(score = score, content = content)
-        } catch (e: CompatibilityGenerationException) {
-            throw e
+            val sanitized = AiResponseParser.sanitizeJson(response)
+            val result = AiResponseParser.parseScoreAndContent(
+                sanitized,
+                scoreRange = 0..100,
+                maxContentLength = CONTENT_MAX_LENGTH
+            )
+            AiCompatibilityResult(score = result.score, content = result.content)
         } catch (e: Exception) {
             log.error("AI 응답 파싱 실패. 원본 응답: {}", response, e)
             throw CompatibilityGenerationException("AI 응답 파싱에 실패했습니다: ${e.message}")

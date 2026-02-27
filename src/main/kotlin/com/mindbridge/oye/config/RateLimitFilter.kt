@@ -11,6 +11,8 @@ import org.springframework.web.filter.OncePerRequestFilter
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
+// TODO: 현재 ConcurrentHashMap 기반 인메모리 Rate Limiting은 단일 인스턴스 환경에서만 유효.
+// 스케일아웃 시 Redis 기반(Bucket4j + Redis)으로 교체 필요.
 @Component
 class RateLimitFilter : OncePerRequestFilter() {
 

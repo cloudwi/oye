@@ -4,10 +4,7 @@ import com.mindbridge.oye.config.AppleTokenVerifier
 import com.mindbridge.oye.config.JwtTokenProvider
 import com.mindbridge.oye.config.KakaoTokenVerifier
 import com.mindbridge.oye.controller.api.AuthApi
-import com.mindbridge.oye.domain.CalendarType
-import com.mindbridge.oye.domain.SocialAccount
 import com.mindbridge.oye.domain.SocialProvider
-import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.domain.Role
 import com.mindbridge.oye.dto.AdminKakaoCodeRequest
 import com.mindbridge.oye.dto.AdminLoginRequest
@@ -20,6 +17,7 @@ import com.mindbridge.oye.exception.UnauthorizedException
 import com.mindbridge.oye.exception.UserNotFoundException
 import com.mindbridge.oye.repository.SocialAccountRepository
 import com.mindbridge.oye.repository.UserRepository
+import com.mindbridge.oye.service.AuthService
 import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
@@ -29,7 +27,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpEntity
@@ -37,9 +34,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.RestTemplate
-import com.mindbridge.oye.event.UserCreatedEvent
 import org.springframework.web.servlet.view.RedirectView
-import java.time.LocalDate
 
 @RestController
 @RequestMapping("/api/auth")
@@ -49,7 +44,7 @@ class AuthController(
     private val kakaoTokenVerifier: KakaoTokenVerifier,
     private val userRepository: UserRepository,
     private val socialAccountRepository: SocialAccountRepository,
-    private val eventPublisher: ApplicationEventPublisher,
+    private val authService: AuthService,
     @Value("\${spring.security.oauth2.client.registration.kakao.client-id}")
     private val kakaoClientId: String,
     @Value("\${spring.security.oauth2.client.registration.kakao.client-secret}")
@@ -95,7 +90,7 @@ class AuthController(
 
         val socialAccount = socialAccountRepository.findByProviderAndProviderId(SocialProvider.APPLE, appleUserId)
         val isNewUser = socialAccount == null
-        val user = socialAccount?.user ?: createAppleUser(appleUserId, request.fullName)
+        val user = socialAccount?.user ?: authService.createUser(SocialProvider.APPLE, appleUserId, request.fullName)
 
         return TokenResponse(
             accessToken = jwtTokenProvider.generateAccessToken(user.id!!),
@@ -116,7 +111,7 @@ class AuthController(
 
         val socialAccount = socialAccountRepository.findByProviderAndProviderId(SocialProvider.KAKAO, kakaoUser.id)
         val isNewUser = socialAccount == null
-        val user = socialAccount?.user ?: createKakaoUser(kakaoUser.id, kakaoUser.nickname)
+        val user = socialAccount?.user ?: authService.createUser(SocialProvider.KAKAO, kakaoUser.id, kakaoUser.nickname)
 
         return TokenResponse(
             accessToken = jwtTokenProvider.generateAccessToken(user.id!!),
@@ -233,41 +228,4 @@ class AuthController(
         return ResponseEntity.ok(mapOf("message" to "로그아웃되었습니다."))
     }
 
-    private fun createKakaoUser(kakaoId: String, nickname: String): User {
-        val user = userRepository.save(
-            User(
-                name = nickname.ifBlank { null },
-                birthDate = LocalDate.of(2000, 1, 1),
-                calendarType = CalendarType.SOLAR
-            )
-        )
-        socialAccountRepository.save(
-            SocialAccount(
-                user = user,
-                provider = SocialProvider.KAKAO,
-                providerId = kakaoId
-            )
-        )
-        eventPublisher.publishEvent(UserCreatedEvent(user))
-        return user
-    }
-
-    private fun createAppleUser(appleUserId: String, fullName: String?): User {
-        val user = userRepository.save(
-            User(
-                name = fullName?.ifBlank { null },
-                birthDate = LocalDate.of(2000, 1, 1),
-                calendarType = CalendarType.SOLAR
-            )
-        )
-        socialAccountRepository.save(
-            SocialAccount(
-                user = user,
-                provider = SocialProvider.APPLE,
-                providerId = appleUserId
-            )
-        )
-        eventPublisher.publishEvent(UserCreatedEvent(user))
-        return user
-    }
 }

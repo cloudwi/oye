@@ -6,11 +6,12 @@ import com.mindbridge.oye.exception.FortuneGenerationException
 import com.mindbridge.oye.dto.FortuneResponse
 import com.mindbridge.oye.dto.PageResponse
 import com.mindbridge.oye.repository.FortuneRepository
+import com.mindbridge.oye.util.AiResponseParser
 import com.mindbridge.oye.util.UserProfileBuilder
-import tools.jackson.module.kotlin.jacksonObjectMapper
-import tools.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
+import com.mindbridge.oye.config.CacheConfig
 import org.springframework.ai.chat.client.ChatClient
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
@@ -30,7 +31,6 @@ class FortuneService(
     companion object {
         private const val MAX_RETRY_COUNT = 2
         private const val FORTUNE_MAX_LENGTH = 80
-        private val objectMapper = jacksonObjectMapper()
 
         private val SYSTEM_PROMPT = """
             당신은 하루의 분위기를 전해주는 예감 작가입니다.
@@ -81,6 +81,7 @@ class FortuneService(
         """.trimIndent()
     }
 
+    @Cacheable(value = [CacheConfig.FORTUNE_TODAY], key = "#user.id")
     @Transactional(readOnly = true)
     fun getTodayFortune(user: User): Fortune? {
         return fortuneRepository.findByUserAndDate(user, LocalDate.now())
@@ -172,21 +173,18 @@ class FortuneService(
     }
 
     private fun parseAiResponse(response: String): FortuneAiResponse {
-        val trimmed = response.trim()
         return try {
-            val jsonStr = if (trimmed.startsWith("{")) trimmed
-                else trimmed.substringAfter("{").let { "{$it" }.substringBeforeLast("}").let { "$it}" }
-            val parsed = objectMapper.readValue<Map<String, Any>>(jsonStr)
-            val content = (parsed["content"] as? String ?: "").removeSurrounding("\"").take(FORTUNE_MAX_LENGTH)
-            val score = when (val s = parsed["score"]) {
-                is Int -> s.coerceIn(1, 100)
-                is Number -> s.toInt().coerceIn(1, 100)
-                else -> 50
-            }
-            FortuneAiResponse(content, score)
+            val sanitized = AiResponseParser.sanitizeJson(response)
+            val result = AiResponseParser.parseScoreAndContent(
+                sanitized,
+                scoreRange = 1..100,
+                defaultScore = 50,
+                maxContentLength = FORTUNE_MAX_LENGTH
+            )
+            FortuneAiResponse(result.content, result.score)
         } catch (e: Exception) {
             log.warn("AI 응답 JSON 파싱 실패, 텍스트로 폴백: {}", e.message)
-            FortuneAiResponse(trimmed.removeSurrounding("\"").take(FORTUNE_MAX_LENGTH), 50)
+            FortuneAiResponse(response.trim().removeSurrounding("\"").take(FORTUNE_MAX_LENGTH), 50)
         }
     }
 }

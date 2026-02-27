@@ -9,4 +9,6 @@ interface UserRepository : JpaRepository<User, Long> {
     fun findByConnectCode(code: String): User?
     fun findAllByOrderByCreatedAtDesc(pageable: Pageable): Page<User>
     fun findByNameContainingIgnoreCaseOrderByCreatedAtDesc(name: String, pageable: Pageable): Page<User>
+    fun findAllByExpoPushTokenIsNotNull(): List<User>
+    fun findAllByIdInAndExpoPushTokenIsNotNull(ids: List<Long>): List<User>
 }

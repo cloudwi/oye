@@ -9,6 +9,7 @@ import java.time.LocalDate
 
 interface CompatibilityRepository : JpaRepository<Compatibility, Long> {
     fun findByConnectionAndDate(connection: UserConnection, date: LocalDate): Compatibility?
+    fun findByConnectionInAndDate(connections: List<UserConnection>, date: LocalDate): List<Compatibility>
     fun findByConnectionOrderByDateDesc(connection: UserConnection, pageable: Pageable): Page<Compatibility>
     fun deleteAllByConnection(connection: UserConnection)
     fun deleteAllByConnectionIn(connections: List<UserConnection>)

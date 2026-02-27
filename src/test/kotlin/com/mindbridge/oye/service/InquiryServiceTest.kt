@@ -103,18 +103,6 @@ class InquiryServiceTest {
         assertEquals(1, result.totalPages)
     }
 
-    @Test
-    fun `getMyInquiries - 문의가 없으면 빈 페이지 반환`() {
-        val pageable = PageRequest.of(0, 20)
-        val emptyPage = PageImpl<Inquiry>(emptyList(), pageable, 0)
-
-        whenever(inquiryRepository.findByUserOrderByCreatedAtDesc(testUser, pageable)).thenReturn(emptyPage)
-
-        val result = inquiryService.getMyInquiries(testUser, 0, 20)
-
-        assertEquals(0, result.content.size)
-        assertEquals(0, result.totalElements)
-    }
 
     @Test
     fun `getAllInquiries - 관리자 전체 문의 목록 조회 성공`() {

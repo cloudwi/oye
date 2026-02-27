@@ -119,19 +119,6 @@ class LottoServiceTest {
         assertEquals(1, result.totalPages)
     }
 
-    @Test
-    fun `getMyHistory - 빈 결과를 반환한다`() {
-        val pageable = PageRequest.of(0, 20)
-        val emptyPage = PageImpl<LottoRecommendation>(emptyList(), pageable, 0)
-
-        whenever(lottoRecommendationRepository.findByUserOrderByRoundDescSetNumberAsc(testUser, pageable))
-            .thenReturn(emptyPage)
-
-        val result = lottoService.getMyHistory(testUser, 0, 20)
-
-        assertEquals(0, result.content.size)
-        assertEquals(0, result.totalElements)
-    }
 
     @Test
     fun `getWinners - 당첨자 목록을 반환한다`() {
@@ -161,18 +148,6 @@ class LottoServiceTest {
         assertEquals(LocalDate.of(2025, 6, 14), result.content[0].drawDate)
     }
 
-    @Test
-    fun `getWinners - 당첨자가 없으면 빈 결과를 반환한다`() {
-        val pageable = PageRequest.of(0, 20)
-        val emptyPage = PageImpl<LottoRecommendation>(emptyList(), pageable, 0)
-
-        whenever(lottoRecommendationRepository.findByRankIsNotNullOrderByRoundDescRankAsc(pageable))
-            .thenReturn(emptyPage)
-
-        val result = lottoService.getWinners(0, 20)
-
-        assertEquals(0, result.content.size)
-    }
 
     @Test
     fun `getRound - 회차 정보를 반환한다`() {

@@ -13,6 +13,9 @@ interface UserConnectionRepository : JpaRepository<UserConnection, Long> {
     @Query("SELECT c FROM UserConnection c JOIN FETCH c.user JOIN FETCH c.partner")
     fun findAllWithUsers(): List<UserConnection>
 
+    @Query("SELECT c FROM UserConnection c JOIN FETCH c.user JOIN FETCH c.partner WHERE c.user = :user OR c.partner = :user")
+    fun findByUserOrPartnerWithUsers(@org.springframework.data.repository.query.Param("user") user: User): List<UserConnection>
+
     fun findByUserOrPartner(user: User, partner: User): List<UserConnection>
     fun existsByUserAndPartnerOrPartnerAndUser(user1: User, partner1: User, user2: User, partner2: User): Boolean
     fun deleteAllByUserOrPartner(user: User, partner: User)

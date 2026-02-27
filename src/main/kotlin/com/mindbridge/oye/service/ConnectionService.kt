@@ -76,11 +76,16 @@ class ConnectionService(
 
     @Transactional(readOnly = true)
     fun getMyConnections(user: User): List<ConnectionResponse> {
-        val connections = userConnectionRepository.findByUserOrPartner(user, user)
+        val connections = userConnectionRepository.findByUserOrPartnerWithUsers(user)
+        if (connections.isEmpty()) return emptyList()
+
         val today = LocalDate.now()
+        val compatibilities = compatibilityRepository.findByConnectionInAndDate(connections, today)
+        val compatibilityByConnectionId = compatibilities.associateBy { it.connection.id }
+
         return connections.map { connection ->
-            val latestCompatibility = compatibilityRepository.findByConnectionAndDate(connection, today)
-            ConnectionResponse.from(connection, user, latestCompatibility?.score, latestCompatibility?.content)
+            val compatibility = compatibilityByConnectionId[connection.id]
+            ConnectionResponse.from(connection, user, compatibility?.score, compatibility?.content)
         }
     }
 

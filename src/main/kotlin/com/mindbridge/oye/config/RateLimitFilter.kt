@@ -25,6 +25,11 @@ class RateLimitFilter : OncePerRequestFilter() {
 
     companion object {
         private const val WINDOW_MS = 60_000L // 1분
+        private val VERSION_PREFIX = Regex("^/api/v\\d+/")
+    }
+
+    private fun normalizePath(path: String): String {
+        return path.replaceFirst(VERSION_PREFIX, "/api/")
     }
 
     override fun doFilterInternal(
@@ -32,7 +37,7 @@ class RateLimitFilter : OncePerRequestFilter() {
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
-        val path = request.requestURI
+        val path = normalizePath(request.requestURI)
         val rateLimit = getRateLimit(path)
 
         if (rateLimit != null) {

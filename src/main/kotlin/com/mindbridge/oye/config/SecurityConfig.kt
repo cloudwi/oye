@@ -31,7 +31,7 @@ class SecurityConfig(
     @Order(1)
     fun oauthSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            .securityMatcher("/oauth2/**", "/login/oauth2/**", "/api/auth/login/kakao")
+            .securityMatcher("/oauth2/**", "/login/oauth2/**", "/api/auth/login/kakao", "/api/v1/auth/login/kakao")
             .cors { }
             .csrf { it.disable() }
             .sessionManagement { session ->
@@ -89,10 +89,10 @@ class SecurityConfig(
                     .requestMatchers("/actuator/health").permitAll()
                     .requestMatchers("/actuator/**").denyAll()
                     .requestMatchers("/h2-console/**").permitAll()
-                    .requestMatchers("/api/auth/**").permitAll()
-                    .requestMatchers("/api/app/**").permitAll()
+                    .requestMatchers("/api/auth/**", "/api/v1/auth/**").permitAll()
+                    .requestMatchers("/api/app/**", "/api/v1/app/**").permitAll()
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-                    .requestMatchers("/api/**").authenticated()
+                    .requestMatchers("/api/**", "/api/v1/**").authenticated()
                     .anyRequest().denyAll()
             }
             .exceptionHandling { exceptions ->

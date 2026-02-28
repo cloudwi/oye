@@ -25,11 +25,6 @@ class RateLimitFilter : OncePerRequestFilter() {
 
     companion object {
         private const val WINDOW_MS = 60_000L // 1분
-        private val VERSION_PREFIX = Regex("^/api/v\\d+/")
-    }
-
-    private fun normalizePath(path: String): String {
-        return path.replaceFirst(VERSION_PREFIX, "/api/")
     }
 
     override fun doFilterInternal(
@@ -37,7 +32,7 @@ class RateLimitFilter : OncePerRequestFilter() {
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
-        val path = normalizePath(request.requestURI)
+        val path = request.requestURI
         val rateLimit = getRateLimit(path)
 
         if (rateLimit != null) {
@@ -62,9 +57,9 @@ class RateLimitFilter : OncePerRequestFilter() {
      */
     private fun getRateLimit(path: String): Pair<Int, String>? {
         return when {
-            path.startsWith("/api/fortune/today") -> 5 to "user"
-            path.startsWith("/api/auth/login") -> 10 to "ip"
-            path == "/api/auth/refresh" -> 10 to "user"
+            path.startsWith("/api/v1/fortune/today") -> 5 to "user"
+            path.startsWith("/api/v1/auth/login") -> 10 to "ip"
+            path == "/api/v1/auth/refresh" -> 10 to "user"
             else -> null
         }
     }
@@ -82,9 +77,9 @@ class RateLimitFilter : OncePerRequestFilter() {
         }
 
         val pathCategory = when {
-            path.startsWith("/api/fortune/today") -> "fortune"
-            path.startsWith("/api/auth/login") -> "auth-login"
-            path == "/api/auth/refresh" -> "auth-refresh"
+            path.startsWith("/api/v1/fortune/today") -> "fortune"
+            path.startsWith("/api/v1/auth/login") -> "auth-login"
+            path == "/api/v1/auth/refresh" -> "auth-refresh"
             else -> "default"
         }
 

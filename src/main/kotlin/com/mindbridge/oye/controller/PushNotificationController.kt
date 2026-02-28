@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/api/admin/push")
+@RequestMapping("/api/v1/admin/push")
 class PushNotificationController(
     private val pushNotificationService: PushNotificationService,
     private val authenticationResolver: AuthenticationResolver

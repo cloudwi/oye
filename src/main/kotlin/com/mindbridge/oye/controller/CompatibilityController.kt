@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/api/connections/{id}/compatibility")
+@RequestMapping("/api/v1/connections/{id}/compatibility")
 class CompatibilityController(
     private val compatibilityService: CompatibilityService,
     private val authenticationResolver: AuthenticationResolver

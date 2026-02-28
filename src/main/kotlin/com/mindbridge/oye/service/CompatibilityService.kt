@@ -21,6 +21,7 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.DayOfWeek
 import java.time.LocalDate
 
 @Service
@@ -72,6 +73,10 @@ class CompatibilityService(
             나쁜 예시 - 너무 구체적:
             "저녁에 깜짝 선물을 받게 돼요."
             "오후 3시에 연락이 와요."
+
+            요일 규칙:
+            - 주말(토요일, 일요일)에는 직장, 업무, 회의, 프로젝트 등 직업 관련 내용을 피하세요.
+            - 주말에는 휴식, 여가, 취미, 사람과의 관계 등 일상적인 내용으로 작성하세요.
 
             중요: 매일 다양한 결과를 만들어야 합니다.
             - 최근 결과가 제공되면, 같은 키워드나 비슷한 문장 구조를 피하세요.
@@ -211,7 +216,8 @@ class CompatibilityService(
         parts.addAll(buildUserProfile(user2))
         parts.add("")
         parts.add("관계: $relationText")
-        parts.add("오늘: $date")
+        val dayOfWeek = getDayOfWeekKorean(date)
+        parts.add("오늘: $date ($dayOfWeek)")
 
         val recentResults = getRecentCompatibilityContents(connection, 5)
         if (recentResults.isNotEmpty()) {
@@ -230,6 +236,18 @@ class CompatibilityService(
         } catch (e: Exception) {
             log.warn("최근 궁합 조회 실패: {}", e.message)
             emptyList()
+        }
+    }
+
+    private fun getDayOfWeekKorean(date: LocalDate): String {
+        return when (date.dayOfWeek) {
+            DayOfWeek.MONDAY -> "월요일"
+            DayOfWeek.TUESDAY -> "화요일"
+            DayOfWeek.WEDNESDAY -> "수요일"
+            DayOfWeek.THURSDAY -> "목요일"
+            DayOfWeek.FRIDAY -> "금요일"
+            DayOfWeek.SATURDAY -> "토요일"
+            DayOfWeek.SUNDAY -> "일요일"
         }
     }
 

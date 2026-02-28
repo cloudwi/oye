@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/api/inquiries")
+@RequestMapping("/api/v1/inquiries")
 class InquiryController(
     private val inquiryService: InquiryService,
     private val authenticationResolver: AuthenticationResolver

@@ -37,7 +37,7 @@ import org.springframework.web.client.RestTemplate
 import org.springframework.web.servlet.view.RedirectView
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 class AuthController(
     private val jwtTokenProvider: JwtTokenProvider,
     private val appleTokenVerifier: AppleTokenVerifier,

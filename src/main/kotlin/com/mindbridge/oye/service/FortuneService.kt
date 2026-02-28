@@ -78,6 +78,10 @@ class FortuneService(
             "평소와 조금 다른 맛의 차 한잔이 기다려져요."
             "오늘은 공기가 조금 다르게 느껴져요."
             "익숙한 향 속에 새로운 무언가가 섞여 있어요."
+
+            중요: 매일 다양한 결과를 만들어야 합니다.
+            - 최근 결과가 제공되면, 같은 키워드나 비슷한 문장 구조를 피하세요.
+            - 점수도 날마다 자연스럽게 달라져야 합니다.
         """.trimIndent()
     }
 
@@ -169,7 +173,25 @@ class FortuneService(
         val parts = UserProfileBuilder.buildProfileParts(user, nameLabel = "사용자")
             .toMutableList()
         parts.add("오늘: $date")
-        return parts.joinToString(", ")
+
+        val recentResults = getRecentFortuneContents(user, 5)
+        if (recentResults.isNotEmpty()) {
+            parts.add("")
+            parts.add("=== 최근 결과 (이와 다른 내용으로 작성) ===")
+            recentResults.forEach { parts.add("- $it") }
+        }
+
+        return parts.joinToString("\n")
+    }
+
+    private fun getRecentFortuneContents(user: User, count: Int): List<String> {
+        return try {
+            fortuneRepository.findByUserOrderByDateDesc(user, PageRequest.of(0, count))
+                .content.map { it.content }
+        } catch (e: Exception) {
+            log.warn("최근 예감 조회 실패: {}", e.message)
+            emptyList()
+        }
     }
 
     private fun parseAiResponse(response: String): FortuneAiResponse {

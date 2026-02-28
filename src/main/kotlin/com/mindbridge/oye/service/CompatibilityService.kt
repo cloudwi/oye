@@ -72,6 +72,10 @@ class CompatibilityService(
             나쁜 예시 - 너무 구체적:
             "저녁에 깜짝 선물을 받게 돼요."
             "오후 3시에 연락이 와요."
+
+            중요: 매일 다양한 결과를 만들어야 합니다.
+            - 최근 결과가 제공되면, 같은 키워드나 비슷한 문장 구조를 피하세요.
+            - 점수도 날마다 자연스럽게 달라져야 합니다.
         """.trimIndent()
     }
 
@@ -209,7 +213,24 @@ class CompatibilityService(
         parts.add("관계: $relationText")
         parts.add("오늘: $date")
 
+        val recentResults = getRecentCompatibilityContents(connection, 5)
+        if (recentResults.isNotEmpty()) {
+            parts.add("")
+            parts.add("=== 최근 결과 (이와 다른 내용으로 작성) ===")
+            recentResults.forEach { parts.add("- $it") }
+        }
+
         return parts.joinToString("\n")
+    }
+
+    private fun getRecentCompatibilityContents(connection: UserConnection, count: Int): List<String> {
+        return try {
+            compatibilityRepository.findByConnectionOrderByDateDesc(connection, PageRequest.of(0, count))
+                .content.map { it.content }
+        } catch (e: Exception) {
+            log.warn("최근 궁합 조회 실패: {}", e.message)
+            emptyList()
+        }
     }
 
     private fun buildUserProfile(user: User): List<String> {

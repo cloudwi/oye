@@ -1,6 +1,9 @@
 spring:
   flyway:
     enabled: false
+  sql:
+    init:
+      mode: never
   ai:
     openai:
       api-key: test-api-key

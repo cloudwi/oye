@@ -12,4 +12,6 @@ interface LottoRecommendationRepository : JpaRepository<LottoRecommendation, Lon
     fun findByRoundAndRankIsNotNull(round: Int): List<LottoRecommendation>
     fun findByRankIsNotNullOrderByRoundDescRankAsc(pageable: Pageable): Page<LottoRecommendation>
     fun findByRound(round: Int): List<LottoRecommendation>
+    fun findByUserAndRankIsNotNull(user: User): List<LottoRecommendation>
+    fun findByUserAndRankIsNotNullOrderByRoundDescSetNumberAsc(user: User, pageable: Pageable): Page<LottoRecommendation>
 }

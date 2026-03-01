@@ -3,6 +3,7 @@ package com.mindbridge.oye.controller
 import com.mindbridge.oye.config.AuthenticationResolver
 import com.mindbridge.oye.controller.api.LottoApi
 import com.mindbridge.oye.dto.ApiResponse
+import com.mindbridge.oye.dto.LottoMyStatsResponse
 import com.mindbridge.oye.dto.LottoRecommendationResponse
 import com.mindbridge.oye.dto.LottoRoundResponse
 import com.mindbridge.oye.dto.LottoWinnerResponse
@@ -37,10 +38,19 @@ class LottoController(
     override fun getMyHistory(
         @AuthenticationPrincipal principal: Any?,
         @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "20") size: Int
+        @RequestParam(defaultValue = "20") size: Int,
+        @RequestParam(defaultValue = "false") winOnly: Boolean
     ): ApiResponse<PageResponse<LottoRecommendationResponse>> {
         val user = authenticationResolver.getCurrentUser(principal)
-        return ApiResponse.success(lottoService.getMyHistory(user, page, size))
+        return ApiResponse.success(lottoService.getMyHistory(user, page, size, winOnly))
+    }
+
+    @GetMapping("/my-stats")
+    override fun getMyStats(
+        @AuthenticationPrincipal principal: Any?
+    ): ApiResponse<LottoMyStatsResponse> {
+        val user = authenticationResolver.getCurrentUser(principal)
+        return ApiResponse.success(lottoService.getMyStats(user))
     }
 
     @GetMapping("/winners")

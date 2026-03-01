@@ -16,6 +16,8 @@ interface LottoRecommendationRepository : JpaRepository<LottoRecommendation, Lon
     fun findByUserAndRankIsNotNull(user: User): List<LottoRecommendation>
     fun findByUserAndRankIsNotNullOrderByRoundDescSetNumberAsc(user: User, pageable: Pageable): Page<LottoRecommendation>
 
+    fun deleteAllByUser(user: User)
+
     @Query("SELECT COALESCE(SUM(r.prizeAmount), 0) FROM LottoRecommendation r WHERE r.user = :user AND r.rank IS NOT NULL")
     fun sumPrizeAmountByUser(user: User): Long
 

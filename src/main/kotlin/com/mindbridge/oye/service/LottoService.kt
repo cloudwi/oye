@@ -86,8 +86,19 @@ class LottoService(
         } else {
             lottoRecommendationRepository.findByUserOrderByRoundDescSetNumberAsc(user, pageable)
         }
+
+        val evaluatedRounds = recommendationPage.content
+            .filter { it.evaluated }
+            .map { it.round }
+            .distinct()
+        val rounds = if (evaluatedRounds.isNotEmpty()) {
+            lottoRoundRepository.findByRoundIn(evaluatedRounds).associateBy { it.round }
+        } else {
+            emptyMap()
+        }
+
         return PageResponse(
-            content = recommendationPage.content.map { LottoRecommendationResponse.from(it) },
+            content = recommendationPage.content.map { LottoRecommendationResponse.from(it, rounds[it.round]) },
             page = recommendationPage.number,
             size = recommendationPage.size,
             totalElements = recommendationPage.totalElements,

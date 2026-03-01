@@ -47,6 +47,8 @@ class LottoDrawService(
         val drawDateStr = response["drwNoDate"] as? String
             ?: throw ExternalApiException("동행복권 API 응답에서 drwNoDate 필드를 파싱할 수 없습니다. round=$round")
 
+        val firstPrizeAmount = (response["firstWinamnt"] as? Number)?.toLong()
+
         val lottoRound = LottoRound(
             round = round,
             number1 = parseIntField("drwtNo1"),
@@ -56,7 +58,8 @@ class LottoDrawService(
             number5 = parseIntField("drwtNo5"),
             number6 = parseIntField("drwtNo6"),
             bonusNumber = parseIntField("bnusNo"),
-            drawDate = LocalDate.parse(drawDateStr)
+            drawDate = LocalDate.parse(drawDateStr),
+            firstPrizeAmount = firstPrizeAmount
         )
 
         val saved = lottoRoundRepository.save(lottoRound)
@@ -97,6 +100,8 @@ class LottoDrawService(
             recommendation.matchCount = matchCount
             recommendation.bonusMatch = bonusMatch
             recommendation.rank = determineRank(matchCount, bonusMatch)
+            recommendation.evaluated = true
+            recommendation.prizeAmount = determinePrizeAmount(recommendation.rank, lottoRound.firstPrizeAmount)
 
             if (recommendation.rank != null) {
                 winnerCount++
@@ -114,6 +119,15 @@ class LottoDrawService(
             matchCount == 5 -> LottoRank.THIRD
             matchCount == 4 -> LottoRank.FOURTH
             matchCount == 3 -> LottoRank.FIFTH
+            else -> null
+        }
+    }
+
+    private fun determinePrizeAmount(rank: LottoRank?, firstPrizeAmount: Long?): Long? {
+        return when (rank) {
+            LottoRank.FIRST -> firstPrizeAmount
+            LottoRank.FOURTH -> 50_000L
+            LottoRank.FIFTH -> 5_000L
             else -> null
         }
     }

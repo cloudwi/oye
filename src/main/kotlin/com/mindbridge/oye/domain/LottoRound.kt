@@ -55,6 +55,9 @@ class LottoRound(
     @Comment("추첨일")
     val drawDate: LocalDate,
 
+    @Comment("1등 당첨금액")
+    val firstPrizeAmount: Long? = null,
+
     @Column(nullable = false, updatable = false)
     @Comment("생성일시")
     val createdAt: LocalDateTime = LocalDateTime.now()

@@ -16,7 +16,10 @@ data class LottoRoundResponse(
     val bonusNumber: Int,
 
     @Schema(description = "추첨일", example = "2025-06-14")
-    val drawDate: LocalDate
+    val drawDate: LocalDate,
+
+    @Schema(description = "1등 당첨금액", example = "2000000000")
+    val firstPrizeAmount: Long?
 ) {
     companion object {
         fun from(lottoRound: LottoRound): LottoRoundResponse {
@@ -24,7 +27,8 @@ data class LottoRoundResponse(
                 round = lottoRound.round,
                 numbers = lottoRound.numbers,
                 bonusNumber = lottoRound.bonusNumber,
-                drawDate = lottoRound.drawDate
+                drawDate = lottoRound.drawDate,
+                firstPrizeAmount = lottoRound.firstPrizeAmount
             )
         }
     }

@@ -27,6 +27,12 @@ data class LottoRecommendationResponse(
     @Schema(description = "보너스 번호 일치 여부", example = "false")
     val bonusMatch: Boolean,
 
+    @Schema(description = "당첨 평가 완료 여부", example = "true")
+    val evaluated: Boolean,
+
+    @Schema(description = "당첨 금액", example = "50000")
+    val prizeAmount: Long?,
+
     @Schema(description = "생성일시", example = "2025-06-15T08:00:00")
     val createdAt: LocalDateTime
 ) {
@@ -40,6 +46,8 @@ data class LottoRecommendationResponse(
                 rank = recommendation.rank?.description,
                 matchCount = recommendation.matchCount,
                 bonusMatch = recommendation.bonusMatch,
+                evaluated = recommendation.evaluated,
+                prizeAmount = recommendation.prizeAmount,
                 createdAt = recommendation.createdAt
             )
         }

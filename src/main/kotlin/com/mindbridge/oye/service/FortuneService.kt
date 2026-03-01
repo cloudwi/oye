@@ -224,6 +224,44 @@ class FortuneService(
         }
     }
 
+    @Transactional
+    fun backfillScores(): Int {
+        val fortunes = fortuneRepository.findByScoreIsNull()
+        if (fortunes.isEmpty()) return 0
+
+        var updated = 0
+        for (fortune in fortunes) {
+            try {
+                val score = scoreContent(fortune.content)
+                fortuneRepository.updateScore(fortune.id!!, score)
+                updated++
+                log.info("Fortune score 백필: id={}, score={}", fortune.id, score)
+            } catch (e: Exception) {
+                log.warn("Fortune score 백필 실패: id={}, error={}", fortune.id, e.message)
+            }
+        }
+        log.info("Fortune score 백필 완료: {}/{}", updated, fortunes.size)
+        return updated
+    }
+
+    private fun scoreContent(content: String): Int {
+        val prompt = """
+            다음 예감(운세) 문장의 분위기에 맞는 점수를 1~100 사이 정수로 매겨주세요.
+            40~60: 평범한 날, 60~80: 좋은 기운, 80~100: 특별히 좋은 날, 20~40: 조심하면 좋은 날
+
+            예감: "$content"
+
+            숫자만 출력하세요.
+        """.trimIndent()
+
+        val response = chatClient.prompt()
+            .user(prompt)
+            .call()
+            .content()
+
+        return response?.trim()?.toIntOrNull()?.coerceIn(1, 100) ?: 50
+    }
+
     private fun parseAiResponse(response: String): FortuneAiResponse {
         return try {
             val sanitized = AiResponseParser.sanitizeJson(response)

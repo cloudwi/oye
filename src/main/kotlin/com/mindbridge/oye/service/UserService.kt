@@ -8,6 +8,7 @@ import com.mindbridge.oye.repository.CompatibilityRepository
 import com.mindbridge.oye.repository.FortuneRepository
 import com.mindbridge.oye.repository.InquiryCommentRepository
 import com.mindbridge.oye.repository.InquiryRepository
+import com.mindbridge.oye.repository.LottoRecommendationRepository
 import com.mindbridge.oye.repository.SocialAccountRepository
 import com.mindbridge.oye.repository.UserConnectionRepository
 import com.mindbridge.oye.repository.UserRepository
@@ -23,7 +24,8 @@ class UserService(
     private val inquiryRepository: InquiryRepository,
     private val inquiryCommentRepository: InquiryCommentRepository,
     private val userConnectionRepository: UserConnectionRepository,
-    private val compatibilityRepository: CompatibilityRepository
+    private val compatibilityRepository: CompatibilityRepository,
+    private val lottoRecommendationRepository: LottoRecommendationRepository
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -61,6 +63,7 @@ class UserService(
         }
         inquiryRepository.deleteAllByUser(user)
         fortuneRepository.deleteAllByUser(user)
+        lottoRecommendationRepository.deleteAllByUser(user)
         socialAccountRepository.deleteAllByUser(user)
         userRepository.delete(user)
         log.info("사용자 삭제 완료: userId={}", user.id)

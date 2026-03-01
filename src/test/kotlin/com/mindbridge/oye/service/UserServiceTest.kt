@@ -7,6 +7,7 @@ import com.mindbridge.oye.repository.CompatibilityRepository
 import com.mindbridge.oye.repository.FortuneRepository
 import com.mindbridge.oye.repository.InquiryCommentRepository
 import com.mindbridge.oye.repository.InquiryRepository
+import com.mindbridge.oye.repository.LottoRecommendationRepository
 import com.mindbridge.oye.repository.SocialAccountRepository
 import com.mindbridge.oye.repository.UserConnectionRepository
 import com.mindbridge.oye.repository.UserRepository
@@ -44,6 +45,9 @@ class UserServiceTest {
     @Mock
     private lateinit var compatibilityRepository: CompatibilityRepository
 
+    @Mock
+    private lateinit var lottoRecommendationRepository: LottoRecommendationRepository
+
     @InjectMocks
     private lateinit var userService: UserService
 
@@ -62,12 +66,13 @@ class UserServiceTest {
 
         userService.deleteUser(testUser)
 
-        val inOrder: InOrder = inOrder(userConnectionRepository, inquiryRepository, fortuneRepository, socialAccountRepository, userRepository)
+        val inOrder: InOrder = inOrder(userConnectionRepository, inquiryRepository, fortuneRepository, lottoRecommendationRepository, socialAccountRepository, userRepository)
         inOrder.verify(userConnectionRepository).findByUserOrPartner(testUser, testUser)
         inOrder.verify(userConnectionRepository).deleteAllByUserOrPartner(testUser, testUser)
         inOrder.verify(inquiryRepository).findAllByUser(testUser)
         inOrder.verify(inquiryRepository).deleteAllByUser(testUser)
         inOrder.verify(fortuneRepository).deleteAllByUser(testUser)
+        inOrder.verify(lottoRecommendationRepository).deleteAllByUser(testUser)
         inOrder.verify(socialAccountRepository).deleteAllByUser(testUser)
         inOrder.verify(userRepository).delete(testUser)
     }

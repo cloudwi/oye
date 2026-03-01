@@ -68,7 +68,7 @@ class FortuneControllerTest {
         )
 
         mockMvc.perform(
-            get("/api/fortune/today")
+            get("/api/v1/fortune/today")
                 .header("Authorization", "Bearer $accessToken")
         )
             .andExpect(status().isOk)
@@ -79,7 +79,7 @@ class FortuneControllerTest {
 
     @Test
     fun `GET fortune today - returns 401 without token`() {
-        mockMvc.perform(get("/api/fortune/today"))
+        mockMvc.perform(get("/api/v1/fortune/today"))
             .andExpect(status().isUnauthorized)
     }
 
@@ -96,7 +96,7 @@ class FortuneControllerTest {
         }
 
         mockMvc.perform(
-            get("/api/fortune/history")
+            get("/api/v1/fortune/history")
                 .header("Authorization", "Bearer $accessToken")
                 .param("page", "0")
                 .param("size", "3")
@@ -113,7 +113,7 @@ class FortuneControllerTest {
     @Test
     fun `GET fortune history - uses default pagination params`() {
         mockMvc.perform(
-            get("/api/fortune/history")
+            get("/api/v1/fortune/history")
                 .header("Authorization", "Bearer $accessToken")
         )
             .andExpect(status().isOk)
@@ -125,7 +125,84 @@ class FortuneControllerTest {
 
     @Test
     fun `GET fortune history - returns 401 without token`() {
-        mockMvc.perform(get("/api/fortune/history"))
+        mockMvc.perform(get("/api/v1/fortune/history"))
+            .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    fun `GET score-trend - returns score trend for authenticated user`() {
+        (1..5).forEach { i ->
+            fortuneRepository.save(
+                Fortune(
+                    user = testUser,
+                    content = "예감 $i",
+                    score = 60 + i * 5,
+                    date = LocalDate.now().minusDays(i.toLong())
+                )
+            )
+        }
+
+        mockMvc.perform(
+            get("/api/v1/fortune/score-trend")
+                .header("Authorization", "Bearer $accessToken")
+                .param("days", "7")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data.length()").value(5))
+            .andExpect(jsonPath("$.data[0].date").exists())
+            .andExpect(jsonPath("$.data[0].score").exists())
+    }
+
+    @Test
+    fun `GET score-trend - uses default days param`() {
+        mockMvc.perform(
+            get("/api/v1/fortune/score-trend")
+                .header("Authorization", "Bearer $accessToken")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data").isArray)
+    }
+
+    @Test
+    fun `GET score-trend - returns 401 without token`() {
+        mockMvc.perform(get("/api/v1/fortune/score-trend"))
+            .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    fun `GET record-dates - returns record dates for given month`() {
+        val targetDate = LocalDate.of(2026, 3, 10)
+        fortuneRepository.save(
+            Fortune(
+                user = testUser,
+                content = "예감",
+                score = 70,
+                date = targetDate
+            )
+        )
+
+        mockMvc.perform(
+            get("/api/v1/fortune/record-dates")
+                .header("Authorization", "Bearer $accessToken")
+                .param("year", "2026")
+                .param("month", "3")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data.yearMonth").value("2026-03"))
+            .andExpect(jsonPath("$.data.dates.length()").value(1))
+            .andExpect(jsonPath("$.data.dates[0]").value("2026-03-10"))
+    }
+
+    @Test
+    fun `GET record-dates - returns 401 without token`() {
+        mockMvc.perform(
+            get("/api/v1/fortune/record-dates")
+                .param("year", "2026")
+                .param("month", "3")
+        )
             .andExpect(status().isUnauthorized)
     }
 }

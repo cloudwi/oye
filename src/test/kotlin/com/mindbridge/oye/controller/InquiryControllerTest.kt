@@ -99,7 +99,7 @@ class InquiryControllerTest {
         """.trimIndent()
 
         mockMvc.perform(
-            post("/api/inquiries")
+            post("/api/v1/inquiries")
                 .header("Authorization", "Bearer $accessToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
@@ -120,7 +120,7 @@ class InquiryControllerTest {
         """.trimIndent()
 
         mockMvc.perform(
-            post("/api/inquiries")
+            post("/api/v1/inquiries")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
         )
@@ -137,7 +137,7 @@ class InquiryControllerTest {
         """.trimIndent()
 
         mockMvc.perform(
-            post("/api/inquiries")
+            post("/api/v1/inquiries")
                 .header("Authorization", "Bearer $accessToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
@@ -155,7 +155,7 @@ class InquiryControllerTest {
         """.trimIndent()
 
         mockMvc.perform(
-            post("/api/inquiries")
+            post("/api/v1/inquiries")
                 .header("Authorization", "Bearer $accessToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
@@ -176,7 +176,7 @@ class InquiryControllerTest {
         }
 
         mockMvc.perform(
-            get("/api/inquiries")
+            get("/api/v1/inquiries")
                 .header("Authorization", "Bearer $accessToken")
                 .param("page", "0")
                 .param("size", "20")
@@ -191,7 +191,7 @@ class InquiryControllerTest {
 
     @Test
     fun `GET inquiries - 인증 없이 목록 조회 시 401`() {
-        mockMvc.perform(get("/api/inquiries"))
+        mockMvc.perform(get("/api/v1/inquiries"))
             .andExpect(status().isUnauthorized)
     }
 
@@ -206,7 +206,7 @@ class InquiryControllerTest {
         )
 
         mockMvc.perform(
-            get("/api/inquiries/${inquiry.id}")
+            get("/api/v1/inquiries/${inquiry.id}")
                 .header("Authorization", "Bearer $accessToken")
         )
             .andExpect(status().isOk)
@@ -236,7 +236,7 @@ class InquiryControllerTest {
         )
 
         mockMvc.perform(
-            get("/api/inquiries/${inquiry.id}")
+            get("/api/v1/inquiries/${inquiry.id}")
                 .header("Authorization", "Bearer $accessToken")
         )
             .andExpect(status().isForbidden)
@@ -245,7 +245,7 @@ class InquiryControllerTest {
     @Test
     fun `GET inquiries id - 존재하지 않는 문의 조회 시 404`() {
         mockMvc.perform(
-            get("/api/inquiries/999999")
+            get("/api/v1/inquiries/999999")
                 .header("Authorization", "Bearer $accessToken")
         )
             .andExpect(status().isNotFound)
@@ -253,7 +253,7 @@ class InquiryControllerTest {
 
     @Test
     fun `GET inquiries id - 인증 없이 상세 조회 시 401`() {
-        mockMvc.perform(get("/api/inquiries/1"))
+        mockMvc.perform(get("/api/v1/inquiries/1"))
             .andExpect(status().isUnauthorized)
     }
 
@@ -274,7 +274,7 @@ class InquiryControllerTest {
         """.trimIndent()
 
         mockMvc.perform(
-            post("/api/inquiries/${inquiry.id}/comments")
+            post("/api/v1/inquiries/${inquiry.id}/comments")
                 .header("Authorization", "Bearer $accessToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
@@ -291,7 +291,7 @@ class InquiryControllerTest {
         """.trimIndent()
 
         mockMvc.perform(
-            post("/api/inquiries/1/comments")
+            post("/api/v1/inquiries/1/comments")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
         )

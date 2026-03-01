@@ -13,6 +13,7 @@ import com.mindbridge.oye.repository.UserConnectionRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -185,6 +186,93 @@ class CompatibilityServiceTest {
 
         assertEquals(75, result.score)
         assertEquals("새 궁합 내용", result.content)
+    }
+
+    @Test
+    fun `getScoreTrend - 점수 추이를 반환한다`() {
+        val service = createService()
+        val today = LocalDate.now()
+        val compatibilities = listOf(
+            Compatibility(id = 1L, connection = connection, score = 80, content = "궁합1", date = today.minusDays(1)),
+            Compatibility(id = 2L, connection = connection, score = 90, content = "궁합2", date = today)
+        )
+        whenever(userConnectionRepository.findByIdWithUsers(1L)).thenReturn(Optional.of(connection))
+        whenever(compatibilityRepository.findByConnectionAndDateBetweenOrderByDateAsc(any(), any(), any()))
+            .thenReturn(compatibilities)
+
+        val result = service.getScoreTrend(testUser, 1L, 7)
+
+        assertEquals(2, result.size)
+        assertEquals(80, result[0].score)
+        assertEquals(90, result[1].score)
+    }
+
+    @Test
+    fun `getScoreTrend - 연결을 찾을 수 없으면 ConnectionNotFoundException 발생`() {
+        val service = createService()
+        whenever(userConnectionRepository.findByIdWithUsers(999L)).thenReturn(Optional.empty())
+
+        assertThrows<ConnectionNotFoundException> {
+            service.getScoreTrend(testUser, 999L, 7)
+        }
+    }
+
+    @Test
+    fun `getScoreTrend - 권한이 없으면 ForbiddenException 발생`() {
+        val service = createService()
+        val otherUser = User(
+            id = 3L,
+            name = "다른유저",
+            birthDate = LocalDate.of(1988, 3, 10),
+            gender = Gender.MALE,
+            calendarType = CalendarType.SOLAR
+        )
+        whenever(userConnectionRepository.findByIdWithUsers(1L)).thenReturn(Optional.of(connection))
+
+        assertThrows<ForbiddenException> {
+            service.getScoreTrend(otherUser, 1L, 7)
+        }
+    }
+
+    @Test
+    fun `getRecordDates - 기록 날짜를 반환한다`() {
+        val service = createService()
+        val dates = listOf(LocalDate.of(2026, 3, 5), LocalDate.of(2026, 3, 10))
+        whenever(userConnectionRepository.findByIdWithUsers(1L)).thenReturn(Optional.of(connection))
+        whenever(compatibilityRepository.findDatesByConnectionAndDateBetween(any(), any(), any()))
+            .thenReturn(dates)
+
+        val result = service.getRecordDates(testUser, 1L, 2026, 3)
+
+        assertEquals("2026-03", result.yearMonth)
+        assertEquals(2, result.dates.size)
+    }
+
+    @Test
+    fun `getRecordDates - 연결을 찾을 수 없으면 ConnectionNotFoundException 발생`() {
+        val service = createService()
+        whenever(userConnectionRepository.findByIdWithUsers(999L)).thenReturn(Optional.empty())
+
+        assertThrows<ConnectionNotFoundException> {
+            service.getRecordDates(testUser, 999L, 2026, 3)
+        }
+    }
+
+    @Test
+    fun `getRecordDates - 권한이 없으면 ForbiddenException 발생`() {
+        val service = createService()
+        val otherUser = User(
+            id = 3L,
+            name = "다른유저",
+            birthDate = LocalDate.of(1988, 3, 10),
+            gender = Gender.MALE,
+            calendarType = CalendarType.SOLAR
+        )
+        whenever(userConnectionRepository.findByIdWithUsers(1L)).thenReturn(Optional.of(connection))
+
+        assertThrows<ForbiddenException> {
+            service.getRecordDates(otherUser, 1L, 2026, 3)
+        }
     }
 
     @Test

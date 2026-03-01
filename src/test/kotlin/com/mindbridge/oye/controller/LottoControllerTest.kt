@@ -99,7 +99,7 @@ class LottoControllerTest {
     @Test
     fun `POST recommendations - 추천 번호 5세트를 생성한다`() {
         mockMvc.perform(
-            post("/api/lotto/recommendations")
+            post("/api/v1/lotto/recommendations")
                 .header("Authorization", "Bearer $accessToken")
                 .param("round", "1130")
         )
@@ -121,7 +121,7 @@ class LottoControllerTest {
         )
 
         mockMvc.perform(
-            post("/api/lotto/recommendations")
+            post("/api/v1/lotto/recommendations")
                 .header("Authorization", "Bearer $accessToken")
                 .param("round", "1130")
         )
@@ -131,7 +131,7 @@ class LottoControllerTest {
     @Test
     fun `POST recommendations - 인증 없이 요청하면 401`() {
         mockMvc.perform(
-            post("/api/lotto/recommendations")
+            post("/api/v1/lotto/recommendations")
                 .param("round", "1130")
         )
             .andExpect(status().isUnauthorized)
@@ -149,7 +149,7 @@ class LottoControllerTest {
         }
 
         mockMvc.perform(
-            get("/api/lotto/recommendations")
+            get("/api/v1/lotto/recommendations")
                 .header("Authorization", "Bearer $accessToken")
                 .param("page", "0")
                 .param("size", "2")
@@ -166,7 +166,7 @@ class LottoControllerTest {
     @Test
     fun `GET recommendations - 기본 페이지네이션 파라미터 사용`() {
         mockMvc.perform(
-            get("/api/lotto/recommendations")
+            get("/api/v1/lotto/recommendations")
                 .header("Authorization", "Bearer $accessToken")
         )
             .andExpect(status().isOk)
@@ -178,7 +178,7 @@ class LottoControllerTest {
 
     @Test
     fun `GET recommendations - 인증 없이 요청하면 401`() {
-        mockMvc.perform(get("/api/lotto/recommendations"))
+        mockMvc.perform(get("/api/v1/lotto/recommendations"))
             .andExpect(status().isUnauthorized)
     }
 
@@ -200,7 +200,7 @@ class LottoControllerTest {
         )
 
         mockMvc.perform(
-            get("/api/lotto/winners")
+            get("/api/v1/lotto/winners")
                 .header("Authorization", "Bearer $accessToken")
                 .param("page", "0")
                 .param("size", "20")
@@ -216,7 +216,7 @@ class LottoControllerTest {
     @Test
     fun `GET winners - 당첨자가 없으면 빈 목록 반환`() {
         mockMvc.perform(
-            get("/api/lotto/winners")
+            get("/api/v1/lotto/winners")
                 .header("Authorization", "Bearer $accessToken")
                 .param("page", "0")
                 .param("size", "20")
@@ -237,7 +237,7 @@ class LottoControllerTest {
         )
 
         mockMvc.perform(
-            get("/api/lotto/rounds/1130")
+            get("/api/v1/lotto/rounds/1130")
                 .header("Authorization", "Bearer $accessToken")
         )
             .andExpect(status().isOk)
@@ -251,7 +251,7 @@ class LottoControllerTest {
     @Test
     fun `GET rounds - 존재하지 않는 회차이면 404`() {
         mockMvc.perform(
-            get("/api/lotto/rounds/9999")
+            get("/api/v1/lotto/rounds/9999")
                 .header("Authorization", "Bearer $accessToken")
         )
             .andExpect(status().isNotFound)

@@ -9,6 +9,7 @@ import com.mindbridge.oye.repository.FortuneRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -175,6 +176,50 @@ class FortuneServiceTest {
         assertThrows<FortuneGenerationException> {
             service.generateFortune(testUser)
         }
+    }
+
+    @Test
+    fun `getScoreTrend - returns score points with non-null scores`() {
+        val service = createService()
+        val today = LocalDate.now()
+        val fortunes = listOf(
+            Fortune(id = 1L, user = testUser, content = "예감1", date = today.minusDays(2), score = 70),
+            Fortune(id = 2L, user = testUser, content = "예감2", date = today.minusDays(1), score = null),
+            Fortune(id = 3L, user = testUser, content = "예감3", date = today, score = 85)
+        )
+        whenever(fortuneRepository.findByUserAndDateBetweenOrderByDateAsc(any(), any(), any()))
+            .thenReturn(fortunes)
+
+        val result = service.getScoreTrend(testUser, 7)
+
+        assertEquals(2, result.size)
+        assertEquals(70, result[0].score)
+        assertEquals(85, result[1].score)
+    }
+
+    @Test
+    fun `getScoreTrend - returns empty list when no fortunes`() {
+        val service = createService()
+        whenever(fortuneRepository.findByUserAndDateBetweenOrderByDateAsc(any(), any(), any()))
+            .thenReturn(emptyList())
+
+        val result = service.getScoreTrend(testUser, 30)
+
+        assertTrue(result.isEmpty())
+    }
+
+    @Test
+    fun `getRecordDates - returns dates for given month`() {
+        val service = createService()
+        val dates = listOf(LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 15))
+        whenever(fortuneRepository.findDatesByUserAndDateBetween(any(), any(), any()))
+            .thenReturn(dates)
+
+        val result = service.getRecordDates(testUser, 2026, 3)
+
+        assertEquals("2026-03", result.yearMonth)
+        assertEquals(2, result.dates.size)
+        assertEquals(LocalDate.of(2026, 3, 1), result.dates[0])
     }
 
     @Test

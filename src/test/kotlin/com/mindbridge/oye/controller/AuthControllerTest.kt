@@ -116,7 +116,7 @@ class AuthControllerTest {
         """.trimIndent()
 
         mockMvc.perform(
-            post("/api/auth/login/apple")
+            post("/api/v1/auth/login/apple")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
         )
@@ -151,7 +151,7 @@ class AuthControllerTest {
         """.trimIndent()
 
         mockMvc.perform(
-            post("/api/auth/login/apple")
+            post("/api/v1/auth/login/apple")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
         )
@@ -172,7 +172,7 @@ class AuthControllerTest {
         """.trimIndent()
 
         mockMvc.perform(
-            post("/api/auth/login/apple")
+            post("/api/v1/auth/login/apple")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
         )
@@ -191,7 +191,7 @@ class AuthControllerTest {
         """.trimIndent()
 
         mockMvc.perform(
-            post("/api/auth/login/kakao/native")
+            post("/api/v1/auth/login/kakao/native")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
         )
@@ -227,7 +227,7 @@ class AuthControllerTest {
         """.trimIndent()
 
         mockMvc.perform(
-            post("/api/auth/login/kakao/native")
+            post("/api/v1/auth/login/kakao/native")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
         )
@@ -248,7 +248,7 @@ class AuthControllerTest {
         """.trimIndent()
 
         mockMvc.perform(
-            post("/api/auth/login/kakao/native")
+            post("/api/v1/auth/login/kakao/native")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
         )
@@ -273,7 +273,7 @@ class AuthControllerTest {
         """.trimIndent()
 
         mockMvc.perform(
-            post("/api/auth/refresh")
+            post("/api/v1/auth/refresh")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
         )
@@ -291,7 +291,7 @@ class AuthControllerTest {
         """.trimIndent()
 
         mockMvc.perform(
-            post("/api/auth/refresh")
+            post("/api/v1/auth/refresh")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
         )
@@ -300,7 +300,7 @@ class AuthControllerTest {
 
     @Test
     fun `POST auth logout - 로그아웃 성공`() {
-        mockMvc.perform(post("/api/auth/logout"))
+        mockMvc.perform(post("/api/v1/auth/logout"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.message").value("로그아웃되었습니다."))
     }

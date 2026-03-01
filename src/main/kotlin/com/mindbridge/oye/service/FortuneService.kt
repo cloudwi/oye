@@ -9,16 +9,17 @@ import com.mindbridge.oye.dto.RecordDatesResponse
 import com.mindbridge.oye.dto.ScoreTrendPoint
 import com.mindbridge.oye.repository.FortuneRepository
 import com.mindbridge.oye.util.AiResponseParser
+import com.mindbridge.oye.util.DateUtils
 import com.mindbridge.oye.util.UserProfileBuilder
 import org.slf4j.LoggerFactory
 import com.mindbridge.oye.config.CacheConfig
 import org.springframework.ai.chat.client.ChatClient
+import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.DayOfWeek
 import java.time.LocalDate
 
 @Service
@@ -119,6 +120,7 @@ class FortuneService(
         }
     }
 
+    @CacheEvict(value = [CacheConfig.FORTUNE_TODAY], key = "#user.id")
     @Transactional
     fun saveFortune(user: User, content: String, score: Int, date: LocalDate = LocalDate.now()): Fortune {
         // 트랜잭션 내에서 다시 한번 확인 (동시성 보호)
@@ -199,7 +201,7 @@ class FortuneService(
     private fun buildUserPrompt(user: User, date: LocalDate = LocalDate.now()): String {
         val parts = UserProfileBuilder.buildProfileParts(user, nameLabel = "사용자")
             .toMutableList()
-        val dayOfWeek = getDayOfWeekKorean(date)
+        val dayOfWeek = DateUtils.getDayOfWeekKorean(date)
         parts.add("오늘: $date ($dayOfWeek)")
 
         val recentResults = getRecentFortuneContents(user, 5)
@@ -219,18 +221,6 @@ class FortuneService(
         } catch (e: Exception) {
             log.warn("최근 예감 조회 실패: {}", e.message)
             emptyList()
-        }
-    }
-
-    private fun getDayOfWeekKorean(date: LocalDate): String {
-        return when (date.dayOfWeek) {
-            DayOfWeek.MONDAY -> "월요일"
-            DayOfWeek.TUESDAY -> "화요일"
-            DayOfWeek.WEDNESDAY -> "수요일"
-            DayOfWeek.THURSDAY -> "목요일"
-            DayOfWeek.FRIDAY -> "금요일"
-            DayOfWeek.SATURDAY -> "토요일"
-            DayOfWeek.SUNDAY -> "일요일"
         }
     }
 

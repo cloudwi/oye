@@ -35,6 +35,9 @@ import org.springframework.http.MediaType
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.servlet.view.RedirectView
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+import java.util.Base64
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -223,9 +226,80 @@ class AuthController(
             ?: throw UnauthorizedException("카카오 토큰 교환에 실패했습니다.")
     }
 
+    /**
+     * Stateless 브라우저 기반 카카오 로그인 (세션 불필요).
+     * 에뮬레이터/개발 환경에서 카카오 SDK 없이 동작합니다.
+     */
+    @GetMapping("/login/kakao/browser")
+    fun loginKakaoBrowser(
+        @RequestParam("callback_uri", defaultValue = "oyeapp://auth/callback") callbackUri: String,
+        request: HttpServletRequest
+    ): RedirectView {
+        validateCallbackUri(callbackUri)
+        val baseUrl = resolveBaseUrl(request)
+        val serverCallback = "$baseUrl/api/v1/auth/callback/kakao"
+        val state = Base64.getUrlEncoder().encodeToString(callbackUri.toByteArray(StandardCharsets.UTF_8))
+        val url = "https://kauth.kakao.com/oauth/authorize" +
+            "?client_id=$kakaoClientId" +
+            "&redirect_uri=${URLEncoder.encode(serverCallback, StandardCharsets.UTF_8)}" +
+            "&response_type=code" +
+            "&state=$state" +
+            "&scope=profile_nickname"
+        return RedirectView(url)
+    }
+
+    /**
+     * 카카오 OAuth 콜백 (stateless).
+     * 카카오에서 인가코드를 받아 토큰 교환 → JWT 발급 → 앱으로 리다이렉트.
+     */
+    @GetMapping("/callback/kakao")
+    @Transactional
+    fun kakaoCallback(
+        @RequestParam("code") code: String,
+        @RequestParam("state") state: String,
+        request: HttpServletRequest
+    ): RedirectView {
+        val callbackUri = String(Base64.getUrlDecoder().decode(state), StandardCharsets.UTF_8)
+        validateCallbackUri(callbackUri)
+
+        val baseUrl = resolveBaseUrl(request)
+        val serverCallback = "$baseUrl/api/v1/auth/callback/kakao"
+        val kakaoAccessToken = exchangeKakaoCode(code, serverCallback)
+        val kakaoUser = try {
+            kakaoTokenVerifier.verify(kakaoAccessToken)
+        } catch (e: Exception) {
+            log.error("카카오 토큰 검증 실패 (브라우저 로그인)", e)
+            throw UnauthorizedException("유효하지 않은 카카오 토큰입니다.")
+        }
+
+        val socialAccount = socialAccountRepository.findByProviderAndProviderId(SocialProvider.KAKAO, kakaoUser.id)
+        val isNewUser = socialAccount == null
+        val user = socialAccount?.user ?: authService.createUser(SocialProvider.KAKAO, kakaoUser.id, kakaoUser.nickname)
+
+        val accessToken = jwtTokenProvider.generateAccessToken(user.id!!)
+        val refreshToken = jwtTokenProvider.generateRefreshToken(user.id!!)
+        val fragment = "token=$accessToken&refresh_token=$refreshToken&is_new_user=$isNewUser"
+        return RedirectView("$callbackUri#$fragment")
+    }
+
     @PostMapping("/logout")
     override fun logout(): ResponseEntity<Map<String, String>> {
         return ResponseEntity.ok(mapOf("message" to "로그아웃되었습니다."))
     }
+
+    private fun validateCallbackUri(uri: String) {
+        val allowed = uri.startsWith("oyeapp://") ||
+            uri.startsWith("https://yegam.today") ||
+            uri.startsWith("http://localhost:")
+        if (!allowed) throw IllegalArgumentException("허용되지 않은 callback URI입니다.")
+    }
+
+    private fun resolveBaseUrl(request: HttpServletRequest): String {
+        val scheme = request.getHeader("X-Forwarded-Proto") ?: request.scheme
+        val host = request.getHeader("X-Forwarded-Host") ?: request.getHeader("Host")
+            ?: "${request.serverName}:${request.serverPort}"
+        return "$scheme://$host"
+    }
+
 
 }

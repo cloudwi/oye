@@ -56,7 +56,9 @@ class UserService(
         }
         userConnectionRepository.deleteAllByUserOrPartner(user, user)
         val inquiries = inquiryRepository.findAllByUser(user)
-        inquiries.forEach { inquiryCommentRepository.deleteAllByInquiry(it) }
+        if (inquiries.isNotEmpty()) {
+            inquiryCommentRepository.deleteAllByInquiryIn(inquiries)
+        }
         inquiryRepository.deleteAllByUser(user)
         fortuneRepository.deleteAllByUser(user)
         socialAccountRepository.deleteAllByUser(user)

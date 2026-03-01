@@ -5,6 +5,7 @@ import com.mindbridge.oye.domain.User
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 
 interface LottoRecommendationRepository : JpaRepository<LottoRecommendation, Long> {
     fun findByUserAndRound(user: User, round: Int): List<LottoRecommendation>
@@ -14,4 +15,10 @@ interface LottoRecommendationRepository : JpaRepository<LottoRecommendation, Lon
     fun findByRound(round: Int): List<LottoRecommendation>
     fun findByUserAndRankIsNotNull(user: User): List<LottoRecommendation>
     fun findByUserAndRankIsNotNullOrderByRoundDescSetNumberAsc(user: User, pageable: Pageable): Page<LottoRecommendation>
+
+    @Query("SELECT COALESCE(SUM(r.prizeAmount), 0) FROM LottoRecommendation r WHERE r.user = :user AND r.rank IS NOT NULL")
+    fun sumPrizeAmountByUser(user: User): Long
+
+    @Query("SELECT COUNT(r) FROM LottoRecommendation r WHERE r.user = :user AND r.rank IS NOT NULL")
+    fun countWinsByUser(user: User): Long
 }

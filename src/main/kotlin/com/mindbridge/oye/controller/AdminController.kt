@@ -10,12 +10,10 @@ import com.mindbridge.oye.dto.AppVersionUpdateRequest
 import com.mindbridge.oye.dto.PageResponse
 import com.mindbridge.oye.dto.RoleUpdateRequest
 import com.mindbridge.oye.service.AdminService
-import com.mindbridge.oye.service.FortuneService
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -26,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/admin")
 class AdminController(
     private val adminService: AdminService,
-    private val fortuneService: FortuneService,
     private val authenticationResolver: AuthenticationResolver
 ) : AdminApi {
 
@@ -57,16 +54,6 @@ class AdminController(
     ): AdminUserResponse {
         val user = authenticationResolver.getCurrentUser(principal)
         return adminService.updateUserRole(user, id, request.role)
-    }
-
-    @PostMapping("/fortune-scores/backfill")
-    override fun backfillFortuneScores(
-        @AuthenticationPrincipal principal: Any?
-    ): ApiResponse<Map<String, Int>> {
-        val user = authenticationResolver.getCurrentUser(principal)
-        adminService.requireAdmin(user)
-        val count = fortuneService.backfillScores()
-        return ApiResponse.success(mapOf("updated" to count))
     }
 
     @GetMapping("/app-versions")

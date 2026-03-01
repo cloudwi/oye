@@ -77,7 +77,7 @@ class AdminService(
         return AppVersionConfigResponse.from(appVersionConfigRepository.save(config))
     }
 
-    fun requireAdmin(user: User) {
+    private fun requireAdmin(user: User) {
         if (user.role != Role.ADMIN) {
             throw ForbiddenException("관리자 권한이 필요합니다.")
         }

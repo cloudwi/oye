@@ -111,24 +111,6 @@ interface AdminApi {
     fun getAppVersions(principal: Any?): List<AppVersionConfigResponse>
 
     @Operation(
-        summary = "Fortune score 백필",
-        description = """score가 NULL인 기존 Fortune 데이터를 AI로 재채점합니다.
-- 관리자만 사용 가능합니다."""
-    )
-    @ApiResponses(
-        SwaggerResponse(
-            responseCode = "200",
-            description = "백필 완료"
-        ),
-        SwaggerResponse(
-            responseCode = "403",
-            description = "권한 없음",
-            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
-        )
-    )
-    fun backfillFortuneScores(principal: Any?): ApiResponse<Map<String, Int>>
-
-    @Operation(
         summary = "앱 버전 수정",
         description = """특정 플랫폼의 최소 버전과 스토어 URL을 수정합니다.
 - 관리자만 사용 가능합니다."""

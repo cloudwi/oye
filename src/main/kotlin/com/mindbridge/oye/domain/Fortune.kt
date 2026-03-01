@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
+import jakarta.persistence.Index
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 import org.hibernate.annotations.Comment
@@ -16,7 +17,8 @@ import java.time.LocalDateTime
 @Entity
 @Table(
     name = "fortunes",
-    uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "date"])]
+    uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "date"])],
+    indexes = [Index(name = "idx_fortune_user_date", columnList = "user_id, date")]
 )
 @Comment("AI 생성 예감")
 class Fortune(

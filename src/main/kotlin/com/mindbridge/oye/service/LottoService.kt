@@ -72,10 +72,9 @@ class LottoService(
 
     @Transactional(readOnly = true)
     fun getMyStats(user: User): LottoMyStatsResponse {
-        val winnings = lottoRecommendationRepository.findByUserAndRankIsNotNull(user)
-        val totalPrize = winnings.sumOf { it.prizeAmount ?: 0L }
-        val winCount = winnings.map { "${it.round}-${it.setNumber}" }.distinct().count()
-        return LottoMyStatsResponse(totalPrize = totalPrize, winCount = winCount)
+        val totalPrize = lottoRecommendationRepository.sumPrizeAmountByUser(user)
+        val winCount = lottoRecommendationRepository.countWinsByUser(user)
+        return LottoMyStatsResponse(totalPrize = totalPrize, winCount = winCount.toInt())
     }
 
     @Transactional(readOnly = true)

@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
+import jakarta.persistence.Index
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 import org.hibernate.annotations.Comment
@@ -17,7 +18,8 @@ import java.time.LocalDateTime
 @Entity
 @Table(
     name = "lotto_recommendations",
-    uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "round", "set_number"])]
+    uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "round", "set_number"])],
+    indexes = [Index(name = "idx_lotto_rec_user_rank", columnList = "user_id, rank")]
 )
 @Comment("유저별 로또 추천 번호")
 class LottoRecommendation(

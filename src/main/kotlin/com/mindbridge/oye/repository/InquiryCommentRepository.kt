@@ -7,4 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository
 interface InquiryCommentRepository : JpaRepository<InquiryComment, Long> {
     fun findByInquiryOrderByCreatedAtAsc(inquiry: Inquiry): List<InquiryComment>
     fun deleteAllByInquiry(inquiry: Inquiry)
+    fun deleteAllByInquiryIn(inquiries: List<Inquiry>)
 }

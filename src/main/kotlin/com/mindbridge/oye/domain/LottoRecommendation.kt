@@ -75,6 +75,13 @@ class LottoRecommendation(
     @Comment("보너스 번호 일치 여부")
     var bonusMatch: Boolean = false,
 
+    @Column(nullable = false)
+    @Comment("당첨 평가 완료 여부")
+    var evaluated: Boolean = false,
+
+    @Comment("당첨 금액")
+    var prizeAmount: Long? = null,
+
     @Column(nullable = false, updatable = false)
     @Comment("생성일시")
     val createdAt: LocalDateTime = LocalDateTime.now()

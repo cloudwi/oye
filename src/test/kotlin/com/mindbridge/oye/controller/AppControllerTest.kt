@@ -49,7 +49,7 @@ class AppControllerTest {
     @Test
     fun `check-update - 버전이 낮으면 forceUpdate true 반환`() {
         mockMvc.perform(
-            get("/api/app/check-update")
+            get("/api/v1/app/check-update")
                 .param("platform", "ios")
                 .param("version", "1.0.0")
         )
@@ -62,7 +62,7 @@ class AppControllerTest {
     @Test
     fun `check-update - 버전이 같으면 forceUpdate false 반환`() {
         mockMvc.perform(
-            get("/api/app/check-update")
+            get("/api/v1/app/check-update")
                 .param("platform", "ios")
                 .param("version", "2.0.0")
         )
@@ -73,7 +73,7 @@ class AppControllerTest {
     @Test
     fun `check-update - 버전이 높으면 forceUpdate false 반환`() {
         mockMvc.perform(
-            get("/api/app/check-update")
+            get("/api/v1/app/check-update")
                 .param("platform", "ios")
                 .param("version", "3.0.0")
         )
@@ -84,7 +84,7 @@ class AppControllerTest {
     @Test
     fun `check-update - android 플랫폼 정상 동작`() {
         mockMvc.perform(
-            get("/api/app/check-update")
+            get("/api/v1/app/check-update")
                 .param("platform", "android")
                 .param("version", "1.0.0")
         )
@@ -96,7 +96,7 @@ class AppControllerTest {
     @Test
     fun `check-update - 마이너 버전 비교 정확성`() {
         mockMvc.perform(
-            get("/api/app/check-update")
+            get("/api/v1/app/check-update")
                 .param("platform", "android")
                 .param("version", "1.4.9")
         )
@@ -104,7 +104,7 @@ class AppControllerTest {
             .andExpect(jsonPath("$.forceUpdate").value(true))
 
         mockMvc.perform(
-            get("/api/app/check-update")
+            get("/api/v1/app/check-update")
                 .param("platform", "android")
                 .param("version", "1.5.0")
         )
@@ -112,7 +112,7 @@ class AppControllerTest {
             .andExpect(jsonPath("$.forceUpdate").value(false))
 
         mockMvc.perform(
-            get("/api/app/check-update")
+            get("/api/v1/app/check-update")
                 .param("platform", "android")
                 .param("version", "1.5.1")
         )
@@ -123,7 +123,7 @@ class AppControllerTest {
     @Test
     fun `check-update - 존재하지 않는 플랫폼이면 404 반환`() {
         mockMvc.perform(
-            get("/api/app/check-update")
+            get("/api/v1/app/check-update")
                 .param("platform", "windows")
                 .param("version", "1.0.0")
         )
@@ -133,7 +133,7 @@ class AppControllerTest {
     @Test
     fun `check-update - 대소문자 무관하게 플랫폼 매칭`() {
         mockMvc.perform(
-            get("/api/app/check-update")
+            get("/api/v1/app/check-update")
                 .param("platform", "IOS")
                 .param("version", "1.0.0")
         )

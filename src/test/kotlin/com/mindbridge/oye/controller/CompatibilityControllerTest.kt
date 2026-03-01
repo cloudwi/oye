@@ -119,7 +119,7 @@ class CompatibilityControllerTest {
         )
 
         mockMvc.perform(
-            get("/api/connections/${connection.id}/compatibility")
+            get("/api/v1/connections/${connection.id}/compatibility")
                 .header("Authorization", "Bearer $accessToken")
         )
             .andExpect(status().isOk)
@@ -131,7 +131,7 @@ class CompatibilityControllerTest {
     @Test
     fun `GET compatibility - 존재하지 않는 연결이면 404`() {
         mockMvc.perform(
-            get("/api/connections/999/compatibility")
+            get("/api/v1/connections/999/compatibility")
                 .header("Authorization", "Bearer $accessToken")
         )
             .andExpect(status().isNotFound)
@@ -150,7 +150,7 @@ class CompatibilityControllerTest {
         val otherToken = jwtTokenProvider.generateAccessToken(otherUser.id!!)
 
         mockMvc.perform(
-            get("/api/connections/${connection.id}/compatibility")
+            get("/api/v1/connections/${connection.id}/compatibility")
                 .header("Authorization", "Bearer $otherToken")
         )
             .andExpect(status().isForbidden)
@@ -158,7 +158,7 @@ class CompatibilityControllerTest {
 
     @Test
     fun `GET compatibility - 인증 없이 요청하면 401`() {
-        mockMvc.perform(get("/api/connections/${connection.id}/compatibility"))
+        mockMvc.perform(get("/api/v1/connections/${connection.id}/compatibility"))
             .andExpect(status().isUnauthorized)
     }
 
@@ -176,7 +176,7 @@ class CompatibilityControllerTest {
         }
 
         mockMvc.perform(
-            get("/api/connections/${connection.id}/compatibility/history")
+            get("/api/v1/connections/${connection.id}/compatibility/history")
                 .header("Authorization", "Bearer $accessToken")
                 .param("page", "0")
                 .param("size", "2")
@@ -193,7 +193,7 @@ class CompatibilityControllerTest {
     @Test
     fun `GET compatibility history - 기본 페이지네이션 파라미터 사용`() {
         mockMvc.perform(
-            get("/api/connections/${connection.id}/compatibility/history")
+            get("/api/v1/connections/${connection.id}/compatibility/history")
                 .header("Authorization", "Bearer $accessToken")
         )
             .andExpect(status().isOk)
@@ -206,7 +206,7 @@ class CompatibilityControllerTest {
     @Test
     fun `GET compatibility history - 존재하지 않는 연결이면 404`() {
         mockMvc.perform(
-            get("/api/connections/999/compatibility/history")
+            get("/api/v1/connections/999/compatibility/history")
                 .header("Authorization", "Bearer $accessToken")
         )
             .andExpect(status().isNotFound)
@@ -225,7 +225,7 @@ class CompatibilityControllerTest {
         val otherToken = jwtTokenProvider.generateAccessToken(otherUser.id!!)
 
         mockMvc.perform(
-            get("/api/connections/${connection.id}/compatibility/history")
+            get("/api/v1/connections/${connection.id}/compatibility/history")
                 .header("Authorization", "Bearer $otherToken")
         )
             .andExpect(status().isForbidden)
@@ -233,7 +233,146 @@ class CompatibilityControllerTest {
 
     @Test
     fun `GET compatibility history - 인증 없이 요청하면 401`() {
-        mockMvc.perform(get("/api/connections/${connection.id}/compatibility/history"))
+        mockMvc.perform(get("/api/v1/connections/${connection.id}/compatibility/history"))
+            .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    fun `GET score-trend - 점수 추이를 반환한다`() {
+        (1..3).forEach { i ->
+            compatibilityRepository.save(
+                Compatibility(
+                    connection = connection,
+                    score = 70 + i * 5,
+                    content = "궁합 내용 $i",
+                    date = LocalDate.now().minusDays(i.toLong())
+                )
+            )
+        }
+
+        mockMvc.perform(
+            get("/api/v1/connections/${connection.id}/compatibility/score-trend")
+                .header("Authorization", "Bearer $accessToken")
+                .param("days", "7")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data.length()").value(3))
+            .andExpect(jsonPath("$.data[0].date").exists())
+            .andExpect(jsonPath("$.data[0].score").exists())
+    }
+
+    @Test
+    fun `GET score-trend - 기본 days 파라미터 사용`() {
+        mockMvc.perform(
+            get("/api/v1/connections/${connection.id}/compatibility/score-trend")
+                .header("Authorization", "Bearer $accessToken")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data").isArray)
+    }
+
+    @Test
+    fun `GET score-trend - 존재하지 않는 연결이면 404`() {
+        mockMvc.perform(
+            get("/api/v1/connections/999/compatibility/score-trend")
+                .header("Authorization", "Bearer $accessToken")
+                .param("days", "7")
+        )
+            .andExpect(status().isNotFound)
+    }
+
+    @Test
+    fun `GET score-trend - 권한이 없으면 403`() {
+        val otherUser = userRepository.save(
+            User(
+                name = "다른유저",
+                birthDate = LocalDate.of(1988, 3, 10),
+                gender = Gender.MALE,
+                calendarType = CalendarType.SOLAR
+            )
+        )
+        val otherToken = jwtTokenProvider.generateAccessToken(otherUser.id!!)
+
+        mockMvc.perform(
+            get("/api/v1/connections/${connection.id}/compatibility/score-trend")
+                .header("Authorization", "Bearer $otherToken")
+                .param("days", "7")
+        )
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun `GET score-trend - 인증 없이 요청하면 401`() {
+        mockMvc.perform(get("/api/v1/connections/${connection.id}/compatibility/score-trend"))
+            .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    fun `GET record-dates - 기록 날짜를 반환한다`() {
+        val targetDate = LocalDate.of(2026, 3, 10)
+        compatibilityRepository.save(
+            Compatibility(
+                connection = connection,
+                score = 85,
+                content = "궁합 내용",
+                date = targetDate
+            )
+        )
+
+        mockMvc.perform(
+            get("/api/v1/connections/${connection.id}/compatibility/record-dates")
+                .header("Authorization", "Bearer $accessToken")
+                .param("year", "2026")
+                .param("month", "3")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data.yearMonth").value("2026-03"))
+            .andExpect(jsonPath("$.data.dates.length()").value(1))
+            .andExpect(jsonPath("$.data.dates[0]").value("2026-03-10"))
+    }
+
+    @Test
+    fun `GET record-dates - 존재하지 않는 연결이면 404`() {
+        mockMvc.perform(
+            get("/api/v1/connections/999/compatibility/record-dates")
+                .header("Authorization", "Bearer $accessToken")
+                .param("year", "2026")
+                .param("month", "3")
+        )
+            .andExpect(status().isNotFound)
+    }
+
+    @Test
+    fun `GET record-dates - 권한이 없으면 403`() {
+        val otherUser = userRepository.save(
+            User(
+                name = "다른유저2",
+                birthDate = LocalDate.of(1988, 3, 10),
+                gender = Gender.MALE,
+                calendarType = CalendarType.SOLAR
+            )
+        )
+        val otherToken = jwtTokenProvider.generateAccessToken(otherUser.id!!)
+
+        mockMvc.perform(
+            get("/api/v1/connections/${connection.id}/compatibility/record-dates")
+                .header("Authorization", "Bearer $otherToken")
+                .param("year", "2026")
+                .param("month", "3")
+        )
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun `GET record-dates - 인증 없이 요청하면 401`() {
+        mockMvc.perform(
+            get("/api/v1/connections/${connection.id}/compatibility/record-dates")
+                .param("year", "2026")
+                .param("month", "3")
+        )
             .andExpect(status().isUnauthorized)
     }
 }

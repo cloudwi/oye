@@ -5,6 +5,8 @@ import com.mindbridge.oye.controller.api.CompatibilityApi
 import com.mindbridge.oye.dto.ApiResponse
 import com.mindbridge.oye.dto.CompatibilityResponse
 import com.mindbridge.oye.dto.PageResponse
+import com.mindbridge.oye.dto.RecordDatesResponse
+import com.mindbridge.oye.dto.ScoreTrendPoint
 import com.mindbridge.oye.service.CompatibilityService
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
@@ -38,5 +40,26 @@ class CompatibilityController(
     ): ApiResponse<PageResponse<CompatibilityResponse>> {
         val user = authenticationResolver.getCurrentUser(principal)
         return ApiResponse.success(compatibilityService.getCompatibilityHistory(user, id, page, size))
+    }
+
+    @GetMapping("/score-trend")
+    override fun getScoreTrend(
+        @AuthenticationPrincipal principal: Any?,
+        @PathVariable id: Long,
+        @RequestParam(defaultValue = "30") days: Int
+    ): ApiResponse<List<ScoreTrendPoint>> {
+        val user = authenticationResolver.getCurrentUser(principal)
+        return ApiResponse.success(compatibilityService.getScoreTrend(user, id, days))
+    }
+
+    @GetMapping("/record-dates")
+    override fun getRecordDates(
+        @AuthenticationPrincipal principal: Any?,
+        @PathVariable id: Long,
+        @RequestParam year: Int,
+        @RequestParam month: Int
+    ): ApiResponse<RecordDatesResponse> {
+        val user = authenticationResolver.getCurrentUser(principal)
+        return ApiResponse.success(compatibilityService.getRecordDates(user, id, year, month))
     }
 }

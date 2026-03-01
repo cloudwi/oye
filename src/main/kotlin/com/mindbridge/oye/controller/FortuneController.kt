@@ -5,6 +5,8 @@ import com.mindbridge.oye.controller.api.FortuneApi
 import com.mindbridge.oye.dto.ApiResponse
 import com.mindbridge.oye.dto.FortuneResponse
 import com.mindbridge.oye.dto.PageResponse
+import com.mindbridge.oye.dto.RecordDatesResponse
+import com.mindbridge.oye.dto.ScoreTrendPoint
 import com.mindbridge.oye.service.FortuneService
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
@@ -33,5 +35,24 @@ class FortuneController(
     ): ApiResponse<PageResponse<FortuneResponse>> {
         val user = authenticationResolver.getCurrentUser(principal)
         return ApiResponse.success(fortuneService.getFortuneHistory(user, page, size))
+    }
+
+    @GetMapping("/score-trend")
+    override fun getScoreTrend(
+        @AuthenticationPrincipal principal: Any?,
+        @RequestParam(defaultValue = "30") days: Int
+    ): ApiResponse<List<ScoreTrendPoint>> {
+        val user = authenticationResolver.getCurrentUser(principal)
+        return ApiResponse.success(fortuneService.getScoreTrend(user, days))
+    }
+
+    @GetMapping("/record-dates")
+    override fun getRecordDates(
+        @AuthenticationPrincipal principal: Any?,
+        @RequestParam year: Int,
+        @RequestParam month: Int
+    ): ApiResponse<RecordDatesResponse> {
+        val user = authenticationResolver.getCurrentUser(principal)
+        return ApiResponse.success(fortuneService.getRecordDates(user, year, month))
     }
 }

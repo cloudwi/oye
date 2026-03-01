@@ -5,6 +5,8 @@ import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.exception.FortuneGenerationException
 import com.mindbridge.oye.dto.FortuneResponse
 import com.mindbridge.oye.dto.PageResponse
+import com.mindbridge.oye.dto.RecordDatesResponse
+import com.mindbridge.oye.dto.ScoreTrendPoint
 import com.mindbridge.oye.repository.FortuneRepository
 import com.mindbridge.oye.util.AiResponseParser
 import com.mindbridge.oye.util.UserProfileBuilder
@@ -132,6 +134,26 @@ class FortuneService(
             date = date
         )
         return fortuneRepository.save(fortune)
+    }
+
+    @Transactional(readOnly = true)
+    fun getScoreTrend(user: User, days: Int): List<ScoreTrendPoint> {
+        val end = LocalDate.now()
+        val start = end.minusDays(days.toLong() - 1)
+        return fortuneRepository.findByUserAndDateBetweenOrderByDateAsc(user, start, end)
+            .filter { it.score != null }
+            .map { ScoreTrendPoint(date = it.date, score = it.score!!) }
+    }
+
+    @Transactional(readOnly = true)
+    fun getRecordDates(user: User, year: Int, month: Int): RecordDatesResponse {
+        val start = LocalDate.of(year, month, 1)
+        val end = start.withDayOfMonth(start.lengthOfMonth())
+        val dates = fortuneRepository.findDatesByUserAndDateBetween(user, start, end)
+        return RecordDatesResponse(
+            yearMonth = "%d-%02d".format(year, month),
+            dates = dates
+        )
     }
 
     @Transactional(readOnly = true)

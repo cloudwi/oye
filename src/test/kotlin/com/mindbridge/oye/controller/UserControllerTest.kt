@@ -62,7 +62,7 @@ class UserControllerTest {
     @Test
     fun `GET users me - returns user profile`() {
         mockMvc.perform(
-            get("/api/users/me")
+            get("/api/v1/users/me")
                 .header("Authorization", "Bearer $accessToken")
         )
             .andExpect(status().isOk)
@@ -75,7 +75,7 @@ class UserControllerTest {
 
     @Test
     fun `GET users me - returns 401 without token`() {
-        mockMvc.perform(get("/api/users/me"))
+        mockMvc.perform(get("/api/v1/users/me"))
             .andExpect(status().isUnauthorized)
     }
 
@@ -91,7 +91,7 @@ class UserControllerTest {
         """.trimIndent()
 
         mockMvc.perform(
-            put("/api/users/me")
+            put("/api/v1/users/me")
                 .header("Authorization", "Bearer $accessToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
@@ -113,7 +113,7 @@ class UserControllerTest {
         """.trimIndent()
 
         mockMvc.perform(
-            put("/api/users/me")
+            put("/api/v1/users/me")
                 .header("Authorization", "Bearer $accessToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
@@ -132,7 +132,7 @@ class UserControllerTest {
         """.trimIndent()
 
         mockMvc.perform(
-            put("/api/users/me")
+            put("/api/v1/users/me")
                 .header("Authorization", "Bearer $accessToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
@@ -150,7 +150,7 @@ class UserControllerTest {
         """.trimIndent()
 
         mockMvc.perform(
-            put("/api/users/me")
+            put("/api/v1/users/me")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
         )
@@ -160,14 +160,14 @@ class UserControllerTest {
     @Test
     fun `DELETE users me - deletes account successfully`() {
         mockMvc.perform(
-            delete("/api/users/me")
+            delete("/api/v1/users/me")
                 .header("Authorization", "Bearer $accessToken")
         )
             .andExpect(status().isNoContent)
 
         // Verify user is deleted
         mockMvc.perform(
-            get("/api/users/me")
+            get("/api/v1/users/me")
                 .header("Authorization", "Bearer $accessToken")
         )
             .andExpect(status().isNotFound)
@@ -175,7 +175,7 @@ class UserControllerTest {
 
     @Test
     fun `DELETE users me - returns 401 without token`() {
-        mockMvc.perform(delete("/api/users/me"))
+        mockMvc.perform(delete("/api/v1/users/me"))
             .andExpect(status().isUnauthorized)
     }
 }

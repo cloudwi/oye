@@ -105,7 +105,7 @@ class ConnectionControllerTest {
     @Test
     fun `GET my-code - 내 초대 코드를 반환한다`() {
         mockMvc.perform(
-            get("/api/connections/my-code")
+            get("/api/v1/connections/my-code")
                 .header("Authorization", "Bearer $accessToken")
         )
             .andExpect(status().isOk)
@@ -114,7 +114,7 @@ class ConnectionControllerTest {
 
     @Test
     fun `GET my-code - 인증 없이 요청하면 401`() {
-        mockMvc.perform(get("/api/connections/my-code"))
+        mockMvc.perform(get("/api/v1/connections/my-code"))
             .andExpect(status().isUnauthorized)
     }
 
@@ -128,7 +128,7 @@ class ConnectionControllerTest {
         """.trimIndent()
 
         mockMvc.perform(
-            post("/api/connections")
+            post("/api/v1/connections")
                 .header("Authorization", "Bearer $accessToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
@@ -148,7 +148,7 @@ class ConnectionControllerTest {
         """.trimIndent()
 
         mockMvc.perform(
-            post("/api/connections")
+            post("/api/v1/connections")
                 .header("Authorization", "Bearer $accessToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
@@ -169,7 +169,7 @@ class ConnectionControllerTest {
         """.trimIndent()
 
         mockMvc.perform(
-            post("/api/connections")
+            post("/api/v1/connections")
                 .header("Authorization", "Bearer $accessToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
@@ -195,7 +195,7 @@ class ConnectionControllerTest {
         """.trimIndent()
 
         mockMvc.perform(
-            post("/api/connections")
+            post("/api/v1/connections")
                 .header("Authorization", "Bearer $accessToken")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
@@ -213,7 +213,7 @@ class ConnectionControllerTest {
         """.trimIndent()
 
         mockMvc.perform(
-            post("/api/connections")
+            post("/api/v1/connections")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody)
         )
@@ -231,7 +231,7 @@ class ConnectionControllerTest {
         )
 
         mockMvc.perform(
-            get("/api/connections")
+            get("/api/v1/connections")
                 .header("Authorization", "Bearer $accessToken")
         )
             .andExpect(status().isOk)
@@ -243,7 +243,7 @@ class ConnectionControllerTest {
     @Test
     fun `GET connections - 연결이 없으면 빈 배열을 반환한다`() {
         mockMvc.perform(
-            get("/api/connections")
+            get("/api/v1/connections")
                 .header("Authorization", "Bearer $accessToken")
         )
             .andExpect(status().isOk)
@@ -252,7 +252,7 @@ class ConnectionControllerTest {
 
     @Test
     fun `GET connections - 인증 없이 요청하면 401`() {
-        mockMvc.perform(get("/api/connections"))
+        mockMvc.perform(get("/api/v1/connections"))
             .andExpect(status().isUnauthorized)
     }
 
@@ -267,14 +267,14 @@ class ConnectionControllerTest {
         )
 
         mockMvc.perform(
-            delete("/api/connections/${connection.id}")
+            delete("/api/v1/connections/${connection.id}")
                 .header("Authorization", "Bearer $accessToken")
         )
             .andExpect(status().isOk)
 
         // 삭제 후 연결이 없는지 확인
         mockMvc.perform(
-            get("/api/connections")
+            get("/api/v1/connections")
                 .header("Authorization", "Bearer $accessToken")
         )
             .andExpect(status().isOk)
@@ -284,7 +284,7 @@ class ConnectionControllerTest {
     @Test
     fun `DELETE connections - 존재하지 않는 연결이면 404`() {
         mockMvc.perform(
-            delete("/api/connections/999")
+            delete("/api/v1/connections/999")
                 .header("Authorization", "Bearer $accessToken")
         )
             .andExpect(status().isNotFound)
@@ -309,7 +309,7 @@ class ConnectionControllerTest {
         )
 
         mockMvc.perform(
-            delete("/api/connections/${connection.id}")
+            delete("/api/v1/connections/${connection.id}")
                 .header("Authorization", "Bearer $accessToken")
         )
             .andExpect(status().isForbidden)
@@ -317,7 +317,7 @@ class ConnectionControllerTest {
 
     @Test
     fun `DELETE connections - 인증 없이 요청하면 401`() {
-        mockMvc.perform(delete("/api/connections/1"))
+        mockMvc.perform(delete("/api/v1/connections/1"))
             .andExpect(status().isUnauthorized)
     }
 }

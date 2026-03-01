@@ -1,6 +1,7 @@
 package com.mindbridge.oye.controller.api
 
 import com.mindbridge.oye.dto.ApiResponse
+import com.mindbridge.oye.dto.LottoMyStatsResponse
 import com.mindbridge.oye.dto.LottoRecommendationResponse
 import com.mindbridge.oye.dto.LottoRoundResponse
 import com.mindbridge.oye.dto.LottoWinnerResponse
@@ -72,8 +73,28 @@ interface LottoApi {
     fun getMyHistory(
         principal: Any?,
         @Parameter(description = "페이지 번호 (0부터 시작)", example = "0") page: Int,
-        @Parameter(description = "페이지 크기", example = "20") size: Int
+        @Parameter(description = "페이지 크기", example = "20") size: Int,
+        @Parameter(description = "당첨 내역만 조회", example = "false") winOnly: Boolean
     ): ApiResponse<PageResponse<LottoRecommendationResponse>>
+
+    @Operation(
+        summary = "내 로또 통계 조회",
+        description = "누적 당첨 금액과 당첨 횟수를 조회합니다."
+    )
+    @ApiResponses(
+        io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "통계 조회 성공"
+        ),
+        io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "401",
+            description = "인증 실패",
+            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
+        )
+    )
+    fun getMyStats(
+        principal: Any?
+    ): ApiResponse<LottoMyStatsResponse>
 
     @Operation(
         summary = "당첨자 게시판 조회",

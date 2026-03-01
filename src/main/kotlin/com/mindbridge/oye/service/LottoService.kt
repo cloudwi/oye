@@ -2,6 +2,7 @@ package com.mindbridge.oye.service
 
 import com.mindbridge.oye.domain.LottoRecommendation
 import com.mindbridge.oye.domain.User
+import com.mindbridge.oye.dto.LottoMyStatsResponse
 import com.mindbridge.oye.dto.LottoRecommendationResponse
 import com.mindbridge.oye.dto.LottoRoundResponse
 import com.mindbridge.oye.dto.LottoWinnerResponse
@@ -70,9 +71,21 @@ class LottoService(
     }
 
     @Transactional(readOnly = true)
-    fun getMyHistory(user: User, page: Int, size: Int): PageResponse<LottoRecommendationResponse> {
+    fun getMyStats(user: User): LottoMyStatsResponse {
+        val winnings = lottoRecommendationRepository.findByUserAndRankIsNotNull(user)
+        val totalPrize = winnings.sumOf { it.prizeAmount ?: 0L }
+        val winCount = winnings.map { "${it.round}-${it.setNumber}" }.distinct().count()
+        return LottoMyStatsResponse(totalPrize = totalPrize, winCount = winCount)
+    }
+
+    @Transactional(readOnly = true)
+    fun getMyHistory(user: User, page: Int, size: Int, winOnly: Boolean = false): PageResponse<LottoRecommendationResponse> {
         val pageable = PageRequest.of(page, size)
-        val recommendationPage = lottoRecommendationRepository.findByUserOrderByRoundDescSetNumberAsc(user, pageable)
+        val recommendationPage = if (winOnly) {
+            lottoRecommendationRepository.findByUserAndRankIsNotNullOrderByRoundDescSetNumberAsc(user, pageable)
+        } else {
+            lottoRecommendationRepository.findByUserOrderByRoundDescSetNumberAsc(user, pageable)
+        }
         return PageResponse(
             content = recommendationPage.content.map { LottoRecommendationResponse.from(it) },
             page = recommendationPage.number,

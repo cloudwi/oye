@@ -113,7 +113,7 @@ class InquiryServiceTest {
         val pageable = PageRequest.of(0, 20)
         val page = PageImpl(inquiries, pageable, 2)
 
-        whenever(inquiryRepository.findAllByOrderByCreatedAtDesc(pageable)).thenReturn(page)
+        whenever(inquiryRepository.findAllWithUserOrderByCreatedAtDesc(pageable)).thenReturn(page)
 
         val result = inquiryService.getAllInquiries(adminUser, 0, 20)
 

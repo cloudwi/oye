@@ -91,6 +91,30 @@ class GlobalExceptionHandler {
         return errorResponse(HttpStatus.BAD_GATEWAY, e.message ?: "외부 API 호출에 실패했습니다.", "EXTERNAL_API_ERROR")
     }
 
+    @ExceptionHandler(GroupNotFoundException::class)
+    fun handleGroupNotFoundException(e: GroupNotFoundException) =
+        errorResponse(HttpStatus.NOT_FOUND, e.message ?: "그룹을 찾을 수 없습니다.", "GROUP_NOT_FOUND")
+
+    @ExceptionHandler(GroupFullException::class)
+    fun handleGroupFullException(e: GroupFullException) =
+        errorResponse(HttpStatus.BAD_REQUEST, e.message ?: "그룹 인원이 가득 찼습니다.", "GROUP_FULL")
+
+    @ExceptionHandler(AlreadyGroupMemberException::class)
+    fun handleAlreadyGroupMemberException(e: AlreadyGroupMemberException) =
+        errorResponse(HttpStatus.CONFLICT, e.message ?: "이미 그룹에 참여 중입니다.", "ALREADY_GROUP_MEMBER")
+
+    @ExceptionHandler(InvalidRelationTypeException::class)
+    fun handleInvalidRelationTypeException(e: InvalidRelationTypeException) =
+        errorResponse(HttpStatus.BAD_REQUEST, e.message ?: "그룹에서 지원하지 않는 관계 유형입니다.", "INVALID_RELATION_TYPE")
+
+    @ExceptionHandler(NotGroupOwnerException::class)
+    fun handleNotGroupOwnerException(e: NotGroupOwnerException) =
+        errorResponse(HttpStatus.FORBIDDEN, e.message ?: "그룹 방장만 수행할 수 있습니다.", "NOT_GROUP_OWNER")
+
+    @ExceptionHandler(NotGroupMemberException::class)
+    fun handleNotGroupMemberException(e: NotGroupMemberException) =
+        errorResponse(HttpStatus.FORBIDDEN, e.message ?: "그룹 멤버가 아닙니다.", "NOT_GROUP_MEMBER")
+
     // --- Auth/access exceptions ---
 
     @ExceptionHandler(UnauthorizedException::class)

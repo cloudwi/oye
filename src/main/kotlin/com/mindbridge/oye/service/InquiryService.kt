@@ -49,7 +49,21 @@ class InquiryService(
     fun getAllInquiries(user: User, page: Int, size: Int): PageResponse<InquiryResponse> {
         requireAdmin(user)
         val pageable = PageRequest.of(page, size)
-        val inquiryPage = inquiryRepository.findAllByOrderByCreatedAtDesc(pageable)
+        val inquiryPage = inquiryRepository.findAllWithUserOrderByCreatedAtDesc(pageable)
+        return PageResponse(
+            content = inquiryPage.content.map { InquiryResponse.from(it) },
+            page = inquiryPage.number,
+            size = inquiryPage.size,
+            totalElements = inquiryPage.totalElements,
+            totalPages = inquiryPage.totalPages
+        )
+    }
+
+    @Transactional(readOnly = true)
+    fun getUserInquiries(admin: User, userId: Long, page: Int, size: Int): PageResponse<InquiryResponse> {
+        requireAdmin(admin)
+        val pageable = PageRequest.of(page, size)
+        val inquiryPage = inquiryRepository.findByUserIdWithUserOrderByCreatedAtDesc(userId, pageable)
         return PageResponse(
             content = inquiryPage.content.map { InquiryResponse.from(it) },
             page = inquiryPage.number,

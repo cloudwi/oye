@@ -60,6 +60,12 @@ data class InquiryResponse(
     @Schema(description = "문의 고유 ID", example = "1")
     val id: Long,
 
+    @Schema(description = "작성자 ID", example = "42")
+    val userId: Long,
+
+    @Schema(description = "작성자 이름", example = "홍길동")
+    val userName: String?,
+
     @Schema(description = "문의 제목", example = "앱 사용 중 오류가 발생합니다")
     val title: String,
 
@@ -79,6 +85,8 @@ data class InquiryResponse(
         fun from(inquiry: Inquiry, comments: List<InquiryComment> = emptyList()): InquiryResponse {
             return InquiryResponse(
                 id = inquiry.id!!,
+                userId = inquiry.user.id!!,
+                userName = inquiry.user.name,
                 title = inquiry.title,
                 content = inquiry.content,
                 status = inquiry.status,

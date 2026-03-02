@@ -68,6 +68,7 @@ class FortuneEventListener(
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun handleConnectionCreated(event: ConnectionCreatedEvent) {
         val effectiveDate = getEffectiveFortuneDate()
         try {
@@ -80,6 +81,7 @@ class FortuneEventListener(
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun handleGroupMemberJoined(event: GroupMemberJoinedEvent) {
         val effectiveDate = getEffectiveFortuneDate()
         try {

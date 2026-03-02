@@ -17,10 +17,10 @@ import java.time.LocalDateTime
 @Entity
 @Table(
     name = "group_compatibilities",
-    uniqueConstraints = [UniqueConstraint(columnNames = ["group_id", "user_a_id", "user_b_id", "date"])],
+    uniqueConstraints = [UniqueConstraint(columnNames = ["group_id", "date"])],
     indexes = [Index(name = "idx_group_compatibility_group_date", columnList = "group_id, date")]
 )
-@Comment("그룹 내 멤버 간 AI 궁합 결과")
+@Comment("그룹 전체 AI 궁합 결과")
 class GroupCompatibility(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,14 +30,6 @@ class GroupCompatibility(
     @ManyToOne(fetch = FetchType.LAZY)
     @Comment("소속 그룹")
     val group: Group,
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @Comment("첫 번째 사용자 (userA.id < userB.id)")
-    val userA: User,
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @Comment("두 번째 사용자 (userA.id < userB.id)")
-    val userB: User,
 
     @Column(nullable = false)
     @Comment("궁합 점수 (0-100)")

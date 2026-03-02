@@ -107,7 +107,7 @@ class DailyFortuneScheduler(
 
             for (group in groupPage.content) {
                 try {
-                    groupCompatibilityService.generateGroupCompatibilities(group)
+                    groupCompatibilityService.generateGroupCompatibility(group)
                     successCount++
                 } catch (e: Exception) {
                     failCount++

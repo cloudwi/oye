@@ -5,6 +5,7 @@ import com.mindbridge.oye.domain.GroupCompatibility
 import com.mindbridge.oye.domain.GroupMember
 import com.mindbridge.oye.domain.RelationType
 import com.mindbridge.oye.domain.User
+
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -119,22 +120,10 @@ data class GroupMemberResponse(
 
 @Schema(description = "그룹 궁합 응답")
 data class GroupCompatibilityResponse(
-    @Schema(description = "첫 번째 사용자 ID", example = "1")
-    val userAId: Long,
-
-    @Schema(description = "첫 번째 사용자 이름", example = "홍길동", nullable = true)
-    val userAName: String?,
-
-    @Schema(description = "두 번째 사용자 ID", example = "2")
-    val userBId: Long,
-
-    @Schema(description = "두 번째 사용자 이름", example = "김영희", nullable = true)
-    val userBName: String?,
-
     @Schema(description = "궁합 점수 (0-100)", example = "85")
     val score: Int,
 
-    @Schema(description = "AI가 생성한 궁합 본문", example = "오늘 두 분의 궁합은...")
+    @Schema(description = "AI가 생성한 궁합 본문", example = "오늘 그룹의 궁합은...")
     val content: String,
 
     @Schema(description = "궁합 대상 날짜", example = "2025-06-15")
@@ -143,10 +132,6 @@ data class GroupCompatibilityResponse(
     companion object {
         fun from(gc: GroupCompatibility): GroupCompatibilityResponse {
             return GroupCompatibilityResponse(
-                userAId = gc.userA.id!!,
-                userAName = gc.userA.name,
-                userBId = gc.userB.id!!,
-                userBName = gc.userB.name,
                 score = gc.score,
                 content = gc.content,
                 date = gc.date
@@ -166,6 +151,6 @@ data class GroupTodayCompatibilityResponse(
     @Schema(description = "멤버 ID-이름 매핑")
     val members: Map<Long, String?>,
 
-    @Schema(description = "멤버 간 궁합 목록")
-    val compatibilities: List<GroupCompatibilityResponse>
+    @Schema(description = "그룹 궁합", nullable = true)
+    val compatibility: GroupCompatibilityResponse?
 )

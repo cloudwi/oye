@@ -9,7 +9,6 @@ import com.mindbridge.oye.repository.GroupCompatibilityRepository
 import com.mindbridge.oye.repository.GroupMemberRepository
 import com.mindbridge.oye.util.AiResponseParser
 import com.mindbridge.oye.util.DateUtils
-import com.mindbridge.oye.util.UserProfileBuilder
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
@@ -28,21 +27,21 @@ class GroupCompatibilityService(
         private const val CONTENT_MAX_LENGTH = 200
 
         private val SYSTEM_PROMPT = """
-            당신은 두 사람의 오늘 궁합을 분석하는 전문가입니다.
+            당신은 그룹 멤버들의 오늘 궁합을 분석하는 전문가입니다.
 
-            두 사람의 프로필과 관계 유형을 기반으로 오늘의 궁합을 분석하세요.
+            그룹 멤버들의 프로필과 관계 유형을 기반으로 오늘의 그룹 궁합을 분석하세요.
 
             궁합 규칙:
             - 2~3문장, 80~150자 (최대 200자)
-            - 첫 문장: 오늘 두 사람 사이에서 일어날 수 있는 구체적인 상황
-            - 두 번째 문장: 그 상황이 두 사람에게 어떤 의미인지, 또는 어떻게 하면 더 좋은지
+            - 첫 문장: 오늘 그룹 전체에서 일어날 수 있는 구체적인 상황
+            - 두 번째 문장: 그 상황이 그룹에 어떤 의미인지, 또는 어떻게 하면 더 좋은지
             - 해요체로 작성 (~돼요, ~있어요, ~이에요)
             - 반말(~된다, ~있다) 금지
             - 권유/명령(~하세요, ~해보세요) 금지
             - 이모지 없이 텍스트만
             - 추상적 표현 금지 (빛난다, 설렘, 특별한 기운 등)
             - 검증 가능한 구체적 사건 금지 (선물 받음, 전화 옴 등)
-            - 두 사람의 프로필(MBTI, 혈액형, 관심사 등)을 자연스럽게 반영
+            - 멤버들의 프로필(MBTI, 혈액형 등)을 자연스럽게 반영
 
             관계별 테마 (반드시 관계 유형에 맞는 테마로 작성):
             - 친구: 같이 놀거나 대화하며 느끼는 유쾌함, 서로에게 솔직할 수 있는 편안함에 초점을 맞추세요.
@@ -66,65 +65,40 @@ class GroupCompatibilityService(
         """.trimIndent()
     }
 
-    fun generateGroupCompatibilities(group: Group, date: LocalDate = LocalDate.now()) {
+    fun generateGroupCompatibility(group: Group, date: LocalDate = LocalDate.now()) {
         val members = groupMemberRepository.findByGroupWithUsers(group).map { it.user }
         if (members.size < 2) return
 
-        for (i in members.indices) {
-            for (j in i + 1 until members.size) {
-                val (userA, userB) = orderUsers(members[i], members[j])
-                try {
-                    generatePairCompatibility(group, userA, userB, date)
-                } catch (e: Exception) {
-                    log.warn("그룹 궁합 생성 실패: groupId={}, userA={}, userB={}, error={}",
-                        group.id, userA.id, userB.id, e.message)
-                }
-            }
-        }
-    }
-
-    fun generateNewMemberCompatibilities(group: Group, newMember: User, date: LocalDate = LocalDate.now()) {
-        val members = groupMemberRepository.findByGroupWithUsers(group).map { it.user }
-
-        for (existingMember in members) {
-            if (existingMember.id == newMember.id) continue
-            val (userA, userB) = orderUsers(existingMember, newMember)
-            try {
-                generatePairCompatibility(group, userA, userB, date)
-            } catch (e: Exception) {
-                log.warn("신규 멤버 궁합 생성 실패: groupId={}, userA={}, userB={}, error={}",
-                    group.id, userA.id, userB.id, e.message)
-            }
+        try {
+            generateCompatibility(group, members, date)
+        } catch (e: Exception) {
+            log.warn("그룹 궁합 생성 실패: groupId={}, error={}", group.id, e.message)
         }
     }
 
     @Transactional
-    fun generatePairCompatibility(group: Group, userA: User, userB: User, date: LocalDate = LocalDate.now()): GroupCompatibility {
-        val (orderedA, orderedB) = orderUsers(userA, userB)
-
-        val existing = groupCompatibilityRepository.findByGroupAndDateAndUsers(group, date, orderedA, orderedB)
+    fun generateCompatibility(group: Group, members: List<User>, date: LocalDate = LocalDate.now()): GroupCompatibility {
+        val existing = groupCompatibilityRepository.findByGroupAndDate(group, date)
         if (existing != null) return existing
 
-        val result = callAiWithRetry(orderedA, orderedB, group.relationType, date)
+        val result = callAiWithRetry(members, group.relationType, date)
 
         return try {
             val compatibility = GroupCompatibility(
                 group = group,
-                userA = orderedA,
-                userB = orderedB,
                 score = result.score,
                 content = result.content,
                 date = date
             )
             groupCompatibilityRepository.save(compatibility)
         } catch (e: DataIntegrityViolationException) {
-            groupCompatibilityRepository.findByGroupAndDateAndUsers(group, date, orderedA, orderedB)
+            groupCompatibilityRepository.findByGroupAndDate(group, date)
                 ?: throw CompatibilityGenerationException("그룹 궁합 저장 중 오류가 발생했습니다.")
         }
     }
 
-    private fun callAiWithRetry(userA: User, userB: User, relationType: RelationType, date: LocalDate): AiResult {
-        val userPrompt = buildUserPrompt(userA, userB, relationType, date)
+    private fun callAiWithRetry(members: List<User>, relationType: RelationType, date: LocalDate): AiResult {
+        val userPrompt = buildUserPrompt(members, relationType, date)
         return try {
             aiChatService.callWithRetry(
                 systemPrompt = SYSTEM_PROMPT,
@@ -138,7 +112,7 @@ class GroupCompatibilityService(
         }
     }
 
-    private fun buildUserPrompt(userA: User, userB: User, relationType: RelationType, date: LocalDate): String {
+    private fun buildUserPrompt(members: List<User>, relationType: RelationType, date: LocalDate): String {
         val relationText = when (relationType) {
             RelationType.FRIEND -> "친구"
             RelationType.FAMILY -> "가족"
@@ -147,13 +121,24 @@ class GroupCompatibilityService(
         }
 
         val parts = mutableListOf<String>()
-        parts.add("=== 첫 번째 사람 ===")
-        parts.addAll(UserProfileBuilder.buildProfileParts(userA))
-        parts.add("")
-        parts.add("=== 두 번째 사람 ===")
-        parts.addAll(UserProfileBuilder.buildProfileParts(userB))
-        parts.add("")
+        members.forEachIndexed { index, user ->
+            parts.add("=== 멤버 ${index + 1} ===")
+            user.name?.let { parts.add("이름: $it") }
+            user.mbti?.let { parts.add("MBTI: $it") }
+            val bloodTypeText = user.bloodType?.let {
+                when (it.name) {
+                    "A" -> "A형"
+                    "B" -> "B형"
+                    "O" -> "O형"
+                    "AB" -> "AB형"
+                    else -> null
+                }
+            }
+            bloodTypeText?.let { parts.add("혈액형: $it") }
+            parts.add("")
+        }
         parts.add("관계: $relationText")
+        parts.add("멤버 수: ${members.size}명")
         val dayOfWeek = DateUtils.getDayOfWeekKorean(date)
         parts.add("오늘: $date ($dayOfWeek)")
 
@@ -173,10 +158,6 @@ class GroupCompatibilityService(
             log.error("AI 응답 파싱 실패. 원본 응답: {}", response, e)
             throw CompatibilityGenerationException("AI 응답 파싱에 실패했습니다: ${e.message}")
         }
-    }
-
-    private fun orderUsers(user1: User, user2: User): Pair<User, User> {
-        return if (user1.id!! < user2.id!!) Pair(user1, user2) else Pair(user2, user1)
     }
 
     private data class AiResult(

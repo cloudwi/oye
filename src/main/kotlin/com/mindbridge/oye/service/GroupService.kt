@@ -12,7 +12,6 @@ import com.mindbridge.oye.dto.GroupSummaryResponse
 import com.mindbridge.oye.dto.GroupTodayCompatibilityResponse
 import com.mindbridge.oye.dto.JoinGroupRequest
 import com.mindbridge.oye.dto.UpdateGroupRequest
-import com.mindbridge.oye.event.GroupMemberJoinedEvent
 import com.mindbridge.oye.exception.AlreadyGroupMemberException
 import com.mindbridge.oye.exception.CodeGenerationException
 import com.mindbridge.oye.exception.GroupFullException
@@ -24,7 +23,6 @@ import com.mindbridge.oye.repository.GroupCompatibilityRepository
 import com.mindbridge.oye.repository.GroupMemberRepository
 import com.mindbridge.oye.repository.GroupRepository
 import org.slf4j.LoggerFactory
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.security.SecureRandom
@@ -34,8 +32,7 @@ import java.time.LocalDate
 class GroupService(
     private val groupRepository: GroupRepository,
     private val groupMemberRepository: GroupMemberRepository,
-    private val groupCompatibilityRepository: GroupCompatibilityRepository,
-    private val eventPublisher: ApplicationEventPublisher
+    private val groupCompatibilityRepository: GroupCompatibilityRepository
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -86,7 +83,6 @@ class GroupService(
         groupMemberRepository.save(member)
 
         log.info("그룹 참여: groupId={}, userId={}", group.id, user.id)
-        eventPublisher.publishEvent(GroupMemberJoinedEvent(group = group, newMember = user))
 
         return GroupSummaryResponse.from(group, memberCount + 1, user)
     }
@@ -225,7 +221,7 @@ class GroupService(
 
         val members = groupMemberRepository.findByGroupWithUsers(group)
         val today = LocalDate.now()
-        val compatibilities = groupCompatibilityRepository.findByGroupAndDate(group, today)
+        val compatibility = groupCompatibilityRepository.findByGroupAndDate(group, today)
 
         val memberMap = members.associate { it.user.id!! to it.user.name }
 
@@ -233,32 +229,8 @@ class GroupService(
             groupId = group.id!!,
             date = today,
             members = memberMap,
-            compatibilities = compatibilities.map { GroupCompatibilityResponse.from(it) }
+            compatibility = compatibility?.let { GroupCompatibilityResponse.from(it) }
         )
-    }
-
-    @Transactional(readOnly = true)
-    fun getGroupPairCompatibility(user: User, groupId: Long, targetUserId: Long): GroupCompatibilityResponse {
-        val group = groupRepository.findById(groupId)
-            .orElseThrow { GroupNotFoundException() }
-
-        if (!groupMemberRepository.existsByGroupAndUser(group, user)) {
-            throw NotGroupMemberException()
-        }
-
-        val today = LocalDate.now()
-        val (userAId, userBId) = if (user.id!! < targetUserId) Pair(user.id!!, targetUserId) else Pair(targetUserId, user.id!!)
-
-        val members = groupMemberRepository.findByGroupWithUsers(group)
-        val userA = members.find { it.user.id == userAId }?.user
-            ?: throw NotGroupMemberException("대상 사용자가 그룹 멤버가 아닙니다.")
-        val userB = members.find { it.user.id == userBId }?.user
-            ?: throw NotGroupMemberException("대상 사용자가 그룹 멤버가 아닙니다.")
-
-        val compatibility = groupCompatibilityRepository.findByGroupAndDateAndUsers(group, today, userA, userB)
-            ?: throw GroupNotFoundException("해당 쌍의 오늘 궁합이 아직 생성되지 않았습니다.")
-
-        return GroupCompatibilityResponse.from(compatibility)
     }
 
     private fun generateUniqueCode(): String {

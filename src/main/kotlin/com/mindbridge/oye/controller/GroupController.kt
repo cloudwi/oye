@@ -4,7 +4,6 @@ import com.mindbridge.oye.config.AuthenticationResolver
 import com.mindbridge.oye.controller.api.GroupApi
 import com.mindbridge.oye.dto.ApiResponse
 import com.mindbridge.oye.dto.CreateGroupRequest
-import com.mindbridge.oye.dto.GroupCompatibilityResponse
 import com.mindbridge.oye.dto.GroupDetailResponse
 import com.mindbridge.oye.dto.GroupSummaryResponse
 import com.mindbridge.oye.dto.GroupTodayCompatibilityResponse
@@ -108,15 +107,5 @@ class GroupController(
     ): ApiResponse<GroupTodayCompatibilityResponse> {
         val user = authenticationResolver.getCurrentUser(principal)
         return ApiResponse.success(groupService.getGroupTodayCompatibility(user, id))
-    }
-
-    @GetMapping("/{id}/compatibility/{userId}")
-    override fun getGroupPairCompatibility(
-        @AuthenticationPrincipal principal: Any?,
-        @PathVariable id: Long,
-        @PathVariable userId: Long
-    ): ApiResponse<GroupCompatibilityResponse> {
-        val user = authenticationResolver.getCurrentUser(principal)
-        return ApiResponse.success(groupService.getGroupPairCompatibility(user, id, userId))
     }
 }

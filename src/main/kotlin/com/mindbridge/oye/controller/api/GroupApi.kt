@@ -2,7 +2,6 @@ package com.mindbridge.oye.controller.api
 
 import com.mindbridge.oye.dto.ApiResponse
 import com.mindbridge.oye.dto.CreateGroupRequest
-import com.mindbridge.oye.dto.GroupCompatibilityResponse
 import com.mindbridge.oye.dto.GroupDetailResponse
 import com.mindbridge.oye.dto.GroupSummaryResponse
 import com.mindbridge.oye.dto.GroupTodayCompatibilityResponse
@@ -231,7 +230,7 @@ interface GroupApi {
 
     @Operation(
         summary = "그룹 오늘의 궁합 조회",
-        description = "그룹 내 모든 멤버 쌍의 오늘 궁합을 조회합니다."
+        description = "그룹 전체의 오늘 궁합을 조회합니다."
     )
     @ApiResponses(
         io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -255,31 +254,4 @@ interface GroupApi {
         )
     )
     fun getGroupTodayCompatibility(principal: Any?, id: Long): ApiResponse<GroupTodayCompatibilityResponse>
-
-    @Operation(
-        summary = "그룹 특정 쌍 궁합 조회",
-        description = "그룹 내 나와 특정 멤버의 오늘 궁합을 조회합니다."
-    )
-    @ApiResponses(
-        io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "200",
-            description = "궁합 조회 성공"
-        ),
-        io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "401",
-            description = "인증 실패",
-            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
-        ),
-        io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "403",
-            description = "그룹 멤버가 아님",
-            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
-        ),
-        io.swagger.v3.oas.annotations.responses.ApiResponse(
-            responseCode = "404",
-            description = "그룹 또는 궁합을 찾을 수 없음",
-            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
-        )
-    )
-    fun getGroupPairCompatibility(principal: Any?, id: Long, userId: Long): ApiResponse<GroupCompatibilityResponse>
 }

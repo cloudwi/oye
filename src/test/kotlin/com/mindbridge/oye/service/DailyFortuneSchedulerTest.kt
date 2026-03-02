@@ -6,6 +6,7 @@ import com.mindbridge.oye.domain.Fortune
 import com.mindbridge.oye.domain.RelationType
 import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.domain.UserConnection
+import com.mindbridge.oye.repository.GroupRepository
 import com.mindbridge.oye.repository.UserConnectionRepository
 import com.mindbridge.oye.repository.UserRepository
 import org.junit.jupiter.api.Test
@@ -36,10 +37,16 @@ class DailyFortuneSchedulerTest {
     private lateinit var userConnectionRepository: UserConnectionRepository
 
     @Mock
+    private lateinit var groupRepository: GroupRepository
+
+    @Mock
     private lateinit var fortuneService: FortuneService
 
     @Mock
     private lateinit var compatibilityService: CompatibilityService
+
+    @Mock
+    private lateinit var groupCompatibilityService: GroupCompatibilityService
 
     @InjectMocks
     private lateinit var scheduler: DailyFortuneScheduler
@@ -133,7 +140,8 @@ class DailyFortuneSchedulerTest {
 
     @Test
     fun `generateDailyCompatibilities - 연결이 없으면 아무것도 하지 않는다`() {
-        whenever(userConnectionRepository.findAllWithUsers()).thenReturn(emptyList())
+        val emptyPage = PageImpl<UserConnection>(emptyList(), PageRequest.of(0, 50), 0)
+        whenever(userConnectionRepository.findAllWithUsers(any<Pageable>())).thenReturn(emptyPage)
 
         scheduler.generateDailyCompatibilities()
 
@@ -147,7 +155,8 @@ class DailyFortuneSchedulerTest {
         val user3 = createUser(3L)
         val conn1 = UserConnection(id = 1L, user = user1, partner = user2, relationType = RelationType.FRIEND)
         val conn2 = UserConnection(id = 2L, user = user1, partner = user3, relationType = RelationType.FAMILY)
-        whenever(userConnectionRepository.findAllWithUsers()).thenReturn(listOf(conn1, conn2))
+        val page = PageImpl(listOf(conn1, conn2), PageRequest.of(0, 50), 2)
+        whenever(userConnectionRepository.findAllWithUsers(any<Pageable>())).thenReturn(page)
 
         scheduler.generateDailyCompatibilities()
 
@@ -162,7 +171,8 @@ class DailyFortuneSchedulerTest {
         val user3 = createUser(3L)
         val conn1 = UserConnection(id = 1L, user = user1, partner = user2, relationType = RelationType.FRIEND)
         val conn2 = UserConnection(id = 2L, user = user1, partner = user3, relationType = RelationType.FAMILY)
-        whenever(userConnectionRepository.findAllWithUsers()).thenReturn(listOf(conn1, conn2))
+        val page = PageImpl(listOf(conn1, conn2), PageRequest.of(0, 50), 2)
+        whenever(userConnectionRepository.findAllWithUsers(any<Pageable>())).thenReturn(page)
         doThrow(RuntimeException("궁합 생성 오류")).whenever(compatibilityService).generateCompatibility(eq(conn1), any())
 
         scheduler.generateDailyCompatibilities()
@@ -178,7 +188,8 @@ class DailyFortuneSchedulerTest {
         val connections = listOf(
             UserConnection(id = 1L, user = user1, partner = user2, relationType = RelationType.LOVER)
         )
-        whenever(userConnectionRepository.findAllWithUsers()).thenReturn(connections)
+        val page = PageImpl(connections, PageRequest.of(0, 50), 1)
+        whenever(userConnectionRepository.findAllWithUsers(any<Pageable>())).thenReturn(page)
         doThrow(RuntimeException("실패")).whenever(compatibilityService).generateCompatibility(any(), any())
 
         scheduler.generateDailyCompatibilities()

@@ -21,7 +21,6 @@ import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
-import org.springframework.ai.chat.client.ChatClient
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import java.time.LocalDate
@@ -37,10 +36,7 @@ class CompatibilityServiceTest {
     private lateinit var userConnectionRepository: UserConnectionRepository
 
     @Mock
-    private lateinit var chatClientBuilder: ChatClient.Builder
-
-    @Mock
-    private lateinit var chatClient: ChatClient
+    private lateinit var aiChatService: AiChatService
 
     private val testUser = User(
         id = 1L,
@@ -66,8 +62,7 @@ class CompatibilityServiceTest {
     )
 
     private fun createService(): CompatibilityService {
-        whenever(chatClientBuilder.build()).thenReturn(chatClient)
-        return CompatibilityService(chatClientBuilder, compatibilityRepository, userConnectionRepository)
+        return CompatibilityService(aiChatService, compatibilityRepository, userConnectionRepository)
     }
 
     @Test

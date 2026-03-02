@@ -62,12 +62,16 @@ class DailyFortuneScheduler(
     fun generateDailyCompatibilities() {
         log.info("일일 궁합 스케줄러 시작")
 
-        val connections = userConnectionRepository.findAllWithUsers()
+        var page = 0
         var successCount = 0
         var failCount = 0
+        var totalCount = 0
 
-        connections.chunked(BATCH_SIZE).forEachIndexed { batchIndex, batch ->
-            for (connection in batch) {
+        do {
+            val connectionPage = userConnectionRepository.findAllWithUsers(PageRequest.of(page, BATCH_SIZE))
+            totalCount = connectionPage.totalElements.toInt()
+
+            for (connection in connectionPage.content) {
                 try {
                     compatibilityService.generateCompatibility(connection)
                     successCount++
@@ -77,12 +81,13 @@ class DailyFortuneScheduler(
                 }
             }
 
-            if (batchIndex < (connections.size - 1) / BATCH_SIZE) {
+            page++
+
+            if (connectionPage.hasNext()) {
                 Thread.sleep(BATCH_DELAY_MS)
             }
-        }
+        } while (connectionPage.hasNext())
 
-        val totalCount = connections.size
         val failRate = if (totalCount > 0) "%.1f".format(failCount * 100.0 / totalCount) else "0.0"
         log.info("일일 궁합 스케줄러 완료: 성공={}, 실패={}, 전체={}, 실패율={}%", successCount, failCount, totalCount, failRate)
     }
@@ -91,12 +96,16 @@ class DailyFortuneScheduler(
     fun generateDailyGroupCompatibilities() {
         log.info("일일 그룹 궁합 스케줄러 시작")
 
-        val groups = groupRepository.findAll()
+        var page = 0
         var successCount = 0
         var failCount = 0
+        var totalCount = 0
 
-        groups.chunked(BATCH_SIZE).forEachIndexed { batchIndex, batch ->
-            for (group in batch) {
+        do {
+            val groupPage = groupRepository.findAllWithOwner(PageRequest.of(page, BATCH_SIZE))
+            totalCount = groupPage.totalElements.toInt()
+
+            for (group in groupPage.content) {
                 try {
                     groupCompatibilityService.generateGroupCompatibilities(group)
                     successCount++
@@ -106,12 +115,13 @@ class DailyFortuneScheduler(
                 }
             }
 
-            if (batchIndex < (groups.size - 1) / BATCH_SIZE) {
+            page++
+
+            if (groupPage.hasNext()) {
                 Thread.sleep(BATCH_DELAY_MS)
             }
-        }
+        } while (groupPage.hasNext())
 
-        val totalCount = groups.size
         val failRate = if (totalCount > 0) "%.1f".format(failCount * 100.0 / totalCount) else "0.0"
         log.info("일일 그룹 궁합 스케줄러 완료: 성공={}, 실패={}, 전체={}, 실패율={}%", successCount, failCount, totalCount, failRate)
     }

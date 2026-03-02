@@ -13,7 +13,6 @@ import com.mindbridge.oye.util.DateUtils
 import com.mindbridge.oye.util.UserProfileBuilder
 import org.slf4j.LoggerFactory
 import com.mindbridge.oye.config.CacheConfig
-import org.springframework.ai.chat.client.ChatClient
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.dao.DataIntegrityViolationException
@@ -24,16 +23,14 @@ import java.time.LocalDate
 
 @Service
 class FortuneService(
-    chatClientBuilder: ChatClient.Builder,
+    private val aiChatService: AiChatService,
     private val fortuneRepository: FortuneRepository
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
-    private val chatClient: ChatClient = chatClientBuilder.build()
 
     private data class FortuneAiResponse(val content: String, val score: Int)
 
     companion object {
-        private const val MAX_RETRY_COUNT = 2
         private const val FORTUNE_MAX_LENGTH = 80
 
         private val SYSTEM_PROMPT = """
@@ -173,29 +170,17 @@ class FortuneService(
 
     private fun callAiWithRetry(user: User, date: LocalDate = LocalDate.now()): FortuneAiResponse {
         val userPrompt = buildUserPrompt(user, date)
-        var lastException: Exception? = null
-
-        repeat(MAX_RETRY_COUNT) { attempt ->
-            try {
-                val response = chatClient.prompt()
-                    .system(SYSTEM_PROMPT)
-                    .user(userPrompt)
-                    .call()
-                    .content()
-
-                if (!response.isNullOrBlank()) {
-                    return parseAiResponse(response)
-                }
-                log.warn("AI 응답이 비어있습니다. 재시도 {}/{}", attempt + 1, MAX_RETRY_COUNT)
-            } catch (e: Exception) {
-                lastException = e
-                log.warn("AI 호출 실패 (재시도 {}/{}): {}", attempt + 1, MAX_RETRY_COUNT, e.message)
-            }
+        return try {
+            aiChatService.callWithRetry(
+                systemPrompt = SYSTEM_PROMPT,
+                userPrompt = userPrompt,
+                errorMessage = "AI 예감 생성에 실패했습니다"
+            ) { response -> parseAiResponse(response) }
+        } catch (e: FortuneGenerationException) {
+            throw e
+        } catch (e: Exception) {
+            throw FortuneGenerationException(e.message ?: "AI 예감 생성에 실패했습니다")
         }
-
-        throw FortuneGenerationException(
-            "AI 예감 생성에 실패했습니다: ${lastException?.message ?: "빈 응답"}"
-        )
     }
 
     private fun buildUserPrompt(user: User, date: LocalDate = LocalDate.now()): String {

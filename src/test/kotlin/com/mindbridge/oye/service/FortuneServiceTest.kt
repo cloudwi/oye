@@ -16,10 +16,10 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import org.springframework.ai.chat.client.ChatClient
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import java.time.LocalDate
@@ -31,16 +31,7 @@ class FortuneServiceTest {
     private lateinit var fortuneRepository: FortuneRepository
 
     @Mock
-    private lateinit var chatClientBuilder: ChatClient.Builder
-
-    @Mock
-    private lateinit var chatClient: ChatClient
-
-    @Mock
-    private lateinit var chatClientRequestSpec: ChatClient.ChatClientRequestSpec
-
-    @Mock
-    private lateinit var callResponse: ChatClient.CallResponseSpec
+    private lateinit var aiChatService: AiChatService
 
     private val testUser = User(
         id = 1L,
@@ -51,8 +42,7 @@ class FortuneServiceTest {
     )
 
     private fun createService(): FortuneService {
-        whenever(chatClientBuilder.build()).thenReturn(chatClient)
-        return FortuneService(chatClientBuilder, fortuneRepository)
+        return FortuneService(aiChatService, fortuneRepository)
     }
 
     @Test
@@ -110,11 +100,10 @@ class FortuneServiceTest {
 
         whenever(fortuneRepository.findByUserAndDate(testUser, LocalDate.now()))
             .thenReturn(null)
-        whenever(chatClient.prompt()).thenReturn(chatClientRequestSpec)
-        whenever(chatClientRequestSpec.system(any<String>())).thenReturn(chatClientRequestSpec)
-        whenever(chatClientRequestSpec.user(any<String>())).thenReturn(chatClientRequestSpec)
-        whenever(chatClientRequestSpec.call()).thenReturn(callResponse)
-        whenever(callResponse.content()).thenReturn(aiContent)
+        whenever(aiChatService.callWithRetry<Any>(any(), any(), any(), any())).thenAnswer { invocation ->
+            val parser = invocation.getArgument<(String) -> Any>(3)
+            parser("""{"content": "$aiContent", "score": 68}""")
+        }
 
         val savedFortune = Fortune(
             id = 2L,
@@ -136,42 +125,8 @@ class FortuneServiceTest {
         val service = createService()
         whenever(fortuneRepository.findByUserAndDate(testUser, LocalDate.now()))
             .thenReturn(null)
-        whenever(chatClient.prompt()).thenReturn(chatClientRequestSpec)
-        whenever(chatClientRequestSpec.system(any<String>())).thenReturn(chatClientRequestSpec)
-        whenever(chatClientRequestSpec.user(any<String>())).thenReturn(chatClientRequestSpec)
-        whenever(chatClientRequestSpec.call()).thenThrow(RuntimeException("AI service unavailable"))
-
-        assertThrows<FortuneGenerationException> {
-            service.generateFortune(testUser)
-        }
-    }
-
-    @Test
-    fun `generateFortune - throws FortuneGenerationException when AI returns blank`() {
-        val service = createService()
-        whenever(fortuneRepository.findByUserAndDate(testUser, LocalDate.now()))
-            .thenReturn(null)
-        whenever(chatClient.prompt()).thenReturn(chatClientRequestSpec)
-        whenever(chatClientRequestSpec.system(any<String>())).thenReturn(chatClientRequestSpec)
-        whenever(chatClientRequestSpec.user(any<String>())).thenReturn(chatClientRequestSpec)
-        whenever(chatClientRequestSpec.call()).thenReturn(callResponse)
-        whenever(callResponse.content()).thenReturn("")
-
-        assertThrows<FortuneGenerationException> {
-            service.generateFortune(testUser)
-        }
-    }
-
-    @Test
-    fun `generateFortune - throws FortuneGenerationException when AI returns null`() {
-        val service = createService()
-        whenever(fortuneRepository.findByUserAndDate(testUser, LocalDate.now()))
-            .thenReturn(null)
-        whenever(chatClient.prompt()).thenReturn(chatClientRequestSpec)
-        whenever(chatClientRequestSpec.system(any<String>())).thenReturn(chatClientRequestSpec)
-        whenever(chatClientRequestSpec.user(any<String>())).thenReturn(chatClientRequestSpec)
-        whenever(chatClientRequestSpec.call()).thenReturn(callResponse)
-        whenever(callResponse.content()).thenReturn(null)
+        whenever(aiChatService.callWithRetry<Any>(any(), any(), any(), any()))
+            .thenThrow(RuntimeException("AI service unavailable"))
 
         assertThrows<FortuneGenerationException> {
             service.generateFortune(testUser)

@@ -1,5 +1,6 @@
 package com.mindbridge.oye.service
 
+import com.mindbridge.oye.repository.GroupRepository
 import com.mindbridge.oye.repository.UserConnectionRepository
 import com.mindbridge.oye.repository.UserRepository
 import org.slf4j.LoggerFactory
@@ -11,8 +12,10 @@ import org.springframework.stereotype.Component
 class DailyFortuneScheduler(
     private val userRepository: UserRepository,
     private val userConnectionRepository: UserConnectionRepository,
+    private val groupRepository: GroupRepository,
     private val fortuneService: FortuneService,
-    private val compatibilityService: CompatibilityService
+    private val compatibilityService: CompatibilityService,
+    private val groupCompatibilityService: GroupCompatibilityService
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -82,5 +85,34 @@ class DailyFortuneScheduler(
         val totalCount = connections.size
         val failRate = if (totalCount > 0) "%.1f".format(failCount * 100.0 / totalCount) else "0.0"
         log.info("일일 궁합 스케줄러 완료: 성공={}, 실패={}, 전체={}, 실패율={}%", successCount, failCount, totalCount, failRate)
+    }
+
+    @Scheduled(cron = "0 20 6 * * *", zone = "Asia/Seoul")
+    fun generateDailyGroupCompatibilities() {
+        log.info("일일 그룹 궁합 스케줄러 시작")
+
+        val groups = groupRepository.findAll()
+        var successCount = 0
+        var failCount = 0
+
+        groups.chunked(BATCH_SIZE).forEachIndexed { batchIndex, batch ->
+            for (group in batch) {
+                try {
+                    groupCompatibilityService.generateGroupCompatibilities(group)
+                    successCount++
+                } catch (e: Exception) {
+                    failCount++
+                    log.warn("그룹 궁합 생성 실패: groupId={}, error={}", group.id, e.message)
+                }
+            }
+
+            if (batchIndex < (groups.size - 1) / BATCH_SIZE) {
+                Thread.sleep(BATCH_DELAY_MS)
+            }
+        }
+
+        val totalCount = groups.size
+        val failRate = if (totalCount > 0) "%.1f".format(failCount * 100.0 / totalCount) else "0.0"
+        log.info("일일 그룹 궁합 스케줄러 완료: 성공={}, 실패={}, 전체={}, 실패율={}%", successCount, failCount, totalCount, failRate)
     }
 }

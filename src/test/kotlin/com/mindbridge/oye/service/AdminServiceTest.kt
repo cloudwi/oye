@@ -8,7 +8,14 @@ import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.dto.AppVersionUpdateRequest
 import com.mindbridge.oye.exception.ForbiddenException
 import com.mindbridge.oye.repository.AppVersionConfigRepository
+import com.mindbridge.oye.repository.CompatibilityRepository
+import com.mindbridge.oye.repository.FortuneRepository
+import com.mindbridge.oye.repository.GroupMemberRepository
 import com.mindbridge.oye.repository.InquiryRepository
+import com.mindbridge.oye.repository.LoginHistoryRepository
+import com.mindbridge.oye.repository.LottoRecommendationRepository
+import com.mindbridge.oye.repository.SocialAccountRepository
+import com.mindbridge.oye.repository.UserConnectionRepository
 import com.mindbridge.oye.repository.UserRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -20,7 +27,6 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 @ExtendWith(MockitoExtension::class)
 class AdminServiceTest {
@@ -33,6 +39,27 @@ class AdminServiceTest {
 
     @Mock
     private lateinit var appVersionConfigRepository: AppVersionConfigRepository
+
+    @Mock
+    private lateinit var loginHistoryRepository: LoginHistoryRepository
+
+    @Mock
+    private lateinit var fortuneRepository: FortuneRepository
+
+    @Mock
+    private lateinit var compatibilityRepository: CompatibilityRepository
+
+    @Mock
+    private lateinit var lottoRecommendationRepository: LottoRecommendationRepository
+
+    @Mock
+    private lateinit var userConnectionRepository: UserConnectionRepository
+
+    @Mock
+    private lateinit var groupMemberRepository: GroupMemberRepository
+
+    @Mock
+    private lateinit var socialAccountRepository: SocialAccountRepository
 
     @InjectMocks
     private lateinit var adminService: AdminService

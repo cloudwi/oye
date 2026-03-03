@@ -27,7 +27,7 @@ class SocialAccount(
     @Comment("소셜 계정 고유 ID")
     val id: Long? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     @Comment("사용자 FK")
     val user: User,

@@ -21,12 +21,12 @@ class InquiryComment(
     @Comment("댓글 고유 ID")
     val id: Long? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "inquiry_id", nullable = false)
     @Comment("문의")
     val inquiry: Inquiry,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "admin_id", nullable = false)
     @Comment("작성 관리자")
     val admin: User,

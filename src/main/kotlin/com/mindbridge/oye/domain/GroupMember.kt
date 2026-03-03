@@ -25,12 +25,12 @@ class GroupMember(
     @Comment("그룹 멤버 고유 ID")
     val id: Long? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "group_id", nullable = false)
     @Comment("소속 그룹")
     val group: Group,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     @Comment("멤버 사용자")
     val user: User,

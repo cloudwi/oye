@@ -26,11 +26,11 @@ class UserConnection(
     @Comment("연결 고유 ID")
     val id: Long? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @Comment("연결 요청자")
     val user: User,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @Comment("연결 대상자")
     val partner: User,
 

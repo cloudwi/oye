@@ -23,7 +23,7 @@ class Inquiry(
     @Comment("문의 고유 ID")
     val id: Long? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     @Comment("문의 작성자")
     val user: User,

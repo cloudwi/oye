@@ -31,7 +31,7 @@ class Group(
     @Comment("관계 유형 (FRIEND, FAMILY, COLLEAGUE)")
     val relationType: RelationType,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @Comment("그룹 생성자")
     var owner: User,
 

@@ -27,7 +27,7 @@ class Fortune(
     @Comment("예감 고유 ID")
     val id: Long? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @Comment("예감 대상 사용자")
     val user: User,
 

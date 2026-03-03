@@ -27,7 +27,7 @@ class Compatibility(
     @Comment("궁합 고유 ID")
     val id: Long? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @Comment("연결 정보")
     val connection: UserConnection,
 

@@ -16,5 +16,6 @@ interface FortuneRepository : JpaRepository<Fortune, Long> {
     @Query("SELECT f.date FROM Fortune f WHERE f.user = :user AND f.date BETWEEN :start AND :end ORDER BY f.date ASC")
     fun findDatesByUserAndDateBetween(user: User, start: LocalDate, end: LocalDate): List<LocalDate>
 
+    fun findByUserIdOrderByDateDesc(userId: Long, pageable: Pageable): Page<Fortune>
     fun deleteAllByUser(user: User)
 }

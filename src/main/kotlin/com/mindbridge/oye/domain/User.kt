@@ -71,6 +71,13 @@ class User(
     @Comment("사용자 권한 (USER, ADMIN)")
     var role: Role = Role.USER,
 
+    @Comment("마지막 로그인 시각")
+    var lastLoginAt: LocalDateTime? = null,
+
+    @Column(nullable = false)
+    @Comment("예감 생성 시간 (0-23)")
+    var fortuneScheduleHour: Int = 6,
+
     @Column(nullable = false, updatable = false)
     @Comment("가입일시")
     val createdAt: LocalDateTime = LocalDateTime.now()

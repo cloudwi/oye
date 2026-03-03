@@ -73,6 +73,7 @@ class CompatibilityServiceTest {
             connection = connection,
             score = 85,
             content = "오늘 두 분의 궁합은 좋아요.",
+            relationFortune = "서로의 작은 표정 변화도 놓치지 않는 다정한 하루가 돼요.",
             date = LocalDate.now()
         )
         whenever(compatibilityRepository.findByConnectionAndDate(connection, LocalDate.now()))
@@ -130,6 +131,7 @@ class CompatibilityServiceTest {
             connection = connection,
             score = 90,
             content = "오늘은 매우 좋은 궁합이에요.",
+            relationFortune = "따뜻한 감정이 자연스럽게 오가는 하루예요.",
             date = LocalDate.now()
         )
         whenever(userConnectionRepository.findByIdWithUsers(1L)).thenReturn(Optional.of(connection))
@@ -140,6 +142,7 @@ class CompatibilityServiceTest {
 
         assertEquals(90, result.score)
         assertEquals("오늘은 매우 좋은 궁합이에요.", result.content)
+        assertEquals("따뜻한 감정이 자연스럽게 오가는 하루예요.", result.relationFortune)
     }
 
     @Test
@@ -150,12 +153,13 @@ class CompatibilityServiceTest {
             connection = connection,
             score = 85,
             content = "기존 궁합",
+            relationFortune = "기존 관계 운세",
             date = LocalDate.now()
         )
         whenever(compatibilityRepository.findByConnectionAndDate(connection, LocalDate.now()))
             .thenReturn(existing)
 
-        val result = service.saveCompatibility(connection, 90, "새 궁합")
+        val result = service.saveCompatibility(connection, 90, "새 궁합", "새 관계 운세")
 
         assertEquals(85, result.score)
         assertEquals("기존 궁합", result.content)
@@ -173,14 +177,16 @@ class CompatibilityServiceTest {
                 connection = comp.connection,
                 score = comp.score,
                 content = comp.content,
+                relationFortune = comp.relationFortune,
                 date = comp.date
             )
         }
 
-        val result = service.saveCompatibility(connection, 75, "새 궁합 내용")
+        val result = service.saveCompatibility(connection, 75, "새 궁합 내용", "새 관계 운세 내용")
 
         assertEquals(75, result.score)
         assertEquals("새 궁합 내용", result.content)
+        assertEquals("새 관계 운세 내용", result.relationFortune)
     }
 
     @Test

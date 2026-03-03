@@ -2,11 +2,18 @@ package com.mindbridge.oye.controller
 
 import com.mindbridge.oye.config.AuthenticationResolver
 import com.mindbridge.oye.controller.api.AdminApi
+import com.mindbridge.oye.dto.AdminCompatibilityResponse
+import com.mindbridge.oye.dto.AdminConnectionResponse
 import com.mindbridge.oye.dto.AdminDashboardStats
+import com.mindbridge.oye.dto.AdminFortuneResponse
+import com.mindbridge.oye.dto.AdminGroupResponse
+import com.mindbridge.oye.dto.AdminLottoResponse
+import com.mindbridge.oye.dto.AdminUserDetailResponse
 import com.mindbridge.oye.dto.AdminUserResponse
 import com.mindbridge.oye.dto.ApiResponse
 import com.mindbridge.oye.dto.AppVersionConfigResponse
 import com.mindbridge.oye.dto.AppVersionUpdateRequest
+import com.mindbridge.oye.dto.LoginHistoryResponse
 import com.mindbridge.oye.dto.PageResponse
 import com.mindbridge.oye.dto.RoleUpdateRequest
 import com.mindbridge.oye.service.AdminService
@@ -72,5 +79,76 @@ class AdminController(
     ): AppVersionConfigResponse {
         val user = authenticationResolver.getCurrentUser(principal)
         return adminService.updateAppVersion(user, platform, request)
+    }
+
+    @GetMapping("/users/{id}")
+    override fun getUserDetail(
+        @AuthenticationPrincipal principal: Any?,
+        @PathVariable id: Long
+    ): AdminUserDetailResponse {
+        val user = authenticationResolver.getCurrentUser(principal)
+        return adminService.getUserDetail(user, id)
+    }
+
+    @GetMapping("/users/{id}/login-history")
+    override fun getUserLoginHistory(
+        @AuthenticationPrincipal principal: Any?,
+        @PathVariable id: Long,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int
+    ): ApiResponse<PageResponse<LoginHistoryResponse>> {
+        val user = authenticationResolver.getCurrentUser(principal)
+        return ApiResponse.success(adminService.getLoginHistory(user, id, page, size))
+    }
+
+    @GetMapping("/users/{id}/fortunes")
+    override fun getUserFortunes(
+        @AuthenticationPrincipal principal: Any?,
+        @PathVariable id: Long,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int
+    ): ApiResponse<PageResponse<AdminFortuneResponse>> {
+        val user = authenticationResolver.getCurrentUser(principal)
+        return ApiResponse.success(adminService.getUserFortunes(user, id, page, size))
+    }
+
+    @GetMapping("/users/{id}/compatibilities")
+    override fun getUserCompatibilities(
+        @AuthenticationPrincipal principal: Any?,
+        @PathVariable id: Long,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int
+    ): ApiResponse<PageResponse<AdminCompatibilityResponse>> {
+        val user = authenticationResolver.getCurrentUser(principal)
+        return ApiResponse.success(adminService.getUserCompatibilities(user, id, page, size))
+    }
+
+    @GetMapping("/users/{id}/lotto")
+    override fun getUserLotto(
+        @AuthenticationPrincipal principal: Any?,
+        @PathVariable id: Long,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int
+    ): ApiResponse<PageResponse<AdminLottoResponse>> {
+        val user = authenticationResolver.getCurrentUser(principal)
+        return ApiResponse.success(adminService.getUserLotto(user, id, page, size))
+    }
+
+    @GetMapping("/users/{id}/connections")
+    override fun getUserConnections(
+        @AuthenticationPrincipal principal: Any?,
+        @PathVariable id: Long
+    ): List<AdminConnectionResponse> {
+        val user = authenticationResolver.getCurrentUser(principal)
+        return adminService.getUserConnections(user, id)
+    }
+
+    @GetMapping("/users/{id}/groups")
+    override fun getUserGroups(
+        @AuthenticationPrincipal principal: Any?,
+        @PathVariable id: Long
+    ): List<AdminGroupResponse> {
+        val user = authenticationResolver.getCurrentUser(principal)
+        return adminService.getUserGroups(user, id)
     }
 }

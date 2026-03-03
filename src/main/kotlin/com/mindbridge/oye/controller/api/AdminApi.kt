@@ -1,10 +1,17 @@
 package com.mindbridge.oye.controller.api
 
+import com.mindbridge.oye.dto.AdminCompatibilityResponse
+import com.mindbridge.oye.dto.AdminConnectionResponse
 import com.mindbridge.oye.dto.AdminDashboardStats
+import com.mindbridge.oye.dto.AdminFortuneResponse
+import com.mindbridge.oye.dto.AdminGroupResponse
+import com.mindbridge.oye.dto.AdminLottoResponse
+import com.mindbridge.oye.dto.AdminUserDetailResponse
 import com.mindbridge.oye.dto.AdminUserResponse
 import com.mindbridge.oye.dto.ApiResponse
 import com.mindbridge.oye.dto.AppVersionConfigResponse
 import com.mindbridge.oye.dto.AppVersionUpdateRequest
+import com.mindbridge.oye.dto.LoginHistoryResponse
 import com.mindbridge.oye.dto.PageResponse
 import com.mindbridge.oye.dto.RoleUpdateRequest
 import com.mindbridge.oye.exception.ErrorResponse
@@ -137,4 +144,25 @@ interface AdminApi {
         @Parameter(description = "플랫폼 (ios, android)", example = "ios") platform: String,
         request: AppVersionUpdateRequest
     ): AppVersionConfigResponse
+
+    @Operation(summary = "사용자 상세 조회", description = "관리자용 사용자 상세 정보를 조회합니다.")
+    fun getUserDetail(principal: Any?, id: Long): AdminUserDetailResponse
+
+    @Operation(summary = "사용자 로그인 기록 조회", description = "관리자용 사용자 로그인 기록을 조회합니다.")
+    fun getUserLoginHistory(principal: Any?, id: Long, page: Int, size: Int): ApiResponse<PageResponse<LoginHistoryResponse>>
+
+    @Operation(summary = "사용자 예감 기록 조회", description = "관리자용 사용자 예감 기록을 조회합니다.")
+    fun getUserFortunes(principal: Any?, id: Long, page: Int, size: Int): ApiResponse<PageResponse<AdminFortuneResponse>>
+
+    @Operation(summary = "사용자 궁합 기록 조회", description = "관리자용 사용자 궁합 기록을 조회합니다.")
+    fun getUserCompatibilities(principal: Any?, id: Long, page: Int, size: Int): ApiResponse<PageResponse<AdminCompatibilityResponse>>
+
+    @Operation(summary = "사용자 로또 기록 조회", description = "관리자용 사용자 로또 추천 기록을 조회합니다.")
+    fun getUserLotto(principal: Any?, id: Long, page: Int, size: Int): ApiResponse<PageResponse<AdminLottoResponse>>
+
+    @Operation(summary = "사용자 연결 목록 조회", description = "관리자용 사용자의 1:1 연결 목록을 조회합니다.")
+    fun getUserConnections(principal: Any?, id: Long): List<AdminConnectionResponse>
+
+    @Operation(summary = "사용자 그룹 목록 조회", description = "관리자용 사용자가 속한 그룹 목록을 조회합니다.")
+    fun getUserGroups(principal: Any?, id: Long): List<AdminGroupResponse>
 }

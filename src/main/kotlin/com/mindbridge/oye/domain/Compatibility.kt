@@ -39,6 +39,10 @@ class Compatibility(
     @Comment("AI가 생성한 궁합 본문")
     val content: String,
 
+    @Column(length = 200)
+    @Comment("관계별 특화 운세 (애정운/우정운/가족운/직장운)")
+    val relationFortune: String? = null,
+
     @Column(nullable = false)
     @Comment("궁합 대상 날짜")
     val date: LocalDate,

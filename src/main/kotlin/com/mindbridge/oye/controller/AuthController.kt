@@ -15,10 +15,14 @@ import com.mindbridge.oye.dto.TokenResponse
 import com.mindbridge.oye.exception.ForbiddenException
 import com.mindbridge.oye.exception.UnauthorizedException
 import com.mindbridge.oye.exception.UserNotFoundException
+import com.mindbridge.oye.domain.LoginHistory
+import com.mindbridge.oye.domain.User
+import com.mindbridge.oye.repository.LoginHistoryRepository
 import com.mindbridge.oye.repository.SocialAccountRepository
 import com.mindbridge.oye.repository.UserRepository
 import com.mindbridge.oye.service.AuthService
 import jakarta.servlet.http.HttpServletRequest
+import java.time.LocalDateTime
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.transaction.annotation.Transactional
@@ -48,6 +52,7 @@ class AuthController(
     private val userRepository: UserRepository,
     private val socialAccountRepository: SocialAccountRepository,
     private val authService: AuthService,
+    private val loginHistoryRepository: LoginHistoryRepository,
     @Value("\${spring.security.oauth2.client.registration.kakao.client-id}")
     private val kakaoClientId: String,
     @Value("\${spring.security.oauth2.client.registration.kakao.client-secret}")
@@ -83,7 +88,7 @@ class AuthController(
 
     @PostMapping("/login/apple")
     @Transactional
-    override fun loginApple(@RequestBody request: AppleLoginRequest): TokenResponse {
+    override fun loginApple(@RequestBody request: AppleLoginRequest, servletRequest: HttpServletRequest): TokenResponse {
         val appleUserId = try {
             appleTokenVerifier.verify(request.identityToken)
         } catch (e: Exception) {
@@ -95,6 +100,8 @@ class AuthController(
         val isNewUser = socialAccount == null
         val user = socialAccount?.user ?: authService.createUser(SocialProvider.APPLE, appleUserId, request.fullName)
 
+        recordLogin(user, SocialProvider.APPLE, servletRequest)
+
         return TokenResponse(
             accessToken = jwtTokenProvider.generateAccessToken(user.id!!),
             refreshToken = jwtTokenProvider.generateRefreshToken(user.id!!),
@@ -104,7 +111,7 @@ class AuthController(
 
     @PostMapping("/login/kakao/native")
     @Transactional
-    override fun loginKakaoNative(@RequestBody request: KakaoLoginRequest): TokenResponse {
+    override fun loginKakaoNative(@RequestBody request: KakaoLoginRequest, servletRequest: HttpServletRequest): TokenResponse {
         val kakaoUser = try {
             kakaoTokenVerifier.verify(request.accessToken)
         } catch (e: Exception) {
@@ -115,6 +122,8 @@ class AuthController(
         val socialAccount = socialAccountRepository.findByProviderAndProviderId(SocialProvider.KAKAO, kakaoUser.id)
         val isNewUser = socialAccount == null
         val user = socialAccount?.user ?: authService.createUser(SocialProvider.KAKAO, kakaoUser.id, kakaoUser.nickname)
+
+        recordLogin(user, SocialProvider.KAKAO, servletRequest)
 
         return TokenResponse(
             accessToken = jwtTokenProvider.generateAccessToken(user.id!!),
@@ -155,8 +164,8 @@ class AuthController(
     }
 
     @PostMapping("/admin/login/kakao")
-    @Transactional(readOnly = true)
-    override fun adminLoginKakao(@RequestBody request: KakaoLoginRequest): TokenResponse {
+    @Transactional
+    override fun adminLoginKakao(@RequestBody request: KakaoLoginRequest, servletRequest: HttpServletRequest): TokenResponse {
         val kakaoUser = try {
             kakaoTokenVerifier.verify(request.accessToken)
         } catch (e: Exception) {
@@ -172,6 +181,8 @@ class AuthController(
             throw ForbiddenException("관리자 권한이 필요합니다.")
         }
 
+        recordLogin(user, SocialProvider.KAKAO, servletRequest)
+
         return TokenResponse(
             accessToken = jwtTokenProvider.generateAccessToken(user.id!!),
             refreshToken = jwtTokenProvider.generateRefreshToken(user.id!!)
@@ -179,8 +190,8 @@ class AuthController(
     }
 
     @PostMapping("/admin/login/kakao/code")
-    @Transactional(readOnly = true)
-    override fun adminLoginKakaoCode(@RequestBody request: AdminKakaoCodeRequest): TokenResponse {
+    @Transactional
+    override fun adminLoginKakaoCode(@RequestBody request: AdminKakaoCodeRequest, servletRequest: HttpServletRequest): TokenResponse {
         val kakaoAccessToken = exchangeKakaoCode(request.code, request.redirectUri)
 
         val kakaoUser = try {
@@ -197,6 +208,8 @@ class AuthController(
         if (user.role != Role.ADMIN) {
             throw ForbiddenException("관리자 권한이 필요합니다.")
         }
+
+        recordLogin(user, SocialProvider.KAKAO, servletRequest)
 
         return TokenResponse(
             accessToken = jwtTokenProvider.generateAccessToken(user.id!!),
@@ -276,6 +289,8 @@ class AuthController(
         val isNewUser = socialAccount == null
         val user = socialAccount?.user ?: authService.createUser(SocialProvider.KAKAO, kakaoUser.id, kakaoUser.nickname)
 
+        recordLogin(user, SocialProvider.KAKAO, request)
+
         val accessToken = jwtTokenProvider.generateAccessToken(user.id!!)
         val refreshToken = jwtTokenProvider.generateRefreshToken(user.id!!)
         val fragment = "token=$accessToken&refresh_token=$refreshToken&is_new_user=$isNewUser"
@@ -285,6 +300,15 @@ class AuthController(
     @PostMapping("/logout")
     override fun logout(): ResponseEntity<Map<String, String>> {
         return ResponseEntity.ok(mapOf("message" to "로그아웃되었습니다."))
+    }
+
+    private fun recordLogin(user: User, provider: SocialProvider, request: HttpServletRequest) {
+        val ip = request.getHeader("X-Forwarded-For")?.split(",")?.firstOrNull()?.trim()
+            ?: request.remoteAddr
+        val ua = request.getHeader("User-Agent")?.take(500)
+        loginHistoryRepository.save(LoginHistory(user = user, provider = provider, ipAddress = ip, userAgent = ua))
+        user.lastLoginAt = LocalDateTime.now()
+        userRepository.save(user)
     }
 
     private fun validateCallbackUri(uri: String) {

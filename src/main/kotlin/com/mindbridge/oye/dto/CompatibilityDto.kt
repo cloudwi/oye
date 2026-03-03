@@ -16,6 +16,9 @@ data class CompatibilityResponse(
     @Schema(description = "AI가 생성한 궁합 본문", example = "오늘 두 분의 궁합은...")
     val content: String,
 
+    @Schema(description = "관계별 특화 운세 (애정운/우정운/가족운/직장운)", example = "서로의 작은 표정 변화도 놓치지 않는 다정한 하루가 돼요.")
+    val relationFortune: String? = null,
+
     @Schema(description = "궁합 대상 날짜 (YYYY-MM-DD)", example = "2025-06-15")
     val date: LocalDate,
 
@@ -28,6 +31,7 @@ data class CompatibilityResponse(
                 id = compatibility.id!!,
                 score = compatibility.score,
                 content = compatibility.content,
+                relationFortune = compatibility.relationFortune,
                 date = compatibility.date,
                 createdAt = compatibility.createdAt
             )

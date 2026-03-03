@@ -8,6 +8,7 @@ import com.mindbridge.oye.repository.CompatibilityRepository
 import com.mindbridge.oye.repository.FortuneRepository
 import com.mindbridge.oye.repository.InquiryCommentRepository
 import com.mindbridge.oye.repository.InquiryRepository
+import com.mindbridge.oye.repository.LoginHistoryRepository
 import com.mindbridge.oye.repository.LottoRecommendationRepository
 import com.mindbridge.oye.repository.SocialAccountRepository
 import com.mindbridge.oye.repository.UserConnectionRepository
@@ -25,7 +26,8 @@ class UserService(
     private val inquiryCommentRepository: InquiryCommentRepository,
     private val userConnectionRepository: UserConnectionRepository,
     private val compatibilityRepository: CompatibilityRepository,
-    private val lottoRecommendationRepository: LottoRecommendationRepository
+    private val lottoRecommendationRepository: LottoRecommendationRepository,
+    private val loginHistoryRepository: LoginHistoryRepository
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -64,9 +66,17 @@ class UserService(
         inquiryRepository.deleteAllByUser(user)
         fortuneRepository.deleteAllByUser(user)
         lottoRecommendationRepository.deleteAllByUser(user)
+        loginHistoryRepository.deleteAllByUser(user)
         socialAccountRepository.deleteAllByUser(user)
         userRepository.delete(user)
         log.info("사용자 삭제 완료: userId={}", user.id)
+    }
+
+    @Transactional
+    fun updateSchedule(user: User, hour: Int): UserResponse {
+        user.fortuneScheduleHour = hour
+        val savedUser = userRepository.save(user)
+        return UserResponse.from(savedUser, getProvider(savedUser))
     }
 
     private fun getProvider(user: User): SocialProvider? {

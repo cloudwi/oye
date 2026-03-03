@@ -14,36 +14,32 @@ import org.hibernate.annotations.Comment
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "user_groups")
-@Comment("그룹 정보")
-class Group(
+@Table(name = "login_history")
+@Comment("로그인 이력")
+class LoginHistory(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Comment("그룹 고유 ID")
+    @Comment("로그인 이력 고유 ID")
     val id: Long? = null,
 
-    @Column(length = 50, nullable = false)
-    @Comment("그룹 이름")
-    var name: String,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @Comment("사용자")
+    val user: User,
 
     @Enumerated(EnumType.STRING)
     @Column(length = 20, nullable = false)
-    @Comment("관계 유형 (FRIEND, FAMILY, COLLEAGUE)")
-    val relationType: RelationType,
+    @Comment("소셜 로그인 제공자")
+    val provider: SocialProvider,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @Comment("그룹 생성자")
-    var owner: User,
+    @Column(length = 45)
+    @Comment("IP 주소")
+    val ipAddress: String? = null,
 
-    @Column(unique = true, length = 6, nullable = false)
-    @Comment("그룹 초대 코드 (6자리 영숫자)")
-    val inviteCode: String,
-
-    @Column(nullable = false)
-    @Comment("궁합 생성 시간 (0-23)")
-    var scheduleHour: Int = 6,
+    @Column(length = 500)
+    @Comment("User-Agent")
+    val userAgent: String? = null,
 
     @Column(nullable = false, updatable = false)
-    @Comment("그룹 생성일시")
+    @Comment("로그인 시각")
     val createdAt: LocalDateTime = LocalDateTime.now()
 )

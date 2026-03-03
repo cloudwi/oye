@@ -114,6 +114,40 @@ class PushNotificationService(
         }
     }
 
+    fun sendToUser(user: User, title: String, body: String) {
+        val token = user.expoPushToken ?: return
+        try {
+            sendExpoPush(listOf(token), title, body)
+        } catch (e: Exception) {
+            log.warn("푸시 전송 실패: userId={}, error={}", user.id, e.message)
+        }
+    }
+
+    fun sendToUsers(users: List<User>, title: String, body: String) {
+        val tokens = users.mapNotNull { it.expoPushToken }
+        if (tokens.isEmpty()) return
+        try {
+            tokens.chunked(100).forEach { batch ->
+                sendExpoPush(batch, title, body)
+            }
+        } catch (e: Exception) {
+            log.warn("푸시 전송 실패: userCount={}, error={}", users.size, e.message)
+        }
+    }
+
+    fun sendToAll(title: String, body: String) {
+        try {
+            val users = userRepository.findAllByExpoPushTokenIsNotNull()
+            val tokens = users.mapNotNull { it.expoPushToken }
+            if (tokens.isEmpty()) return
+            tokens.chunked(100).forEach { batch ->
+                sendExpoPush(batch, title, body)
+            }
+        } catch (e: Exception) {
+            log.warn("전체 푸시 전송 실패: error={}", e.message)
+        }
+    }
+
     private fun requireAdmin(user: User) {
         if (user.role != Role.ADMIN) {
             throw ForbiddenException("관리자 권한이 필요합니다.")

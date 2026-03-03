@@ -233,6 +233,18 @@ class GroupService(
         )
     }
 
+    @Transactional
+    fun updateGroupSchedule(user: User, groupId: Long, hour: Int) {
+        val group = groupRepository.findByIdWithOwner(groupId)
+            .orElseThrow { GroupNotFoundException() }
+        if (group.owner.id != user.id) {
+            throw NotGroupOwnerException()
+        }
+        group.scheduleHour = hour
+        groupRepository.save(group)
+        log.info("그룹 스케줄 변경: groupId={}, hour={}", groupId, hour)
+    }
+
     private fun generateUniqueCode(): String {
         repeat(10) {
             val code = buildString {

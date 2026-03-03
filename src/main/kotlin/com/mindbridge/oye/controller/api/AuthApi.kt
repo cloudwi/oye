@@ -81,7 +81,7 @@ interface AuthApi {
             content = [Content(schema = Schema(implementation = ErrorResponse::class))]
         )
     )
-    fun loginApple(request: AppleLoginRequest): TokenResponse
+    fun loginApple(request: AppleLoginRequest, servletRequest: HttpServletRequest): TokenResponse
 
     @Operation(
         summary = "카카오 네이티브 로그인",
@@ -103,7 +103,7 @@ interface AuthApi {
             content = [Content(schema = Schema(implementation = ErrorResponse::class))]
         )
     )
-    fun loginKakaoNative(request: KakaoLoginRequest): TokenResponse
+    fun loginKakaoNative(request: KakaoLoginRequest, servletRequest: HttpServletRequest): TokenResponse
 
     @Operation(
         summary = "로그아웃",
@@ -168,7 +168,7 @@ interface AuthApi {
             content = [Content(schema = Schema(implementation = ErrorResponse::class))]
         )
     )
-    fun adminLoginKakao(request: KakaoLoginRequest): TokenResponse
+    fun adminLoginKakao(request: KakaoLoginRequest, servletRequest: HttpServletRequest): TokenResponse
 
     @Operation(
         summary = "관리자 카카오 OAuth URL 조회",
@@ -208,5 +208,5 @@ interface AuthApi {
             content = [Content(schema = Schema(implementation = ErrorResponse::class))]
         )
     )
-    fun adminLoginKakaoCode(request: AdminKakaoCodeRequest): TokenResponse
+    fun adminLoginKakaoCode(request: AdminKakaoCodeRequest, servletRequest: HttpServletRequest): TokenResponse
 }

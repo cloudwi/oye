@@ -20,6 +20,8 @@ object AiResponseParser {
 
     data class ScoreAndContent(val score: Int, val content: String)
 
+    data class ScoreContentAndExtra(val score: Int, val content: String, val extra: String?)
+
     fun parseScoreAndContent(
         response: String,
         scoreRange: IntRange = 0..100,
@@ -38,5 +40,29 @@ object AiResponseParser {
             ?: throw IllegalArgumentException("AI 응답에서 content를 파싱할 수 없습니다.")
 
         return ScoreAndContent(score = score, content = content)
+    }
+
+    fun parseScoreContentAndExtra(
+        response: String,
+        extraKey: String,
+        scoreRange: IntRange = 0..100,
+        defaultScore: Int? = null,
+        maxContentLength: Int = 80,
+        maxExtraLength: Int = 200
+    ): ScoreContentAndExtra {
+        val json: Map<String, Any> = objectMapper.readValue(response)
+
+        val score = when (val raw = json["score"]) {
+            is Number -> raw.toInt().coerceIn(scoreRange.first, scoreRange.last)
+            else -> defaultScore
+                ?: throw IllegalArgumentException("AI 응답에서 score를 파싱할 수 없습니다.")
+        }
+
+        val content = (json["content"] as? String)?.take(maxContentLength)
+            ?: throw IllegalArgumentException("AI 응답에서 content를 파싱할 수 없습니다.")
+
+        val extra = (json[extraKey] as? String)?.take(maxExtraLength)
+
+        return ScoreContentAndExtra(score = score, content = content, extra = extra)
     }
 }

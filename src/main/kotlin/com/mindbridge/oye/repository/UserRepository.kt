@@ -11,4 +11,5 @@ interface UserRepository : JpaRepository<User, Long> {
     fun findByNameContainingIgnoreCaseOrderByCreatedAtDesc(name: String, pageable: Pageable): Page<User>
     fun findAllByExpoPushTokenIsNotNull(): List<User>
     fun findAllByIdInAndExpoPushTokenIsNotNull(ids: List<Long>): List<User>
+    fun findByFortuneScheduleHour(hour: Int, pageable: Pageable): Page<User>
 }

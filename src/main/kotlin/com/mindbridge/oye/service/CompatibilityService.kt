@@ -64,24 +64,33 @@ class CompatibilityService(
             - 0~100 사이 정수
             - 40~60: 평범, 60~80: 좋은 기운, 80~100: 아주 좋은 날, 20~40: 조심하면 좋은 날
 
+            관계별 운세 규칙 (relationFortune):
+            - 1문장, 40~80자, 해요체
+            - 연인 → 애정운, 친구 → 우정운, 가족 → 가족운, 동료 → 직장운
+            - content와 겹치지 않는 별도 관점의 운세
+            - 연인(애정운): 감정 온도, 스킨십, 설렘 등 연애 감정에 초점
+            - 친구(우정운): 신뢰, 비밀 공유, 웃음 등 우정 깊이에 초점
+            - 가족(가족운): 안부, 감사, 세대 간 이해 등 가족 유대에 초점
+            - 동료(직장운): 협업 호흡, 성과, 업무 시너지 등 직장 관계에 초점
+
             출력 형식 (반드시 JSON만 출력):
-            {"score": 85, "content": "궁합 문장"}
+            {"score": 85, "content": "궁합 문장", "relationFortune": "관계별 운세 문장"}
 
             좋은 예시 (연인):
-            {"score": 78, "content": "오늘은 같이 밥 먹으면 대화가 유독 잘 통하는 날이에요. 평소 안 꺼내던 이야기도 자연스럽게 나올 수 있어서 서로를 더 알아가는 시간이 돼요."}
-            {"score": 45, "content": "오늘은 서로 컨디션이 엇갈리기 쉬운 날이에요. 상대방의 반응이 평소와 다르더라도 너무 신경 쓰지 않는 게 서로에게 좋아요."}
+            {"score": 78, "content": "오늘은 같이 밥 먹으면 대화가 유독 잘 통하는 날이에요. 평소 안 꺼내던 이야기도 자연스럽게 나올 수 있어서 서로를 더 알아가는 시간이 돼요.", "relationFortune": "서로의 작은 표정 변화도 놓치지 않는 다정한 하루가 돼요."}
+            {"score": 45, "content": "오늘은 서로 컨디션이 엇갈리기 쉬운 날이에요. 상대방의 반응이 평소와 다르더라도 너무 신경 쓰지 않는 게 서로에게 좋아요.", "relationFortune": "감정 표현을 조금 아끼면 오히려 편안한 분위기가 유지돼요."}
 
             좋은 예시 (친구):
-            {"score": 82, "content": "서로 눈치 안 보고 편하게 있을 수 있는 날이에요. 굳이 대화가 없어도 함께 있는 것만으로 충분히 편안한 시간이 돼요."}
-            {"score": 65, "content": "사소한 취향 차이가 오히려 재미있게 느껴지는 하루예요. 각자 좋아하는 걸 공유하다 보면 의외의 공통점을 발견할 수 있어요."}
+            {"score": 82, "content": "서로 눈치 안 보고 편하게 있을 수 있는 날이에요. 굳이 대화가 없어도 함께 있는 것만으로 충분히 편안한 시간이 돼요.", "relationFortune": "오랜 친구처럼 편하게 속마음을 꺼낼 수 있는 시간이에요."}
+            {"score": 65, "content": "사소한 취향 차이가 오히려 재미있게 느껴지는 하루예요. 각자 좋아하는 걸 공유하다 보면 의외의 공통점을 발견할 수 있어요.", "relationFortune": "서로 다른 점이 오히려 대화 소재가 되어 웃음이 많아져요."}
 
             좋은 예시 (가족):
-            {"score": 75, "content": "오늘은 식사 자리에서 이런저런 이야기가 잘 오가는 날이에요. 사소한 안부도 서로에게 따뜻하게 닿아요."}
-            {"score": 40, "content": "생활 습관 차이로 작은 불편함이 생기기 쉬운 날이에요. 각자 공간을 존중하면 하루가 훨씬 편안해져요."}
+            {"score": 75, "content": "오늘은 식사 자리에서 이런저런 이야기가 잘 오가는 날이에요. 사소한 안부도 서로에게 따뜻하게 닿아요.", "relationFortune": "짧은 안부 한마디가 서로에게 큰 위안이 되는 하루예요."}
+            {"score": 40, "content": "생활 습관 차이로 작은 불편함이 생기기 쉬운 날이에요. 각자 공간을 존중하면 하루가 훨씬 편안해져요.", "relationFortune": "서로의 생활 리듬을 있는 그대로 이해하면 마음이 한결 편해져요."}
 
             좋은 예시 (동료):
-            {"score": 80, "content": "오늘은 아이디어를 주고받으면 평소보다 속도가 빨라지는 날이에요. 서로의 관점이 딱 맞물려서 작업이 수월하게 진행돼요."}
-            {"score": 50, "content": "업무 스타일이 살짝 엇갈릴 수 있는 하루예요. 진행 방향을 미리 맞춰두면 불필요한 수정을 줄일 수 있어요."}
+            {"score": 80, "content": "오늘은 아이디어를 주고받으면 평소보다 속도가 빨라지는 날이에요. 서로의 관점이 딱 맞물려서 작업이 수월하게 진행돼요.", "relationFortune": "서로의 강점이 잘 맞물려서 업무 효율이 높아지는 날이에요."}
+            {"score": 50, "content": "업무 스타일이 살짝 엇갈릴 수 있는 하루예요. 진행 방향을 미리 맞춰두면 불필요한 수정을 줄일 수 있어요.", "relationFortune": "역할 분담을 명확히 하면 의외로 매끄럽게 진행돼요."}
 
             나쁜 예시 - 너무 추상적:
             "두 분의 에너지가 조화롭게 어우러져요."
@@ -113,7 +122,7 @@ class CompatibilityService(
 
         val result = callAiWithRetry(connection, date)
         return try {
-            saveCompatibility(connection, result.score, result.content, date)
+            saveCompatibility(connection, result.score, result.content, result.relationFortune, date)
         } catch (e: DataIntegrityViolationException) {
             compatibilityRepository.findByConnectionAndDate(connection, date)
                 ?: throw CompatibilityGenerationException("궁합 저장 중 오류가 발생했습니다.")
@@ -139,7 +148,7 @@ class CompatibilityService(
 
         // 3. 저장 시도
         return try {
-            val saved = saveCompatibility(connection, result.score, result.content)
+            val saved = saveCompatibility(connection, result.score, result.content, result.relationFortune)
             CompatibilityResponse.from(saved)
         } catch (e: DataIntegrityViolationException) {
             log.warn("중복 궁합 저장 시도 감지: connectionId={}", connectionId)
@@ -151,7 +160,7 @@ class CompatibilityService(
 
     @CacheEvict(value = [CacheConfig.COMPATIBILITY_TODAY], key = "#connection.id")
     @Transactional
-    fun saveCompatibility(connection: UserConnection, score: Int, content: String, date: LocalDate = LocalDate.now()): Compatibility {
+    fun saveCompatibility(connection: UserConnection, score: Int, content: String, relationFortune: String? = null, date: LocalDate = LocalDate.now()): Compatibility {
         val existing = compatibilityRepository.findByConnectionAndDate(connection, date)
         if (existing != null) {
             return existing
@@ -161,6 +170,7 @@ class CompatibilityService(
             connection = connection,
             score = score,
             content = content,
+            relationFortune = relationFortune,
             date = date
         )
         return compatibilityRepository.save(compatibility)
@@ -282,12 +292,14 @@ class CompatibilityService(
     private fun parseResponse(response: String): AiCompatibilityResult {
         return try {
             val sanitized = AiResponseParser.sanitizeJson(response)
-            val result = AiResponseParser.parseScoreAndContent(
+            val result = AiResponseParser.parseScoreContentAndExtra(
                 sanitized,
+                extraKey = "relationFortune",
                 scoreRange = 0..100,
-                maxContentLength = CONTENT_MAX_LENGTH
+                maxContentLength = CONTENT_MAX_LENGTH,
+                maxExtraLength = CONTENT_MAX_LENGTH
             )
-            AiCompatibilityResult(score = result.score, content = result.content)
+            AiCompatibilityResult(score = result.score, content = result.content, relationFortune = result.extra)
         } catch (e: Exception) {
             log.error("AI 응답 파싱 실패. 원본 응답: {}", response, e)
             throw CompatibilityGenerationException("AI 응답 파싱에 실패했습니다: ${e.message}")
@@ -296,6 +308,7 @@ class CompatibilityService(
 
     private data class AiCompatibilityResult(
         val score: Int,
-        val content: String
+        val content: String,
+        val relationFortune: String? = null
     )
 }

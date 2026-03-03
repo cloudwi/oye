@@ -17,6 +17,12 @@ interface CompatibilityRepository : JpaRepository<Compatibility, Long> {
     @Query("SELECT c.date FROM Compatibility c WHERE c.connection = :connection AND c.date BETWEEN :start AND :end ORDER BY c.date ASC")
     fun findDatesByConnectionAndDateBetween(connection: UserConnection, start: LocalDate, end: LocalDate): List<LocalDate>
 
+    @Query(
+        value = "SELECT c FROM Compatibility c JOIN FETCH c.connection conn JOIN FETCH conn.user JOIN FETCH conn.partner WHERE conn.user.id = :userId OR conn.partner.id = :userId ORDER BY c.date DESC",
+        countQuery = "SELECT COUNT(c) FROM Compatibility c WHERE c.connection.user.id = :userId OR c.connection.partner.id = :userId"
+    )
+    fun findByUserId(@org.springframework.data.repository.query.Param("userId") userId: Long, pageable: Pageable): Page<Compatibility>
+
     fun deleteAllByConnection(connection: UserConnection)
     fun deleteAllByConnectionIn(connections: List<UserConnection>)
 }

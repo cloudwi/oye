@@ -12,6 +12,7 @@ import com.mindbridge.oye.repository.CompatibilityRepository
 import com.mindbridge.oye.repository.FortuneRepository
 import com.mindbridge.oye.repository.InquiryCommentRepository
 import com.mindbridge.oye.repository.InquiryRepository
+import com.mindbridge.oye.repository.LoginHistoryRepository
 import com.mindbridge.oye.repository.LottoRecommendationRepository
 import com.mindbridge.oye.repository.LottoRoundRepository
 import com.mindbridge.oye.repository.SocialAccountRepository
@@ -68,6 +69,9 @@ class LottoControllerTest {
     private lateinit var inquiryRepository: InquiryRepository
 
     @Autowired
+    private lateinit var loginHistoryRepository: LoginHistoryRepository
+
+    @Autowired
     private lateinit var jwtTokenProvider: JwtTokenProvider
 
     private lateinit var testUser: User
@@ -83,6 +87,7 @@ class LottoControllerTest {
         lottoRoundRepository.deleteAll()
         fortuneRepository.deleteAll()
         socialAccountRepository.deleteAll()
+        loginHistoryRepository.deleteAll()
         userRepository.deleteAll()
 
         testUser = userRepository.save(

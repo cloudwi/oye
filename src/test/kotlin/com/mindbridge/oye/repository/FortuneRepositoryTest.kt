@@ -4,6 +4,7 @@ import com.mindbridge.oye.domain.CalendarType
 import com.mindbridge.oye.domain.Fortune
 import com.mindbridge.oye.domain.Gender
 import com.mindbridge.oye.domain.User
+import com.mindbridge.oye.repository.LoginHistoryRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -26,11 +27,15 @@ class FortuneRepositoryTest {
     @Autowired
     private lateinit var userRepository: UserRepository
 
+    @Autowired
+    private lateinit var loginHistoryRepository: LoginHistoryRepository
+
     private lateinit var testUser: User
 
     @BeforeEach
     fun setUp() {
         fortuneRepository.deleteAll()
+        loginHistoryRepository.deleteAll()
         userRepository.deleteAll()
         testUser = userRepository.save(
             User(

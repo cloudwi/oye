@@ -13,6 +13,7 @@ import com.mindbridge.oye.repository.CompatibilityRepository
 import com.mindbridge.oye.repository.FortuneRepository
 import com.mindbridge.oye.repository.InquiryCommentRepository
 import com.mindbridge.oye.repository.InquiryRepository
+import com.mindbridge.oye.repository.LoginHistoryRepository
 import com.mindbridge.oye.repository.LottoRecommendationRepository
 import com.mindbridge.oye.repository.SocialAccountRepository
 import com.mindbridge.oye.repository.UserConnectionRepository
@@ -84,6 +85,9 @@ class AuthControllerTest {
     private lateinit var fortuneRepository: FortuneRepository
 
     @Autowired
+    private lateinit var loginHistoryRepository: LoginHistoryRepository
+
+    @Autowired
     private lateinit var jwtTokenProvider: JwtTokenProvider
 
     @Autowired
@@ -101,6 +105,7 @@ class AuthControllerTest {
         lottoRecommendationRepository.deleteAll()
         fortuneRepository.deleteAll()
         socialAccountRepository.deleteAll()
+        loginHistoryRepository.deleteAll()
         userRepository.deleteAll()
     }
 

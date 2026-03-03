@@ -22,7 +22,7 @@ class LoginHistory(
     @Comment("로그인 이력 고유 ID")
     val id: Long? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @Comment("사용자")
     val user: User,
 

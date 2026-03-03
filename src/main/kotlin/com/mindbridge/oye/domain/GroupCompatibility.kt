@@ -27,7 +27,7 @@ class GroupCompatibility(
     @Comment("그룹 궁합 고유 ID")
     val id: Long? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @Comment("소속 그룹")
     val group: Group,
 

@@ -61,8 +61,8 @@ class CompatibilityService(
             - 동료: 회의, 프로젝트, 점심 등 업무 환경에서의 호흡, 서로의 의견이 잘 맞는 순간에 초점을 맞추세요.
 
             점수 규칙:
-            - 0~100 사이 정수
-            - 40~60: 평범, 60~80: 좋은 기운, 80~100: 아주 좋은 날, 20~40: 조심하면 좋은 날
+            - 50~100 사이 정수
+            - 50~65: 무난한 하루, 65~80: 좋은 기운, 80~100: 아주 좋은 날
 
             관계별 운세 규칙 (relationFortune):
             - 1문장, 40~80자, 해요체
@@ -78,7 +78,7 @@ class CompatibilityService(
 
             좋은 예시 (연인):
             {"score": 78, "content": "오늘은 같이 밥 먹으면 대화가 유독 잘 통하는 날이에요. 평소 안 꺼내던 이야기도 자연스럽게 나올 수 있어서 서로를 더 알아가는 시간이 돼요.", "relationFortune": "서로의 작은 표정 변화도 놓치지 않는 다정한 하루가 돼요."}
-            {"score": 45, "content": "오늘은 서로 컨디션이 엇갈리기 쉬운 날이에요. 상대방의 반응이 평소와 다르더라도 너무 신경 쓰지 않는 게 서로에게 좋아요.", "relationFortune": "감정 표현을 조금 아끼면 오히려 편안한 분위기가 유지돼요."}
+            {"score": 55, "content": "오늘은 서로 컨디션이 엇갈리기 쉬운 날이에요. 상대방의 반응이 평소와 다르더라도 너무 신경 쓰지 않는 게 서로에게 좋아요.", "relationFortune": "감정 표현을 조금 아끼면 오히려 편안한 분위기가 유지돼요."}
 
             좋은 예시 (친구):
             {"score": 82, "content": "서로 눈치 안 보고 편하게 있을 수 있는 날이에요. 굳이 대화가 없어도 함께 있는 것만으로 충분히 편안한 시간이 돼요.", "relationFortune": "오랜 친구처럼 편하게 속마음을 꺼낼 수 있는 시간이에요."}
@@ -86,11 +86,11 @@ class CompatibilityService(
 
             좋은 예시 (가족):
             {"score": 75, "content": "오늘은 식사 자리에서 이런저런 이야기가 잘 오가는 날이에요. 사소한 안부도 서로에게 따뜻하게 닿아요.", "relationFortune": "짧은 안부 한마디가 서로에게 큰 위안이 되는 하루예요."}
-            {"score": 40, "content": "생활 습관 차이로 작은 불편함이 생기기 쉬운 날이에요. 각자 공간을 존중하면 하루가 훨씬 편안해져요.", "relationFortune": "서로의 생활 리듬을 있는 그대로 이해하면 마음이 한결 편해져요."}
+            {"score": 52, "content": "생활 습관 차이로 작은 불편함이 생기기 쉬운 날이에요. 각자 공간을 존중하면 하루가 훨씬 편안해져요.", "relationFortune": "서로의 생활 리듬을 있는 그대로 이해하면 마음이 한결 편해져요."}
 
             좋은 예시 (동료):
             {"score": 80, "content": "오늘은 아이디어를 주고받으면 평소보다 속도가 빨라지는 날이에요. 서로의 관점이 딱 맞물려서 작업이 수월하게 진행돼요.", "relationFortune": "서로의 강점이 잘 맞물려서 업무 효율이 높아지는 날이에요."}
-            {"score": 50, "content": "업무 스타일이 살짝 엇갈릴 수 있는 하루예요. 진행 방향을 미리 맞춰두면 불필요한 수정을 줄일 수 있어요.", "relationFortune": "역할 분담을 명확히 하면 의외로 매끄럽게 진행돼요."}
+            {"score": 58, "content": "업무 스타일이 살짝 엇갈릴 수 있는 하루예요. 진행 방향을 미리 맞춰두면 불필요한 수정을 줄일 수 있어요.", "relationFortune": "역할 분담을 명확히 하면 의외로 매끄럽게 진행돼요."}
 
             나쁜 예시 - 너무 추상적:
             "두 분의 에너지가 조화롭게 어우러져요."
@@ -295,7 +295,7 @@ class CompatibilityService(
             val result = AiResponseParser.parseScoreContentAndExtra(
                 sanitized,
                 extraKey = "relationFortune",
-                scoreRange = 0..100,
+                scoreRange = 50..100,
                 maxContentLength = CONTENT_MAX_LENGTH,
                 maxExtraLength = CONTENT_MAX_LENGTH
             )

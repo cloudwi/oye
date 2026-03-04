@@ -49,8 +49,8 @@ class GroupCompatibilityService(
             - 동료: 회의, 프로젝트, 점심 등 업무 환경에서의 호흡, 서로의 의견이 잘 맞는 순간에 초점을 맞추세요.
 
             점수 규칙:
-            - 0~100 사이 정수
-            - 40~60: 평범, 60~80: 좋은 기운, 80~100: 아주 좋은 날, 20~40: 조심하면 좋은 날
+            - 50~100 사이 정수
+            - 50~65: 무난한 하루, 65~80: 좋은 기운, 80~100: 아주 좋은 날
 
             출력 형식 (반드시 JSON만 출력):
             {"score": 85, "content": "궁합 문장"}
@@ -150,7 +150,7 @@ class GroupCompatibilityService(
             val sanitized = AiResponseParser.sanitizeJson(response)
             val result = AiResponseParser.parseScoreAndContent(
                 sanitized,
-                scoreRange = 0..100,
+                scoreRange = 50..100,
                 maxContentLength = CONTENT_MAX_LENGTH
             )
             AiResult(score = result.score, content = result.content)

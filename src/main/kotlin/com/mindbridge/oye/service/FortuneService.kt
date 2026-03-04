@@ -51,9 +51,9 @@ class FortuneService(
             - 나쁜 습관을 조장하는 내용 금지
 
             점수 규칙:
-            - 1~100 사이 정수
+            - 50~100 사이 정수
             - 예감 내용의 분위기와 일치하는 점수
-            - 40~60: 평범한 날, 60~80: 좋은 기운, 80~100: 특별히 좋은 날, 20~40: 조심하면 좋은 날
+            - 50~65: 무난한 하루, 65~80: 좋은 기운, 80~100: 특별히 좋은 날
 
             출력 형식 (반드시 JSON만 출력):
             {"content": "예감 문장", "score": 75}
@@ -64,6 +64,8 @@ class FortuneService(
             {"content": "누군가와 나누는 짧은 대화가 오래 기억에 남아요.", "score": 65}
             {"content": "익숙한 길에서 새로운 걸 발견할 수 있는 날이에요.", "score": 70}
             {"content": "오늘 내린 작은 결정이 꽤 괜찮은 방향이에요.", "score": 74}
+            {"content": "조금 서두르면 타이밍이 어긋나기 쉬운 하루예요.", "score": 53}
+            {"content": "오늘은 무리하지 않는 게 오히려 좋은 결과로 이어져요.", "score": 55}
 
             나쁜 예시 - 너무 구체적 (검증 가능해서 실망할 수 있음):
             "오후에 잊고 있던 물건을 찾게 돼요."
@@ -214,14 +216,14 @@ class FortuneService(
             val sanitized = AiResponseParser.sanitizeJson(response)
             val result = AiResponseParser.parseScoreAndContent(
                 sanitized,
-                scoreRange = 1..100,
-                defaultScore = 50,
+                scoreRange = 50..100,
+                defaultScore = 65,
                 maxContentLength = FORTUNE_MAX_LENGTH
             )
             FortuneAiResponse(result.content, result.score)
         } catch (e: Exception) {
             log.warn("AI 응답 JSON 파싱 실패, 텍스트로 폴백: {}", e.message)
-            FortuneAiResponse(response.trim().removeSurrounding("\"").take(FORTUNE_MAX_LENGTH), 50)
+            FortuneAiResponse(response.trim().removeSurrounding("\"").take(FORTUNE_MAX_LENGTH), 65)
         }
     }
 }

@@ -9,12 +9,14 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.Comment
+import org.hibernate.annotations.SQLRestriction
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
 @Entity
 @Table(name = "users")
+@SQLRestriction("deleted_at IS NULL")
 @Comment("사용자 정보")
 class User(
     @Id
@@ -76,5 +78,8 @@ class User(
 
     @Column(nullable = false, updatable = false)
     @Comment("가입일시")
-    val createdAt: LocalDateTime = LocalDateTime.now()
+    val createdAt: LocalDateTime = LocalDateTime.now(),
+
+    @Comment("탈퇴일시 (소프트 딜리트)")
+    var deletedAt: LocalDateTime? = null
 )

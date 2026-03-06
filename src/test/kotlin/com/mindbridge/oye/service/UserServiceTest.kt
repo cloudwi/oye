@@ -3,22 +3,15 @@ package com.mindbridge.oye.service
 import com.mindbridge.oye.domain.CalendarType
 import com.mindbridge.oye.domain.Gender
 import com.mindbridge.oye.domain.User
-import com.mindbridge.oye.repository.CompatibilityRepository
-import com.mindbridge.oye.repository.FortuneRepository
-import com.mindbridge.oye.repository.InquiryCommentRepository
-import com.mindbridge.oye.repository.InquiryRepository
-import com.mindbridge.oye.repository.LoginHistoryRepository
-import com.mindbridge.oye.repository.LottoRecommendationRepository
 import com.mindbridge.oye.repository.SocialAccountRepository
-import com.mindbridge.oye.repository.UserConnectionRepository
 import com.mindbridge.oye.repository.UserRepository
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.InOrder
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.inOrder
-import org.mockito.Mockito.`when`
+import org.mockito.Mockito.verify
 import org.mockito.junit.jupiter.MockitoExtension
 import java.time.LocalDate
 
@@ -29,60 +22,30 @@ class UserServiceTest {
     private lateinit var userRepository: UserRepository
 
     @Mock
-    private lateinit var fortuneRepository: FortuneRepository
-
-    @Mock
     private lateinit var socialAccountRepository: SocialAccountRepository
-
-    @Mock
-    private lateinit var inquiryRepository: InquiryRepository
-
-    @Mock
-    private lateinit var inquiryCommentRepository: InquiryCommentRepository
-
-    @Mock
-    private lateinit var userConnectionRepository: UserConnectionRepository
-
-    @Mock
-    private lateinit var compatibilityRepository: CompatibilityRepository
-
-    @Mock
-    private lateinit var lottoRecommendationRepository: LottoRecommendationRepository
-
-    @Mock
-    private lateinit var loginHistoryRepository: LoginHistoryRepository
 
     @InjectMocks
     private lateinit var userService: UserService
 
-    private val testUser = User(
+    private fun createTestUser() = User(
         id = 1L,
         name = "테스트유저",
         birthDate = LocalDate.of(1990, 1, 15),
         gender = Gender.MALE,
-        calendarType = CalendarType.SOLAR
+        calendarType = CalendarType.SOLAR,
+        expoPushToken = "ExponentPushToken[test]"
     )
 
     @Test
-    fun `deleteUser - deletes fortunes and social accounts before deleting user`() {
-        `when`(userConnectionRepository.findByUserOrPartner(testUser, testUser)).thenReturn(emptyList())
-        `when`(inquiryRepository.findAllByUser(testUser)).thenReturn(emptyList())
+    fun `deleteUser - soft deletes user and removes social accounts for re-registration`() {
+        val user = createTestUser()
 
-        userService.deleteUser(testUser)
+        userService.deleteUser(user)
 
-        val inOrder: InOrder = inOrder(
-            userConnectionRepository, compatibilityRepository, inquiryRepository,
-            inquiryCommentRepository, fortuneRepository, lottoRecommendationRepository,
-            loginHistoryRepository, socialAccountRepository, userRepository
-        )
-        inOrder.verify(userConnectionRepository).findByUserOrPartner(testUser, testUser)
-        inOrder.verify(userConnectionRepository).deleteAllByUserOrPartner(testUser, testUser)
-        inOrder.verify(inquiryRepository).findAllByUser(testUser)
-        inOrder.verify(inquiryRepository).deleteAllByUser(testUser)
-        inOrder.verify(fortuneRepository).deleteAllByUser(testUser)
-        inOrder.verify(lottoRecommendationRepository).deleteAllByUser(testUser)
-        inOrder.verify(loginHistoryRepository).deleteAllByUser(testUser)
-        inOrder.verify(socialAccountRepository).deleteAllByUser(testUser)
-        inOrder.verify(userRepository).delete(testUser)
+        assertNotNull(user.deletedAt)
+        assertNull(user.expoPushToken)
+        assertNull(user.connectCode)
+        verify(socialAccountRepository).deleteAllByUser(user)
+        verify(userRepository).save(user)
     }
 }

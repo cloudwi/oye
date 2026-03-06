@@ -21,10 +21,4 @@ interface GroupRepository : JpaRepository<Group, Long> {
     fun findAllWithOwner(pageable: Pageable): Page<Group>
 
     fun existsByInviteCode(inviteCode: String): Boolean
-
-    @Query(
-        value = "SELECT g FROM Group g JOIN FETCH g.owner WHERE g.scheduleHour = :hour",
-        countQuery = "SELECT COUNT(g) FROM Group g WHERE g.scheduleHour = :hour"
-    )
-    fun findByScheduleHourWithOwner(@org.springframework.data.repository.query.Param("hour") hour: Int, pageable: Pageable): Page<Group>
 }

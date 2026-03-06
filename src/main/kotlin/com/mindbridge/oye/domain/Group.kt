@@ -39,10 +39,6 @@ class Group(
     @Comment("그룹 초대 코드 (6자리 영숫자)")
     val inviteCode: String,
 
-    @Column(nullable = false)
-    @Comment("궁합 생성 시간 (0-23)")
-    var scheduleHour: Int = 6,
-
     @Column(nullable = false, updatable = false)
     @Comment("그룹 생성일시")
     val createdAt: LocalDateTime = LocalDateTime.now()

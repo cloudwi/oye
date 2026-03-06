@@ -4,7 +4,6 @@ import com.mindbridge.oye.config.AuthenticationResolver
 import com.mindbridge.oye.controller.api.PushTokenApi
 import com.mindbridge.oye.controller.api.UserApi
 import com.mindbridge.oye.dto.PushTokenRequest
-import com.mindbridge.oye.dto.ScheduleUpdateRequest
 import com.mindbridge.oye.dto.UserResponse
 import com.mindbridge.oye.dto.UserUpdateRequest
 import com.mindbridge.oye.service.PushNotificationService
@@ -60,12 +59,4 @@ class UserController(
         pushNotificationService.updatePushToken(user, request.token)
     }
 
-    @PutMapping("/schedule")
-    fun updateSchedule(
-        @AuthenticationPrincipal principal: Any?,
-        @Valid @RequestBody request: ScheduleUpdateRequest
-    ): UserResponse {
-        val user = authenticationResolver.getCurrentUser(principal)
-        return userService.updateSchedule(user, request.hour)
-    }
 }

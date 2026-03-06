@@ -76,6 +76,31 @@ class GroupCompatibilityService(
         }
     }
 
+    fun regenerateGroupCompatibility(group: Group, date: LocalDate = LocalDate.now()) {
+        val members = groupMemberRepository.findByGroupWithUsers(group).map { it.user }
+        if (members.size < 2) return
+
+        try {
+            val result = callAiWithRetry(members, group.relationType, date)
+            saveOrUpdateCompatibility(group, result.score, result.content, date)
+        } catch (e: Exception) {
+            log.warn("그룹 궁합 재생성 실패: groupId={}, error={}", group.id, e.message)
+        }
+    }
+
+    @Transactional
+    fun saveOrUpdateCompatibility(group: Group, score: Int, content: String, date: LocalDate) {
+        val existing = groupCompatibilityRepository.findByGroupAndDate(group, date)
+        if (existing != null) {
+            existing.score = score
+            existing.content = content
+        } else {
+            groupCompatibilityRepository.save(
+                GroupCompatibility(group = group, score = score, content = content, date = date)
+            )
+        }
+    }
+
     @Transactional
     fun generateCompatibility(group: Group, members: List<User>, date: LocalDate = LocalDate.now()): GroupCompatibility {
         val existing = groupCompatibilityRepository.findByGroupAndDate(group, date)

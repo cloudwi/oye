@@ -84,7 +84,6 @@ data class AdminUserDetailResponse(
     @Schema(description = "소셜 로그인 제공자") val provider: SocialProvider?,
     @Schema(description = "권한") val role: Role,
     @Schema(description = "마지막 로그인 시각") val lastLoginAt: LocalDateTime?,
-    @Schema(description = "예감 생성 시간 (0-23)") val fortuneScheduleHour: Int,
     @Schema(description = "가입일시") val createdAt: LocalDateTime
 )
 
@@ -136,10 +135,3 @@ data class AdminGroupResponse(
     @Schema(description = "방장 여부") val isOwner: Boolean
 )
 
-@Schema(description = "스케줄 시간 변경 요청")
-data class ScheduleUpdateRequest(
-    @Schema(description = "시간 (0-23)", example = "6", requiredMode = Schema.RequiredMode.REQUIRED)
-    @field:jakarta.validation.constraints.Min(0)
-    @field:jakarta.validation.constraints.Max(23)
-    val hour: Int
-)

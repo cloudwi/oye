@@ -33,11 +33,11 @@ class GroupCompatibility(
 
     @Column(nullable = false)
     @Comment("궁합 점수 (0-100)")
-    val score: Int,
+    var score: Int,
 
     @Column(length = 500, nullable = false)
     @Comment("AI가 생성한 궁합 본문")
-    val content: String,
+    var content: String,
 
     @Column(nullable = false)
     @Comment("궁합 대상 날짜")

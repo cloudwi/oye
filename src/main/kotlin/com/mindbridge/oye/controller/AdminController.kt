@@ -17,20 +17,25 @@ import com.mindbridge.oye.dto.LoginHistoryResponse
 import com.mindbridge.oye.dto.PageResponse
 import com.mindbridge.oye.dto.RoleUpdateRequest
 import com.mindbridge.oye.service.AdminService
+import com.mindbridge.oye.service.DailyFortuneScheduler
+import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/v1/admin")
 class AdminController(
     private val adminService: AdminService,
+    private val dailyFortuneScheduler: DailyFortuneScheduler,
     private val authenticationResolver: AuthenticationResolver
 ) : AdminApi {
 
@@ -150,5 +155,15 @@ class AdminController(
     ): List<AdminGroupResponse> {
         val user = authenticationResolver.getCurrentUser(principal)
         return adminService.getUserGroups(user, id)
+    }
+
+    @PostMapping("/generate-daily")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun triggerDailyGeneration(@AuthenticationPrincipal principal: Any?) {
+        val user = authenticationResolver.getCurrentUser(principal)
+        adminService.requireAdmin(user)
+        dailyFortuneScheduler.generateDailyFortunes()
+        dailyFortuneScheduler.generateDailyCompatibilities()
+        dailyFortuneScheduler.generateDailyGroupCompatibilities()
     }
 }

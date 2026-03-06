@@ -68,7 +68,7 @@ class DailyFortuneSchedulerTest {
     @Test
     fun `generateDailyFortunes - 유저가 없으면 아무것도 하지 않는다`() {
         val emptyPage = PageImpl<User>(emptyList(), PageRequest.of(0, 50), 0)
-        whenever(userRepository.findByFortuneScheduleHour(any<Int>(), any<Pageable>())).thenReturn(emptyPage)
+        whenever(userRepository.findAll(any<Pageable>())).thenReturn(emptyPage)
 
         scheduler.generateDailyFortunes()
 
@@ -79,7 +79,7 @@ class DailyFortuneSchedulerTest {
     fun `generateDailyFortunes - 모든 유저에 대해 예감을 생성한다`() {
         val users = (1L..3L).map { createUser(it) }
         val page = PageImpl(users, PageRequest.of(0, 50), 3)
-        whenever(userRepository.findByFortuneScheduleHour(any<Int>(), any<Pageable>())).thenReturn(page)
+        whenever(userRepository.findAll(any<Pageable>())).thenReturn(page)
 
         scheduler.generateDailyFortunes()
 
@@ -95,7 +95,7 @@ class DailyFortuneSchedulerTest {
         val user3 = createUser(3L)
         val users = listOf(user1, user2, user3)
         val page = PageImpl(users, PageRequest.of(0, 50), 3)
-        whenever(userRepository.findByFortuneScheduleHour(any<Int>(), any<Pageable>())).thenReturn(page)
+        whenever(userRepository.findAll(any<Pageable>())).thenReturn(page)
         doAnswer { invocation ->
             val user = invocation.getArgument<User>(0)
             if (user.id == 2L) throw RuntimeException("AI 오류")
@@ -116,8 +116,8 @@ class DailyFortuneSchedulerTest {
         val batch2Users = (51L..75L).map { createUser(it) }
         val page2 = PageImpl(batch2Users, PageRequest.of(1, 50), 75)
 
-        whenever(userRepository.findByFortuneScheduleHour(any<Int>(), eq(PageRequest.of(0, 50)))).thenReturn(page1)
-        whenever(userRepository.findByFortuneScheduleHour(any<Int>(), eq(PageRequest.of(1, 50)))).thenReturn(page2)
+        whenever(userRepository.findAll(eq(PageRequest.of(0, 50)))).thenReturn(page1)
+        whenever(userRepository.findAll(eq(PageRequest.of(1, 50)))).thenReturn(page2)
 
         scheduler.generateDailyFortunes()
 
@@ -128,7 +128,7 @@ class DailyFortuneSchedulerTest {
     fun `generateDailyFortunes - 모든 유저가 실패해도 예외 없이 완료된다`() {
         val users = (1L..3L).map { createUser(it) }
         val page = PageImpl(users, PageRequest.of(0, 50), 3)
-        whenever(userRepository.findByFortuneScheduleHour(any<Int>(), any<Pageable>())).thenReturn(page)
+        whenever(userRepository.findAll(any<Pageable>())).thenReturn(page)
         doThrow(RuntimeException("실패")).whenever(fortuneService).generateFortune(any(), any<LocalDate>())
 
         scheduler.generateDailyFortunes()
@@ -141,7 +141,7 @@ class DailyFortuneSchedulerTest {
     @Test
     fun `generateDailyCompatibilities - 연결이 없으면 아무것도 하지 않는다`() {
         val emptyPage = PageImpl<UserConnection>(emptyList(), PageRequest.of(0, 50), 0)
-        whenever(userConnectionRepository.findByUserOrPartnerScheduleHour(any<Int>(), any<Pageable>())).thenReturn(emptyPage)
+        whenever(userConnectionRepository.findAllWithUsers(any<Pageable>())).thenReturn(emptyPage)
 
         scheduler.generateDailyCompatibilities()
 
@@ -156,7 +156,7 @@ class DailyFortuneSchedulerTest {
         val conn1 = UserConnection(id = 1L, user = user1, partner = user2, relationType = RelationType.FRIEND)
         val conn2 = UserConnection(id = 2L, user = user1, partner = user3, relationType = RelationType.FAMILY)
         val page = PageImpl(listOf(conn1, conn2), PageRequest.of(0, 50), 2)
-        whenever(userConnectionRepository.findByUserOrPartnerScheduleHour(any<Int>(), any<Pageable>())).thenReturn(page)
+        whenever(userConnectionRepository.findAllWithUsers(any<Pageable>())).thenReturn(page)
 
         scheduler.generateDailyCompatibilities()
 
@@ -172,7 +172,7 @@ class DailyFortuneSchedulerTest {
         val conn1 = UserConnection(id = 1L, user = user1, partner = user2, relationType = RelationType.FRIEND)
         val conn2 = UserConnection(id = 2L, user = user1, partner = user3, relationType = RelationType.FAMILY)
         val page = PageImpl(listOf(conn1, conn2), PageRequest.of(0, 50), 2)
-        whenever(userConnectionRepository.findByUserOrPartnerScheduleHour(any<Int>(), any<Pageable>())).thenReturn(page)
+        whenever(userConnectionRepository.findAllWithUsers(any<Pageable>())).thenReturn(page)
         doThrow(RuntimeException("궁합 생성 오류")).whenever(compatibilityService).generateCompatibility(eq(conn1), any<LocalDate>())
 
         scheduler.generateDailyCompatibilities()
@@ -189,7 +189,7 @@ class DailyFortuneSchedulerTest {
             UserConnection(id = 1L, user = user1, partner = user2, relationType = RelationType.LOVER)
         )
         val page = PageImpl(connections, PageRequest.of(0, 50), 1)
-        whenever(userConnectionRepository.findByUserOrPartnerScheduleHour(any<Int>(), any<Pageable>())).thenReturn(page)
+        whenever(userConnectionRepository.findAllWithUsers(any<Pageable>())).thenReturn(page)
         doThrow(RuntimeException("실패")).whenever(compatibilityService).generateCompatibility(any(), any<LocalDate>())
 
         scheduler.generateDailyCompatibilities()

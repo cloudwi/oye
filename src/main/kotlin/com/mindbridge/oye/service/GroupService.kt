@@ -22,7 +22,9 @@ import com.mindbridge.oye.exception.NotGroupOwnerException
 import com.mindbridge.oye.repository.GroupCompatibilityRepository
 import com.mindbridge.oye.repository.GroupMemberRepository
 import com.mindbridge.oye.repository.GroupRepository
+import com.mindbridge.oye.event.GroupMemberJoinedEvent
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.security.SecureRandom
@@ -32,7 +34,8 @@ import java.time.LocalDate
 class GroupService(
     private val groupRepository: GroupRepository,
     private val groupMemberRepository: GroupMemberRepository,
-    private val groupCompatibilityRepository: GroupCompatibilityRepository
+    private val groupCompatibilityRepository: GroupCompatibilityRepository,
+    private val eventPublisher: ApplicationEventPublisher
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -83,6 +86,7 @@ class GroupService(
         groupMemberRepository.save(member)
 
         log.info("그룹 참여: groupId={}, userId={}", group.id, user.id)
+        eventPublisher.publishEvent(GroupMemberJoinedEvent(group))
 
         return GroupSummaryResponse.from(group, memberCount + 1, user)
     }
@@ -231,18 +235,6 @@ class GroupService(
             members = memberMap,
             compatibility = compatibility?.let { GroupCompatibilityResponse.from(it) }
         )
-    }
-
-    @Transactional
-    fun updateGroupSchedule(user: User, groupId: Long, hour: Int) {
-        val group = groupRepository.findByIdWithOwner(groupId)
-            .orElseThrow { GroupNotFoundException() }
-        if (group.owner.id != user.id) {
-            throw NotGroupOwnerException()
-        }
-        group.scheduleHour = hour
-        groupRepository.save(group)
-        log.info("그룹 스케줄 변경: groupId={}, hour={}", groupId, hour)
     }
 
     private fun generateUniqueCode(): String {

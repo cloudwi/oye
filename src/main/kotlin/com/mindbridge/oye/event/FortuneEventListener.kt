@@ -3,6 +3,7 @@ package com.mindbridge.oye.event
 import com.mindbridge.oye.service.CompatibilityService
 import com.mindbridge.oye.service.ConnectionService
 import com.mindbridge.oye.service.FortuneService
+import com.mindbridge.oye.service.GroupCompatibilityService
 import com.mindbridge.oye.service.LottoService
 import com.mindbridge.oye.repository.UserRepository
 import org.slf4j.LoggerFactory
@@ -20,6 +21,7 @@ import java.time.ZoneId
 class FortuneEventListener(
     private val fortuneService: FortuneService,
     private val compatibilityService: CompatibilityService,
+    private val groupCompatibilityService: GroupCompatibilityService,
     private val connectionService: ConnectionService,
     private val lottoService: LottoService,
     private val userRepository: UserRepository
@@ -74,6 +76,19 @@ class FortuneEventListener(
             log.info("신규 연결 궁합 생성 완료: connectionId={}, date={}", event.connection.id, effectiveDate)
         } catch (e: Exception) {
             log.warn("신규 연결 궁합 생성 실패: connectionId={}, error={}", event.connection.id, e.message)
+        }
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    fun handleGroupMemberJoined(event: GroupMemberJoinedEvent) {
+        val effectiveDate = getEffectiveFortuneDate()
+        try {
+            groupCompatibilityService.regenerateGroupCompatibility(event.group, effectiveDate)
+            log.info("그룹 멤버 참여 궁합 생성 완료: groupId={}, date={}", event.group.id, effectiveDate)
+        } catch (e: Exception) {
+            log.warn("그룹 멤버 참여 궁합 생성 실패: groupId={}, error={}", event.group.id, e.message)
         }
     }
 

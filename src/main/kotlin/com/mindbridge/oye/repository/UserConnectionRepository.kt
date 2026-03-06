@@ -28,9 +28,4 @@ interface UserConnectionRepository : JpaRepository<UserConnection, Long> {
     fun existsByUserAndPartnerOrPartnerAndUser(user1: User, partner1: User, user2: User, partner2: User): Boolean
     fun deleteAllByUserOrPartner(user: User, partner: User)
 
-    @Query(
-        value = "SELECT c FROM UserConnection c JOIN FETCH c.user JOIN FETCH c.partner WHERE c.user.fortuneScheduleHour = :hour OR c.partner.fortuneScheduleHour = :hour",
-        countQuery = "SELECT COUNT(c) FROM UserConnection c WHERE c.user.fortuneScheduleHour = :hour OR c.partner.fortuneScheduleHour = :hour"
-    )
-    fun findByUserOrPartnerScheduleHour(@org.springframework.data.repository.query.Param("hour") hour: Int, pageable: Pageable): Page<UserConnection>
 }

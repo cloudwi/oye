@@ -72,13 +72,6 @@ class UserService(
         log.info("사용자 삭제 완료: userId={}", user.id)
     }
 
-    @Transactional
-    fun updateSchedule(user: User, hour: Int): UserResponse {
-        user.fortuneScheduleHour = hour
-        val savedUser = userRepository.save(user)
-        return UserResponse.from(savedUser, getProvider(savedUser))
-    }
-
     private fun getProvider(user: User): SocialProvider? {
         return socialAccountRepository.findFirstByUser(user)?.provider
     }

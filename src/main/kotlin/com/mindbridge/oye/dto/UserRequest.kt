@@ -88,9 +88,6 @@ data class UserResponse(
     @Schema(description = "사용자 권한", example = "USER")
     val role: Role,
 
-    @Schema(description = "예감 생성 시간 (0-23)", example = "6")
-    val fortuneScheduleHour: Int,
-
     @Schema(description = "가입일시", example = "2025-01-01T00:00:00")
     val createdAt: LocalDateTime
 ) {
@@ -109,7 +106,6 @@ data class UserResponse(
                 bloodType = user.bloodType,
                 interests = user.interests,
                 role = user.role,
-                fortuneScheduleHour = user.fortuneScheduleHour,
                 createdAt = user.createdAt
             )
         }

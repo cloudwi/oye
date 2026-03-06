@@ -9,8 +9,6 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import java.time.LocalTime
-import java.time.ZoneId
 
 @Component
 class DailyFortuneScheduler(
@@ -30,10 +28,9 @@ class DailyFortuneScheduler(
         private const val BATCH_DELAY_MS = 500L
     }
 
-    @Scheduled(cron = "0 0 * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0 6 * * *", zone = "Asia/Seoul")
     fun generateDailyFortunes() {
-        val currentHour = LocalTime.now(ZoneId.of("Asia/Seoul")).hour
-        log.info("일일 예감 스케줄러 시작: hour={}", currentHour)
+        log.info("일일 예감 스케줄러 시작")
 
         var page = 0
         var successCount = 0
@@ -41,7 +38,7 @@ class DailyFortuneScheduler(
         var totalCount = 0
 
         do {
-            val userPage = userRepository.findByFortuneScheduleHour(currentHour, PageRequest.of(page, BATCH_SIZE))
+            val userPage = userRepository.findAll(PageRequest.of(page, BATCH_SIZE))
             totalCount = userPage.totalElements.toInt()
 
             for (user in userPage.content) {
@@ -64,14 +61,13 @@ class DailyFortuneScheduler(
 
         if (totalCount > 0) {
             val failRate = "%.1f".format(failCount * 100.0 / totalCount)
-            log.info("일일 예감 스케줄러 완료: hour={}, 성공={}, 실패={}, 전체={}, 실패율={}%", currentHour, successCount, failCount, totalCount, failRate)
+            log.info("일일 예감 스케줄러 완료: 성공={}, 실패={}, 전체={}, 실패율={}%", successCount, failCount, totalCount, failRate)
         }
     }
 
-    @Scheduled(cron = "0 10 * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0 6 * * *", zone = "Asia/Seoul")
     fun generateDailyCompatibilities() {
-        val currentHour = LocalTime.now(ZoneId.of("Asia/Seoul")).hour
-        log.info("일일 궁합 스케줄러 시작: hour={}", currentHour)
+        log.info("일일 궁합 스케줄러 시작")
 
         var page = 0
         var successCount = 0
@@ -80,7 +76,7 @@ class DailyFortuneScheduler(
         var totalCount = 0
 
         do {
-            val connectionPage = userConnectionRepository.findByUserOrPartnerScheduleHour(currentHour, PageRequest.of(page, BATCH_SIZE))
+            val connectionPage = userConnectionRepository.findAllWithUsers(PageRequest.of(page, BATCH_SIZE))
             totalCount = connectionPage.totalElements.toInt()
 
             for (connection in connectionPage.content) {
@@ -109,14 +105,13 @@ class DailyFortuneScheduler(
 
         if (totalCount > 0) {
             val failRate = "%.1f".format(failCount * 100.0 / totalCount)
-            log.info("일일 궁합 스케줄러 완료: hour={}, 성공={}, 스킵={}, 실패={}, 전체={}, 실패율={}%", currentHour, successCount, skipCount, failCount, totalCount, failRate)
+            log.info("일일 궁합 스케줄러 완료: 성공={}, 스킵={}, 실패={}, 전체={}, 실패율={}%", successCount, skipCount, failCount, totalCount, failRate)
         }
     }
 
-    @Scheduled(cron = "0 20 * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0 6 * * *", zone = "Asia/Seoul")
     fun generateDailyGroupCompatibilities() {
-        val currentHour = LocalTime.now(ZoneId.of("Asia/Seoul")).hour
-        log.info("일일 그룹 궁합 스케줄러 시작: hour={}", currentHour)
+        log.info("일일 그룹 궁합 스케줄러 시작")
 
         var page = 0
         var successCount = 0
@@ -124,7 +119,7 @@ class DailyFortuneScheduler(
         var totalCount = 0
 
         do {
-            val groupPage = groupRepository.findByScheduleHourWithOwner(currentHour, PageRequest.of(page, BATCH_SIZE))
+            val groupPage = groupRepository.findAllWithOwner(PageRequest.of(page, BATCH_SIZE))
             totalCount = groupPage.totalElements.toInt()
 
             for (group in groupPage.content) {
@@ -152,7 +147,7 @@ class DailyFortuneScheduler(
 
         if (totalCount > 0) {
             val failRate = "%.1f".format(failCount * 100.0 / totalCount)
-            log.info("일일 그룹 궁합 스케줄러 완료: hour={}, 성공={}, 실패={}, 전체={}, 실패율={}%", currentHour, successCount, failCount, totalCount, failRate)
+            log.info("일일 그룹 궁합 스케줄러 완료: 성공={}, 실패={}, 전체={}, 실패율={}%", successCount, failCount, totalCount, failRate)
         }
     }
 }

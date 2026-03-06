@@ -111,7 +111,6 @@ class AdminService(
             provider = provider,
             role = target.role,
             lastLoginAt = target.lastLoginAt,
-            fortuneScheduleHour = target.fortuneScheduleHour,
             createdAt = target.createdAt
         )
     }
@@ -227,7 +226,7 @@ class AdminService(
         }
     }
 
-    private fun requireAdmin(user: User) {
+    fun requireAdmin(user: User) {
         if (user.role != Role.ADMIN) {
             throw ForbiddenException("관리자 권한이 필요합니다.")
         }

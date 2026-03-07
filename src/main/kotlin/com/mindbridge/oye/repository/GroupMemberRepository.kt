@@ -13,6 +13,7 @@ interface GroupMemberRepository : JpaRepository<GroupMember, Long> {
     @Query("SELECT gm FROM GroupMember gm JOIN FETCH gm.user WHERE gm.group = :group")
     fun findByGroupWithUsers(group: Group): List<GroupMember>
 
+    @Query("SELECT COUNT(gm) FROM GroupMember gm JOIN gm.user WHERE gm.group = :group")
     fun countByGroup(group: Group): Long
 
     fun existsByGroupAndUser(group: Group, user: User): Boolean

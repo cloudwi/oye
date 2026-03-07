@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.client.RestClient
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @Service
 class LottoDrawService(
@@ -18,6 +19,7 @@ class LottoDrawService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val restClient = RestClient.create()
+    private val drawDateFormat = DateTimeFormatter.ofPattern("yyyyMMdd")
 
     @Transactional
     fun fetchDrawResult(round: Int): LottoRound {
@@ -29,36 +31,43 @@ class LottoDrawService(
         log.info("동행복권 API에서 회차 {} 당첨 결과를 조회합니다.", round)
 
         val response = restClient.get()
-            .uri("https://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo={round}", round)
+            .uri("https://www.dhlottery.co.kr/lt645/selectPstLt645InfoNew.do?srchDir=center&srchLtEpsd={round}", round)
+            .header("AJAX", "true")
+            .header("Referer", "https://www.dhlottery.co.kr/lt645/result")
             .retrieve()
             .body(Map::class.java)
             ?: throw ExternalApiException("동행복권 API 응답이 비어있습니다. round=$round")
 
-        val returnValue = response["returnValue"] as? String
-        if (returnValue != "success") {
-            throw ExternalApiException("동행복권 API 오류: returnValue=$returnValue, round=$round")
-        }
+        val data = response["data"] as? Map<*, *>
+            ?: throw ExternalApiException("동행복권 API 응답에 data가 없습니다. round=$round")
+
+        val list = data["list"] as? List<*>
+            ?: throw ExternalApiException("동행복권 API 응답에 list가 없습니다. round=$round")
+
+        val roundData = list.filterIsInstance<Map<*, *>>()
+            .find { (it["ltEpsd"] as? Number)?.toInt() == round }
+            ?: throw ExternalApiException("동행복권 API 응답에서 회차 $round 데이터를 찾을 수 없습니다.")
 
         fun parseIntField(key: String): Int {
-            return (response[key] as? Number)?.toInt()
+            return (roundData[key] as? Number)?.toInt()
                 ?: throw ExternalApiException("동행복권 API 응답에서 $key 필드를 파싱할 수 없습니다. round=$round")
         }
 
-        val drawDateStr = response["drwNoDate"] as? String
-            ?: throw ExternalApiException("동행복권 API 응답에서 drwNoDate 필드를 파싱할 수 없습니다. round=$round")
+        val drawDateStr = roundData["ltRflYmd"] as? String
+            ?: throw ExternalApiException("동행복권 API 응답에서 ltRflYmd 필드를 파싱할 수 없습니다. round=$round")
 
-        val firstPrizeAmount = (response["firstWinamnt"] as? Number)?.toLong()
+        val firstPrizeAmount = (roundData["rnk1WnAmt"] as? Number)?.toLong()
 
         val lottoRound = LottoRound(
             round = round,
-            number1 = parseIntField("drwtNo1"),
-            number2 = parseIntField("drwtNo2"),
-            number3 = parseIntField("drwtNo3"),
-            number4 = parseIntField("drwtNo4"),
-            number5 = parseIntField("drwtNo5"),
-            number6 = parseIntField("drwtNo6"),
-            bonusNumber = parseIntField("bnusNo"),
-            drawDate = LocalDate.parse(drawDateStr),
+            number1 = parseIntField("tm1WnNo"),
+            number2 = parseIntField("tm2WnNo"),
+            number3 = parseIntField("tm3WnNo"),
+            number4 = parseIntField("tm4WnNo"),
+            number5 = parseIntField("tm5WnNo"),
+            number6 = parseIntField("tm6WnNo"),
+            bonusNumber = parseIntField("bnsWnNo"),
+            drawDate = LocalDate.parse(drawDateStr, drawDateFormat),
             firstPrizeAmount = firstPrizeAmount
         )
 

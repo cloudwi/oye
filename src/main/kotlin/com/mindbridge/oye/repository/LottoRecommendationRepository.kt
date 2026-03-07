@@ -24,4 +24,7 @@ interface LottoRecommendationRepository : JpaRepository<LottoRecommendation, Lon
 
     @Query("SELECT COUNT(r) FROM LottoRecommendation r WHERE r.user = :user AND r.rank IS NOT NULL")
     fun countWinsByUser(user: User): Long
+
+    @Query("SELECT DISTINCT r.round FROM LottoRecommendation r WHERE r.evaluated = false")
+    fun findDistinctUnevaluatedRounds(): List<Int>
 }

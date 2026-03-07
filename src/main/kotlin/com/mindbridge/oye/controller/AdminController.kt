@@ -18,6 +18,8 @@ import com.mindbridge.oye.dto.PageResponse
 import com.mindbridge.oye.dto.RoleUpdateRequest
 import com.mindbridge.oye.service.AdminService
 import com.mindbridge.oye.service.DailyFortuneScheduler
+import com.mindbridge.oye.service.LottoDrawService
+import com.mindbridge.oye.repository.LottoRecommendationRepository
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
@@ -36,6 +38,8 @@ import org.springframework.web.bind.annotation.RestController
 class AdminController(
     private val adminService: AdminService,
     private val dailyFortuneScheduler: DailyFortuneScheduler,
+    private val lottoDrawService: LottoDrawService,
+    private val lottoRecommendationRepository: LottoRecommendationRepository,
     private val authenticationResolver: AuthenticationResolver
 ) : AdminApi {
 
@@ -165,5 +169,21 @@ class AdminController(
         dailyFortuneScheduler.generateDailyFortunes()
         dailyFortuneScheduler.generateDailyCompatibilities()
         dailyFortuneScheduler.generateDailyGroupCompatibilities()
+    }
+
+    @PostMapping("/evaluate-lotto")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun triggerLottoEvaluation(@AuthenticationPrincipal principal: Any?) {
+        val user = authenticationResolver.getCurrentUser(principal)
+        adminService.requireAdmin(user)
+        val unevaluatedRounds = lottoRecommendationRepository.findDistinctUnevaluatedRounds()
+        for (round in unevaluatedRounds) {
+            try {
+                val lottoRound = lottoDrawService.fetchDrawResult(round)
+                lottoDrawService.evaluateRecommendations(lottoRound)
+            } catch (e: Exception) {
+                // 아직 추첨 결과가 없는 회차는 건너뜀
+            }
+        }
     }
 }

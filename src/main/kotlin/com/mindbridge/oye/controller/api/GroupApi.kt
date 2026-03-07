@@ -4,6 +4,7 @@ import com.mindbridge.oye.dto.ApiResponse
 import com.mindbridge.oye.dto.CreateGroupRequest
 import com.mindbridge.oye.dto.GroupDetailResponse
 import com.mindbridge.oye.dto.GroupSummaryResponse
+import com.mindbridge.oye.dto.GroupCompatibilityHistoryResponse
 import com.mindbridge.oye.dto.GroupTodayCompatibilityResponse
 import com.mindbridge.oye.dto.JoinGroupRequest
 import com.mindbridge.oye.dto.UpdateGroupRequest
@@ -254,4 +255,31 @@ interface GroupApi {
         )
     )
     fun getGroupTodayCompatibility(principal: Any?, id: Long): ApiResponse<GroupTodayCompatibilityResponse>
+
+    @Operation(
+        summary = "그룹 궁합 히스토리 조회",
+        description = "그룹의 최근 궁합 히스토리를 조회합니다. 기본 10일치."
+    )
+    @ApiResponses(
+        io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "히스토리 조회 성공"
+        ),
+        io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "401",
+            description = "인증 실패",
+            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
+        ),
+        io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "403",
+            description = "그룹 멤버가 아님",
+            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
+        ),
+        io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "404",
+            description = "그룹을 찾을 수 없음",
+            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
+        )
+    )
+    fun getGroupCompatibilityHistory(principal: Any?, id: Long, days: Int): ApiResponse<GroupCompatibilityHistoryResponse>
 }

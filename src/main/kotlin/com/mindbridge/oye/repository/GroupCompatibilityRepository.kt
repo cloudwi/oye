@@ -8,5 +8,7 @@ import java.time.LocalDate
 interface GroupCompatibilityRepository : JpaRepository<GroupCompatibility, Long> {
     fun findByGroupAndDate(group: Group, date: LocalDate): GroupCompatibility?
 
+    fun findByGroupAndDateGreaterThanEqualOrderByDateDesc(group: Group, since: LocalDate): List<GroupCompatibility>
+
     fun deleteAllByGroup(group: Group)
 }

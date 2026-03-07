@@ -5,6 +5,7 @@ import com.mindbridge.oye.domain.GroupMember
 import com.mindbridge.oye.domain.RelationType
 import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.dto.CreateGroupRequest
+import com.mindbridge.oye.dto.GroupCompatibilityHistoryResponse
 import com.mindbridge.oye.dto.GroupCompatibilityResponse
 import com.mindbridge.oye.dto.GroupDetailResponse
 import com.mindbridge.oye.dto.GroupMemberResponse
@@ -234,6 +235,25 @@ class GroupService(
             date = today,
             members = memberMap,
             compatibility = compatibility?.let { GroupCompatibilityResponse.from(it) }
+        )
+    }
+
+    @Transactional(readOnly = true)
+    fun getGroupCompatibilityHistory(user: User, groupId: Long, days: Int): GroupCompatibilityHistoryResponse {
+        val group = groupRepository.findById(groupId)
+            .orElseThrow { GroupNotFoundException() }
+
+        if (!groupMemberRepository.existsByGroupAndUser(group, user)) {
+            throw NotGroupMemberException()
+        }
+
+        val since = LocalDate.now().minusDays(days.toLong() - 1)
+        val history = groupCompatibilityRepository
+            .findByGroupAndDateGreaterThanEqualOrderByDateDesc(group, since)
+
+        return GroupCompatibilityHistoryResponse(
+            groupId = group.id!!,
+            history = history.map { GroupCompatibilityResponse.from(it) }
         )
     }
 

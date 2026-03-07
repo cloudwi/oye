@@ -6,6 +6,7 @@ import com.mindbridge.oye.dto.ApiResponse
 import com.mindbridge.oye.dto.CreateGroupRequest
 import com.mindbridge.oye.dto.GroupDetailResponse
 import com.mindbridge.oye.dto.GroupSummaryResponse
+import com.mindbridge.oye.dto.GroupCompatibilityHistoryResponse
 import com.mindbridge.oye.dto.GroupTodayCompatibilityResponse
 import com.mindbridge.oye.dto.JoinGroupRequest
 import com.mindbridge.oye.dto.UpdateGroupRequest
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -107,6 +109,16 @@ class GroupController(
     ): ApiResponse<GroupTodayCompatibilityResponse> {
         val user = authenticationResolver.getCurrentUser(principal)
         return ApiResponse.success(groupService.getGroupTodayCompatibility(user, id))
+    }
+
+    @GetMapping("/{id}/compatibility/history")
+    override fun getGroupCompatibilityHistory(
+        @AuthenticationPrincipal principal: Any?,
+        @PathVariable id: Long,
+        @RequestParam(defaultValue = "10") days: Int
+    ): ApiResponse<GroupCompatibilityHistoryResponse> {
+        val user = authenticationResolver.getCurrentUser(principal)
+        return ApiResponse.success(groupService.getGroupCompatibilityHistory(user, id, days))
     }
 
 }

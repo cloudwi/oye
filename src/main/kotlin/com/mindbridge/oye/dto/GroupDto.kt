@@ -140,6 +140,15 @@ data class GroupCompatibilityResponse(
     }
 }
 
+@Schema(description = "그룹 궁합 히스토리 응답")
+data class GroupCompatibilityHistoryResponse(
+    @Schema(description = "그룹 ID", example = "1")
+    val groupId: Long,
+
+    @Schema(description = "궁합 히스토리 목록 (최근 날짜순)")
+    val history: List<GroupCompatibilityResponse>
+)
+
 @Schema(description = "그룹 오늘의 궁합 응답")
 data class GroupTodayCompatibilityResponse(
     @Schema(description = "그룹 ID", example = "1")

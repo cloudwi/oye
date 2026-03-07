@@ -4,6 +4,7 @@ import com.mindbridge.oye.domain.SocialProvider
 import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.dto.UserResponse
 import com.mindbridge.oye.dto.UserUpdateRequest
+import com.mindbridge.oye.repository.GroupMemberRepository
 import com.mindbridge.oye.repository.SocialAccountRepository
 import com.mindbridge.oye.repository.UserRepository
 import org.slf4j.LoggerFactory
@@ -14,7 +15,9 @@ import java.time.LocalDateTime
 @Service
 class UserService(
     private val userRepository: UserRepository,
-    private val socialAccountRepository: SocialAccountRepository
+    private val socialAccountRepository: SocialAccountRepository,
+    private val groupMemberRepository: GroupMemberRepository,
+    private val groupService: GroupService
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -41,6 +44,12 @@ class UserService(
     @Transactional
     fun deleteUser(user: User) {
         log.info("사용자 소프트 딜리트: userId={}", user.id)
+
+        val memberships = groupMemberRepository.findAllByUser(user)
+        for (membership in memberships) {
+            groupService.leaveGroup(user, membership.group.id!!)
+        }
+
         user.deletedAt = LocalDateTime.now()
         user.expoPushToken = null
         user.connectCode = null

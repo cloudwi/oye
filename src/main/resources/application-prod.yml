@@ -7,7 +7,6 @@ server:
 sentry:
   environment: production
   traces-sample-rate: 0.1
-  enable-tracing: true
 
 management:
   endpoint:

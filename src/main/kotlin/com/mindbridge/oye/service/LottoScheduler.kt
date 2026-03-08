@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.temporal.TemporalAdjusters
 
 @Component
@@ -24,11 +25,13 @@ class LottoScheduler(
     companion object {
         private const val BATCH_SIZE = 50
         private const val BATCH_DELAY_MS = 500L
+        private val KST = ZoneId.of("Asia/Seoul")
     }
 
-    @Scheduled(cron = "0 0 6 * * SUN")
+    @Scheduled(cron = "0 0 6 * * SUN", zone = "Asia/Seoul")
     fun generateWeeklyRecommendations() {
-        val round = lottoService.getCurrentRound()
+        val today = LocalDate.now(KST)
+        val round = lottoService.getRoundForDate(today)
         log.info("로또 추천 스케줄러 시작: 회차 {}", round)
 
         var page = 0
@@ -65,7 +68,7 @@ class LottoScheduler(
         pushNotificationService.sendToAll("이번 주 로또 추천 번호가 도착했어요!", "AI가 분석한 행운의 번호를 확인해보세요.")
     }
 
-    @Scheduled(cron = "0 0 22 * * SAT")
+    @Scheduled(cron = "0 0 22 * * SAT", zone = "Asia/Seoul")
     fun fetchAndEvaluateLatestDraw() {
         val round = getLastSaturdayRound()
         log.info("로또 결과 스케줄러 시작: 회차 {}", round)
@@ -110,7 +113,7 @@ class LottoScheduler(
     }
 
     private fun getLastSaturdayRound(): Int {
-        val lastSaturday = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.SATURDAY))
+        val lastSaturday = LocalDate.now(KST).with(TemporalAdjusters.previousOrSame(DayOfWeek.SATURDAY))
         return lottoService.getRoundForDate(lastSaturday)
     }
 }

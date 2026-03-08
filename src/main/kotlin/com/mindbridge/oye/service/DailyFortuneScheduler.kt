@@ -9,6 +9,8 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import java.time.LocalDate
+import java.time.ZoneId
 
 @Component
 class DailyFortuneScheduler(
@@ -26,11 +28,13 @@ class DailyFortuneScheduler(
     companion object {
         private const val BATCH_SIZE = 50
         private const val BATCH_DELAY_MS = 500L
+        private val KST = ZoneId.of("Asia/Seoul")
     }
 
     @Scheduled(cron = "0 0 6 * * *", zone = "Asia/Seoul")
     fun generateDailyFortunes() {
-        log.info("일일 예감 스케줄러 시작")
+        val today = LocalDate.now(KST)
+        log.info("일일 예감 스케줄러 시작: date={}", today)
 
         var page = 0
         var successCount = 0
@@ -43,7 +47,7 @@ class DailyFortuneScheduler(
 
             for (user in userPage.content) {
                 try {
-                    fortuneService.generateFortune(user)
+                    fortuneService.generateFortune(user, today)
                     successCount++
                     pushNotificationService.sendToUser(user, "오늘의 예감이 도착했어요!", "지금 확인해보세요.")
                 } catch (e: Exception) {
@@ -67,7 +71,8 @@ class DailyFortuneScheduler(
 
     @Scheduled(cron = "0 0 6 * * *", zone = "Asia/Seoul")
     fun generateDailyCompatibilities() {
-        log.info("일일 궁합 스케줄러 시작")
+        val today = LocalDate.now(KST)
+        log.info("일일 궁합 스케줄러 시작: date={}", today)
 
         var page = 0
         var successCount = 0
@@ -81,7 +86,7 @@ class DailyFortuneScheduler(
 
             for (connection in connectionPage.content) {
                 try {
-                    compatibilityService.generateCompatibility(connection)
+                    compatibilityService.generateCompatibility(connection, today)
                     successCount++
                     pushNotificationService.sendToUsers(
                         listOf(connection.user, connection.partner),
@@ -111,7 +116,8 @@ class DailyFortuneScheduler(
 
     @Scheduled(cron = "0 0 6 * * *", zone = "Asia/Seoul")
     fun generateDailyGroupCompatibilities() {
-        log.info("일일 그룹 궁합 스케줄러 시작")
+        val today = LocalDate.now(KST)
+        log.info("일일 그룹 궁합 스케줄러 시작: date={}", today)
 
         var page = 0
         var successCount = 0
@@ -124,7 +130,7 @@ class DailyFortuneScheduler(
 
             for (group in groupPage.content) {
                 try {
-                    groupCompatibilityService.generateGroupCompatibility(group)
+                    groupCompatibilityService.generateGroupCompatibility(group, today)
                     successCount++
                     val members = groupMemberRepository.findByGroupWithUsers(group)
                     pushNotificationService.sendToUsers(

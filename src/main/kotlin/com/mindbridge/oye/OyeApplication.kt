@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.scheduling.annotation.EnableScheduling
+import java.util.TimeZone
 
 @SpringBootApplication
 @EnableScheduling
@@ -14,5 +15,6 @@ import org.springframework.scheduling.annotation.EnableScheduling
 class OyeApplication
 
 fun main(args: Array<String>) {
+    TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"))
     runApplication<OyeApplication>(*args)
 }

@@ -52,7 +52,8 @@ class CompatibilityService(
             - 이모지 없이 텍스트만
             - 추상적 표현 금지 (빛난다, 설렘, 특별한 기운 등)
             - 검증 가능한 구체적 사건 금지 (선물 받음, 전화 옴 등)
-            - 두 사람의 프로필(MBTI, 혈액형, 관심사 등)을 자연스럽게 반영
+            - 프로필 정보는 내용에 자연스럽게 녹여내되, MBTI 유형명(ISFJ, INFP 등)이나 혈액형을 직접 언급하지 마세요
+            - "오늘은 함께 ~하며" 같은 동일한 문장 시작 패턴을 반복하지 마세요. 다양한 문장 구조를 사용하세요.
 
             관계별 테마 (반드시 관계 유형에 맞는 테마로 작성):
             - 연인: 두 사람만의 감정 교류, 소소한 배려, 함께하는 일상 속 다정한 순간에 초점을 맞추세요.
@@ -62,7 +63,9 @@ class CompatibilityService(
 
             점수 규칙:
             - 50~100 사이 정수
-            - 50~65: 무난한 하루, 65~80: 좋은 기운, 80~100: 아주 좋은 날
+            - 50~59: 조금 조심해야 하는 하루, 60~69: 무난한 하루, 70~79: 좋은 기운, 80~89: 꽤 좋은 날, 90~100: 아주 특별한 날
+            - 점수는 매일 최소 5점 이상 차이가 나야 합니다. 연속으로 같은 점수대를 반복하지 마세요.
+            - 50~60점대 (가끔 안 좋은 날도 있어야 자연스럽습니다)와 80~90점대를 골고루 섞어주세요.
 
             관계별 운세 규칙 (relationFortune):
             - 1문장, 40~80자, 해요체
@@ -78,7 +81,9 @@ class CompatibilityService(
 
             좋은 예시 (연인):
             {"score": 78, "content": "오늘은 같이 밥 먹으면 대화가 유독 잘 통하는 날이에요. 평소 안 꺼내던 이야기도 자연스럽게 나올 수 있어서 서로를 더 알아가는 시간이 돼요.", "relationFortune": "서로의 작은 표정 변화도 놓치지 않는 다정한 하루가 돼요."}
-            {"score": 55, "content": "오늘은 서로 컨디션이 엇갈리기 쉬운 날이에요. 상대방의 반응이 평소와 다르더라도 너무 신경 쓰지 않는 게 서로에게 좋아요.", "relationFortune": "감정 표현을 조금 아끼면 오히려 편안한 분위기가 유지돼요."}
+            {"score": 55, "content": "서로 컨디션이 엇갈리기 쉬운 날이에요. 상대방의 반응이 평소와 다르더라도 너무 신경 쓰지 않는 게 서로에게 좋아요.", "relationFortune": "감정 표현을 조금 아끼면 오히려 편안한 분위기가 유지돼요."}
+            {"score": 91, "content": "말하지 않아도 서로 원하는 게 뭔지 딱 느껴지는 하루예요. 눈빛만 봐도 통하는 느낌이 들어서 함께 있는 시간이 유난히 포근해요.", "relationFortune": "가벼운 스킨십 하나에도 마음이 크게 움직이는 날이에요."}
+            {"score": 52, "content": "각자 생각이 많아지는 하루라 대화 타이밍이 잘 안 맞을 수 있어요. 억지로 맞추려 하기보단 각자만의 시간을 가지는 것도 괜찮아요.", "relationFortune": "혼자만의 시간이 오히려 서로를 더 그리워하게 만드는 날이에요."}
 
             좋은 예시 (친구):
             {"score": 82, "content": "서로 눈치 안 보고 편하게 있을 수 있는 날이에요. 굳이 대화가 없어도 함께 있는 것만으로 충분히 편안한 시간이 돼요.", "relationFortune": "오랜 친구처럼 편하게 속마음을 꺼낼 수 있는 시간이에요."}
@@ -100,13 +105,21 @@ class CompatibilityService(
             "저녁에 깜짝 선물을 받게 돼요."
             "오후 3시에 연락이 와요."
 
+            나쁜 예시 - MBTI/혈액형 직접 언급:
+            "ISFJ의 차분함과 INFP의 감성이 잘 맞아요."
+            "A형의 꼼꼼함이 빛을 발하는 날이에요."
+
+            나쁜 예시 - 반복적인 문장 패턴:
+            "오늘은 함께 산책하며..." / "오늘은 함께 요리하며..." / "오늘은 함께 영화를 보며..."
+
             요일 규칙:
             - 주말(토요일, 일요일)에는 직장, 업무, 회의, 프로젝트 등 직업 관련 내용을 피하세요.
             - 주말에는 휴식, 여가, 취미, 사람과의 관계 등 일상적인 내용으로 작성하세요.
 
-            중요: 매일 다양한 결과를 만들어야 합니다.
-            - 최근 결과가 제공되면, 같은 키워드나 비슷한 문장 구조를 피하세요.
-            - 점수도 날마다 자연스럽게 달라져야 합니다.
+            중요 - 다양성 규칙 (반드시 지키세요):
+            - 최근 결과가 제공되면, 같은 키워드·소재·문장 구조를 절대 반복하지 마세요.
+            - 최근 점수들이 제공되면, 그 점수들과 최소 5점 이상 차이 나는 점수를 사용하세요.
+            - 최근에 좋은 점수가 계속됐다면 낮은 점수(50~60)를, 낮은 점수가 계속됐다면 높은 점수(80~95)를 내세요.
         """.trimIndent()
     }
 
@@ -265,20 +278,20 @@ class CompatibilityService(
         val dayOfWeek = DateUtils.getDayOfWeekKorean(date)
         parts.add("오늘: $date ($dayOfWeek)")
 
-        val recentResults = getRecentCompatibilityContents(connection, 5)
+        val recentResults = getRecentCompatibilities(connection, 5)
         if (recentResults.isNotEmpty()) {
             parts.add("")
-            parts.add("=== 최근 결과 (이와 다른 내용으로 작성) ===")
-            recentResults.forEach { parts.add("- $it") }
+            parts.add("=== 최근 결과 (아래와 다른 점수·소재·문장 구조로 작성하세요) ===")
+            recentResults.forEach { (score, content) -> parts.add("- [${score}점] $content") }
         }
 
         return parts.joinToString("\n")
     }
 
-    private fun getRecentCompatibilityContents(connection: UserConnection, count: Int): List<String> {
+    private fun getRecentCompatibilities(connection: UserConnection, count: Int): List<Pair<Int, String>> {
         return try {
             compatibilityRepository.findByConnectionOrderByDateDesc(connection, PageRequest.of(0, count))
-                .content.map { it.content }
+                .content.map { it.score to it.content }
         } catch (e: Exception) {
             log.warn("최근 궁합 조회 실패: {}", e.message)
             emptyList()

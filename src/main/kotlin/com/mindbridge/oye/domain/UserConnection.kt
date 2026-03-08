@@ -37,7 +37,7 @@ class UserConnection(
     @Enumerated(EnumType.STRING)
     @Column(length = 20, nullable = false)
     @Comment("관계 유형 (LOVER, FRIEND, FAMILY, COLLEAGUE)")
-    val relationType: RelationType,
+    var relationType: RelationType,
 
     @Column(nullable = false, updatable = false)
     @Comment("연결 생성일시")

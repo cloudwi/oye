@@ -105,4 +105,16 @@ interface ConnectionApi {
         )
     )
     fun deleteConnection(principal: Any?, id: Long)
+
+    @Operation(
+        summary = "연인 설정",
+        description = "특정 연결을 연인으로 설정합니다. 기존 연인이 있으면 자동으로 친구로 변경됩니다."
+    )
+    fun setLover(principal: Any?, id: Long): ConnectionResponse
+
+    @Operation(
+        summary = "연인 해제",
+        description = "연인 연결을 친구로 변경합니다."
+    )
+    fun unsetLover(principal: Any?, id: Long): ConnectionResponse
 }

@@ -9,6 +9,7 @@ import com.mindbridge.oye.service.ConnectionService
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -50,5 +51,23 @@ class ConnectionController(
     ) {
         val user = authenticationResolver.getCurrentUser(principal)
         connectionService.deleteConnection(user, id)
+    }
+
+    @PatchMapping("/{id}/lover")
+    override fun setLover(
+        @AuthenticationPrincipal principal: Any?,
+        @PathVariable id: Long
+    ): ConnectionResponse {
+        val user = authenticationResolver.getCurrentUser(principal)
+        return connectionService.setLover(user, id)
+    }
+
+    @DeleteMapping("/{id}/lover")
+    override fun unsetLover(
+        @AuthenticationPrincipal principal: Any?,
+        @PathVariable id: Long
+    ): ConnectionResponse {
+        val user = authenticationResolver.getCurrentUser(principal)
+        return connectionService.unsetLover(user, id)
     }
 }

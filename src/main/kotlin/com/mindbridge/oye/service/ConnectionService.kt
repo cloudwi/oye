@@ -64,12 +64,6 @@ class ConnectionService(
             throw DuplicateConnectionException()
         }
 
-        if (request.relationType == RelationType.LOVER) {
-            if (userConnectionRepository.existsLoverConnection(user) || userConnectionRepository.existsLoverConnection(partner)) {
-                throw LoverLimitExceededException()
-            }
-        }
-
         val connection = UserConnection(
             user = user,
             partner = partner,
@@ -94,6 +88,45 @@ class ConnectionService(
             val compatibility = compatibilityByConnectionId[connection.id]
             ConnectionResponse.from(connection, user, compatibility?.score, compatibility?.content)
         }
+    }
+
+    @Transactional
+    fun setLover(user: User, connectionId: Long): ConnectionResponse {
+        val connection = userConnectionRepository.findById(connectionId)
+            .orElseThrow { ConnectionNotFoundException() }
+
+        if (connection.user.id != user.id && connection.partner.id != user.id) {
+            throw ForbiddenException("해당 연결을 수정할 권한이 없습니다.")
+        }
+
+        // 기존 LOVER 연결을 FRIEND로 변경
+        val existingConnections = userConnectionRepository.findByUserOrPartnerWithUsers(user)
+        existingConnections
+            .filter { it.relationType == RelationType.LOVER }
+            .forEach {
+                it.relationType = RelationType.FRIEND
+                userConnectionRepository.save(it)
+            }
+
+        connection.relationType = RelationType.LOVER
+        val saved = userConnectionRepository.save(connection)
+        log.info("연인 설정: connectionId={}, userId={}", connectionId, user.id)
+        return ConnectionResponse.from(saved, user, null)
+    }
+
+    @Transactional
+    fun unsetLover(user: User, connectionId: Long): ConnectionResponse {
+        val connection = userConnectionRepository.findById(connectionId)
+            .orElseThrow { ConnectionNotFoundException() }
+
+        if (connection.user.id != user.id && connection.partner.id != user.id) {
+            throw ForbiddenException("해당 연결을 수정할 권한이 없습니다.")
+        }
+
+        connection.relationType = RelationType.FRIEND
+        val saved = userConnectionRepository.save(connection)
+        log.info("연인 해제: connectionId={}, userId={}", connectionId, user.id)
+        return ConnectionResponse.from(saved, user, null)
     }
 
     @Transactional

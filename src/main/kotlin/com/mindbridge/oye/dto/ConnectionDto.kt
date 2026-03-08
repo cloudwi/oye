@@ -14,8 +14,8 @@ data class ConnectRequest(
     @Schema(description = "상대방 닉네임", example = "fortune_lover", nullable = true)
     val nickname: String? = null,
 
-    @Schema(description = "관계 유형")
-    val relationType: RelationType
+    @Schema(description = "관계 유형", defaultValue = "FRIEND")
+    val relationType: RelationType = RelationType.FRIEND
 )
 
 @Schema(description = "연결 응답")

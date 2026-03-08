@@ -15,14 +15,18 @@ import com.mindbridge.oye.dto.JoinGroupRequest
 import com.mindbridge.oye.dto.UpdateGroupRequest
 import com.mindbridge.oye.exception.AlreadyGroupMemberException
 import com.mindbridge.oye.exception.CodeGenerationException
+import com.mindbridge.oye.exception.ForbiddenException
 import com.mindbridge.oye.exception.GroupFullException
 import com.mindbridge.oye.exception.GroupNotFoundException
 import com.mindbridge.oye.exception.InvalidRelationTypeException
 import com.mindbridge.oye.exception.NotGroupMemberException
 import com.mindbridge.oye.exception.NotGroupOwnerException
+import com.mindbridge.oye.exception.UserNotFoundException
 import com.mindbridge.oye.repository.GroupCompatibilityRepository
 import com.mindbridge.oye.repository.GroupMemberRepository
 import com.mindbridge.oye.repository.GroupRepository
+import com.mindbridge.oye.repository.UserConnectionRepository
+import com.mindbridge.oye.repository.UserRepository
 import com.mindbridge.oye.event.GroupMemberJoinedEvent
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -36,6 +40,8 @@ class GroupService(
     private val groupRepository: GroupRepository,
     private val groupMemberRepository: GroupMemberRepository,
     private val groupCompatibilityRepository: GroupCompatibilityRepository,
+    private val userRepository: UserRepository,
+    private val userConnectionRepository: UserConnectionRepository,
     private val eventPublisher: ApplicationEventPublisher
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -90,6 +96,43 @@ class GroupService(
         eventPublisher.publishEvent(GroupMemberJoinedEvent(group))
 
         return GroupSummaryResponse.from(group, memberCount + 1, user)
+    }
+
+    @Transactional
+    fun addMember(user: User, groupId: Long, targetUserId: Long): GroupDetailResponse {
+        val group = groupRepository.findByIdWithOwner(groupId)
+            .orElseThrow { GroupNotFoundException() }
+
+        if (!groupMemberRepository.existsByGroupAndUser(group, user)) {
+            throw NotGroupMemberException()
+        }
+
+        val targetUser = userRepository.findById(targetUserId)
+            .orElseThrow { UserNotFoundException() }
+
+        if (groupMemberRepository.existsByGroupAndUser(group, targetUser)) {
+            throw AlreadyGroupMemberException()
+        }
+
+        val memberCount = groupMemberRepository.countByGroup(group)
+        if (memberCount >= MAX_GROUP_MEMBERS) {
+            throw GroupFullException()
+        }
+
+        val isConnected = userConnectionRepository.existsByUserAndPartnerOrPartnerAndUser(
+            user, targetUser, user, targetUser
+        )
+        if (!isConnected) {
+            throw ForbiddenException("친구만 그룹에 초대할 수 있습니다.")
+        }
+
+        val member = GroupMember(group = group, user = targetUser)
+        groupMemberRepository.save(member)
+
+        log.info("그룹 멤버 추가: groupId={}, inviterId={}, targetUserId={}", groupId, user.id, targetUserId)
+        eventPublisher.publishEvent(GroupMemberJoinedEvent(group))
+
+        return getGroupDetail(user, groupId)
     }
 
     @Transactional(readOnly = true)

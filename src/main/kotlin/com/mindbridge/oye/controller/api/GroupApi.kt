@@ -6,6 +6,7 @@ import com.mindbridge.oye.dto.GroupDetailResponse
 import com.mindbridge.oye.dto.GroupSummaryResponse
 import com.mindbridge.oye.dto.GroupCompatibilityHistoryResponse
 import com.mindbridge.oye.dto.GroupTodayCompatibilityResponse
+import com.mindbridge.oye.dto.AddGroupMemberRequest
 import com.mindbridge.oye.dto.JoinGroupRequest
 import com.mindbridge.oye.dto.UpdateGroupRequest
 import com.mindbridge.oye.exception.ErrorResponse
@@ -228,6 +229,12 @@ interface GroupApi {
         )
     )
     fun kickMember(principal: Any?, id: Long, userId: Long)
+
+    @Operation(
+        summary = "그룹 멤버 추가",
+        description = "친구를 그룹에 초대합니다. 연결된 친구만 초대 가능합니다."
+    )
+    fun addMember(principal: Any?, id: Long, request: AddGroupMemberRequest): ApiResponse<GroupDetailResponse>
 
     @Operation(
         summary = "그룹 오늘의 궁합 조회",

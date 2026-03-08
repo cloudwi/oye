@@ -8,6 +8,7 @@ import com.mindbridge.oye.dto.GroupDetailResponse
 import com.mindbridge.oye.dto.GroupSummaryResponse
 import com.mindbridge.oye.dto.GroupCompatibilityHistoryResponse
 import com.mindbridge.oye.dto.GroupTodayCompatibilityResponse
+import com.mindbridge.oye.dto.AddGroupMemberRequest
 import com.mindbridge.oye.dto.JoinGroupRequest
 import com.mindbridge.oye.dto.UpdateGroupRequest
 import com.mindbridge.oye.service.GroupService
@@ -90,6 +91,16 @@ class GroupController(
     ) {
         val user = authenticationResolver.getCurrentUser(principal)
         groupService.leaveGroup(user, id)
+    }
+
+    @PostMapping("/{id}/members")
+    override fun addMember(
+        @AuthenticationPrincipal principal: Any?,
+        @PathVariable id: Long,
+        @RequestBody request: AddGroupMemberRequest
+    ): ApiResponse<GroupDetailResponse> {
+        val user = authenticationResolver.getCurrentUser(principal)
+        return ApiResponse.success(groupService.addMember(user, id, request.userId))
     }
 
     @DeleteMapping("/{id}/members/{userId}")

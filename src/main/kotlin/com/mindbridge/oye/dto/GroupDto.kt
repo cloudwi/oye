@@ -25,6 +25,12 @@ data class JoinGroupRequest(
     val code: String
 )
 
+@Schema(description = "그룹 멤버 추가 요청")
+data class AddGroupMemberRequest(
+    @Schema(description = "추가할 사용자 ID", example = "5")
+    val userId: Long
+)
+
 @Schema(description = "그룹 수정 요청")
 data class UpdateGroupRequest(
     @Schema(description = "그룹 이름", example = "우리 친구들")

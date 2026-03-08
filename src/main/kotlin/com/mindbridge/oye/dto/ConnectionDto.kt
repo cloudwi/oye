@@ -23,6 +23,9 @@ data class ConnectionResponse(
     @Schema(description = "연결 고유 ID", example = "1")
     val id: Long,
 
+    @Schema(description = "상대방 유저 ID", example = "42")
+    val partnerId: Long,
+
     @Schema(description = "상대방 이름", example = "홍길동", nullable = true)
     val partnerName: String?,
 
@@ -46,6 +49,7 @@ data class ConnectionResponse(
             val partner = if (connection.user.id == currentUser.id) connection.partner else connection.user
             return ConnectionResponse(
                 id = connection.id!!,
+                partnerId = partner.id!!,
                 partnerName = partner.name,
                 partnerNickname = partner.nickname,
                 relationType = connection.relationType,

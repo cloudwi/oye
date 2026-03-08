@@ -55,7 +55,8 @@ class ConnectionServiceTest {
         name = "테스트유저",
         birthDate = LocalDate.of(1990, 1, 15),
         gender = Gender.MALE,
-        calendarType = CalendarType.SOLAR
+        calendarType = CalendarType.SOLAR,
+        nickname = "testuser"
     )
 
     private val partnerUser = User(
@@ -64,7 +65,8 @@ class ConnectionServiceTest {
         birthDate = LocalDate.of(1992, 5, 20),
         gender = Gender.FEMALE,
         calendarType = CalendarType.LUNAR,
-        connectCode = "ABC123"
+        connectCode = "ABC123",
+        nickname = "partner"
     )
 
     @Test
@@ -75,7 +77,8 @@ class ConnectionServiceTest {
             birthDate = LocalDate.of(1990, 1, 15),
             gender = Gender.MALE,
             calendarType = CalendarType.SOLAR,
-            connectCode = "XYZ789"
+            connectCode = "XYZ789",
+            nickname = "testuser"
         )
 
         val result = connectionService.getMyCode(user)
@@ -261,7 +264,8 @@ class ConnectionServiceTest {
             name = "다른유저",
             birthDate = LocalDate.of(1988, 3, 10),
             gender = Gender.MALE,
-            calendarType = CalendarType.SOLAR
+            calendarType = CalendarType.SOLAR,
+            nickname = "otheruser"
         )
         val connection = UserConnection(
             id = 1L,

@@ -42,7 +42,8 @@ class FortuneRepositoryTest {
                 name = "리포지토리테스트",
                 birthDate = LocalDate.of(1985, 7, 10),
                 gender = Gender.FEMALE,
-                calendarType = CalendarType.SOLAR
+                calendarType = CalendarType.SOLAR,
+                nickname = "repotest"
             )
         )
     }
@@ -77,7 +78,8 @@ class FortuneRepositoryTest {
         val otherUser = userRepository.save(
             User(
                 name = "다른유저",
-                birthDate = LocalDate.of(2000, 1, 1)
+                birthDate = LocalDate.of(2000, 1, 1),
+                nickname = "otheruser"
             )
         )
         fortuneRepository.save(
@@ -132,7 +134,8 @@ class FortuneRepositoryTest {
         val otherUser = userRepository.save(
             User(
                 name = "빈유저",
-                birthDate = LocalDate.of(2000, 1, 1)
+                birthDate = LocalDate.of(2000, 1, 1),
+                nickname = "emptyuser"
             )
         )
 
@@ -156,7 +159,8 @@ class FortuneRepositoryTest {
         val otherUser = userRepository.save(
             User(
                 name = "보존유저",
-                birthDate = LocalDate.of(2000, 1, 1)
+                birthDate = LocalDate.of(2000, 1, 1),
+                nickname = "keepuser"
             )
         )
         fortuneRepository.save(

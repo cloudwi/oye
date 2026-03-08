@@ -88,7 +88,8 @@ class InquiryControllerTest {
                 name = "문의유저",
                 birthDate = LocalDate.of(1990, 1, 15),
                 gender = Gender.MALE,
-                calendarType = CalendarType.SOLAR
+                calendarType = CalendarType.SOLAR,
+                nickname = "inquiryuser"
             )
         )
         accessToken = jwtTokenProvider.generateAccessToken(testUser.id!!)
@@ -229,7 +230,8 @@ class InquiryControllerTest {
                 name = "다른유저",
                 birthDate = LocalDate.of(1992, 3, 20),
                 gender = Gender.FEMALE,
-                calendarType = CalendarType.SOLAR
+                calendarType = CalendarType.SOLAR,
+                nickname = "otheruser"
             )
         )
         val inquiry = inquiryRepository.save(

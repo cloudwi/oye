@@ -44,7 +44,8 @@ class InquiryServiceTest {
         name = "테스트유저",
         birthDate = LocalDate.of(1990, 1, 15),
         gender = Gender.MALE,
-        calendarType = CalendarType.SOLAR
+        calendarType = CalendarType.SOLAR,
+        nickname = "testuser"
     )
 
     private val adminUser = User(
@@ -53,6 +54,7 @@ class InquiryServiceTest {
         birthDate = LocalDate.of(1985, 5, 10),
         gender = Gender.MALE,
         calendarType = CalendarType.SOLAR,
+        nickname = "admin",
         role = Role.ADMIN
     )
 
@@ -61,7 +63,8 @@ class InquiryServiceTest {
         name = "다른유저",
         birthDate = LocalDate.of(1992, 3, 20),
         gender = Gender.FEMALE,
-        calendarType = CalendarType.SOLAR
+        calendarType = CalendarType.SOLAR,
+        nickname = "otheruser"
     )
 
     @Test

@@ -46,6 +46,7 @@ class PushNotificationServiceTest {
         birthDate = LocalDate.of(1985, 5, 10),
         gender = Gender.MALE,
         calendarType = CalendarType.SOLAR,
+        nickname = "admin",
         role = Role.ADMIN
     )
 
@@ -54,7 +55,8 @@ class PushNotificationServiceTest {
         name = "일반유저",
         birthDate = LocalDate.of(1990, 1, 15),
         gender = Gender.MALE,
-        calendarType = CalendarType.SOLAR
+        calendarType = CalendarType.SOLAR,
+        nickname = "normaluser"
     )
 
     @Test
@@ -62,7 +64,8 @@ class PushNotificationServiceTest {
         val user = User(
             id = 3L,
             name = "테스트유저",
-            birthDate = LocalDate.of(1995, 3, 20)
+            birthDate = LocalDate.of(1995, 3, 20),
+            nickname = "tokenuser"
         )
         whenever(userRepository.save(any<User>())).thenAnswer { it.arguments[0] }
 
@@ -77,6 +80,7 @@ class PushNotificationServiceTest {
             id = 3L,
             name = "테스트유저",
             birthDate = LocalDate.of(1995, 3, 20),
+            nickname = "tokenuser",
             expoPushToken = "ExponentPushToken[test123]"
         )
         whenever(userRepository.save(any<User>())).thenAnswer { it.arguments[0] }
@@ -102,8 +106,8 @@ class PushNotificationServiceTest {
     @Test
     fun `sendPush - 전체 발송 성공`() {
         val usersWithTokens = listOf(
-            User(id = 10L, name = "유저1", birthDate = LocalDate.of(1990, 1, 1), expoPushToken = "ExponentPushToken[aaa]"),
-            User(id = 11L, name = "유저2", birthDate = LocalDate.of(1991, 2, 2), expoPushToken = "ExponentPushToken[bbb]")
+            User(id = 10L, name = "유저1", birthDate = LocalDate.of(1990, 1, 1), nickname = "pushuser1", expoPushToken = "ExponentPushToken[aaa]"),
+            User(id = 11L, name = "유저2", birthDate = LocalDate.of(1991, 2, 2), nickname = "pushuser2", expoPushToken = "ExponentPushToken[bbb]")
         )
         whenever(userRepository.findAllByExpoPushTokenIsNotNull()).thenReturn(usersWithTokens)
 
@@ -148,7 +152,7 @@ class PushNotificationServiceTest {
     @Test
     fun `sendPush - 특정 사용자 발송 성공`() {
         val usersWithTokens = listOf(
-            User(id = 10L, name = "유저1", birthDate = LocalDate.of(1990, 1, 1), expoPushToken = "ExponentPushToken[aaa]")
+            User(id = 10L, name = "유저1", birthDate = LocalDate.of(1990, 1, 1), nickname = "pushuser1", expoPushToken = "ExponentPushToken[aaa]")
         )
         whenever(userRepository.findAllByIdInAndExpoPushTokenIsNotNull(listOf(10L))).thenReturn(usersWithTokens)
 
@@ -190,8 +194,8 @@ class PushNotificationServiceTest {
     @Test
     fun `sendPush - Expo API 실패 시 failCount 증가`() {
         val usersWithTokens = listOf(
-            User(id = 10L, name = "유저1", birthDate = LocalDate.of(1990, 1, 1), expoPushToken = "ExponentPushToken[aaa]"),
-            User(id = 11L, name = "유저2", birthDate = LocalDate.of(1991, 2, 2), expoPushToken = "ExponentPushToken[bbb]")
+            User(id = 10L, name = "유저1", birthDate = LocalDate.of(1990, 1, 1), nickname = "pushuser1", expoPushToken = "ExponentPushToken[aaa]"),
+            User(id = 11L, name = "유저2", birthDate = LocalDate.of(1991, 2, 2), nickname = "pushuser2", expoPushToken = "ExponentPushToken[bbb]")
         )
         whenever(userRepository.findAllByExpoPushTokenIsNotNull()).thenReturn(usersWithTokens)
 

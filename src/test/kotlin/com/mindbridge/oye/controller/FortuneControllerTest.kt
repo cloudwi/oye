@@ -56,7 +56,8 @@ class FortuneControllerTest {
                 name = "예감유저",
                 birthDate = LocalDate.of(1995, 3, 20),
                 gender = Gender.FEMALE,
-                calendarType = CalendarType.LUNAR
+                calendarType = CalendarType.LUNAR,
+                nickname = "fortuneuser"
             )
         )
         accessToken = jwtTokenProvider.generateAccessToken(testUser.id!!)

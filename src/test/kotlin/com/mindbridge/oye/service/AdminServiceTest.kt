@@ -70,6 +70,7 @@ class AdminServiceTest {
         birthDate = LocalDate.of(1985, 5, 10),
         gender = Gender.MALE,
         calendarType = CalendarType.SOLAR,
+        nickname = "admin",
         role = Role.ADMIN
     )
 
@@ -78,7 +79,8 @@ class AdminServiceTest {
         name = "일반유저",
         birthDate = LocalDate.of(1990, 1, 15),
         gender = Gender.MALE,
-        calendarType = CalendarType.SOLAR
+        calendarType = CalendarType.SOLAR,
+        nickname = "normaluser"
     )
 
     @Test

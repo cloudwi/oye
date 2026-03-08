@@ -43,7 +43,8 @@ class CompatibilityServiceTest {
         name = "테스트유저",
         birthDate = LocalDate.of(1990, 1, 15),
         gender = Gender.MALE,
-        calendarType = CalendarType.SOLAR
+        calendarType = CalendarType.SOLAR,
+        nickname = "testuser"
     )
 
     private val partnerUser = User(
@@ -51,7 +52,8 @@ class CompatibilityServiceTest {
         name = "파트너유저",
         birthDate = LocalDate.of(1992, 5, 20),
         gender = Gender.FEMALE,
-        calendarType = CalendarType.LUNAR
+        calendarType = CalendarType.LUNAR,
+        nickname = "partner"
     )
 
     private val connection = UserConnection(
@@ -114,7 +116,8 @@ class CompatibilityServiceTest {
             name = "다른유저",
             birthDate = LocalDate.of(1988, 3, 10),
             gender = Gender.MALE,
-            calendarType = CalendarType.SOLAR
+            calendarType = CalendarType.SOLAR,
+            nickname = "otheruser"
         )
         whenever(userConnectionRepository.findByIdWithUsers(1L)).thenReturn(Optional.of(connection))
 
@@ -226,7 +229,8 @@ class CompatibilityServiceTest {
             name = "다른유저",
             birthDate = LocalDate.of(1988, 3, 10),
             gender = Gender.MALE,
-            calendarType = CalendarType.SOLAR
+            calendarType = CalendarType.SOLAR,
+            nickname = "otheruser"
         )
         whenever(userConnectionRepository.findByIdWithUsers(1L)).thenReturn(Optional.of(connection))
 
@@ -267,7 +271,8 @@ class CompatibilityServiceTest {
             name = "다른유저",
             birthDate = LocalDate.of(1988, 3, 10),
             gender = Gender.MALE,
-            calendarType = CalendarType.SOLAR
+            calendarType = CalendarType.SOLAR,
+            nickname = "otheruser"
         )
         whenever(userConnectionRepository.findByIdWithUsers(1L)).thenReturn(Optional.of(connection))
 
@@ -294,7 +299,8 @@ class CompatibilityServiceTest {
             name = "다른유저",
             birthDate = LocalDate.of(1988, 3, 10),
             gender = Gender.MALE,
-            calendarType = CalendarType.SOLAR
+            calendarType = CalendarType.SOLAR,
+            nickname = "otheruser"
         )
         whenever(userConnectionRepository.findByIdWithUsers(1L)).thenReturn(Optional.of(connection))
 

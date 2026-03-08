@@ -137,7 +137,8 @@ class AuthControllerTest {
             User(
                 name = "기존유저",
                 birthDate = LocalDate.of(2000, 1, 1),
-                calendarType = CalendarType.SOLAR
+                calendarType = CalendarType.SOLAR,
+                nickname = "existinguser"
             )
         )
         socialAccountRepository.save(
@@ -212,7 +213,8 @@ class AuthControllerTest {
             User(
                 name = "카카오유저",
                 birthDate = LocalDate.of(2000, 1, 1),
-                calendarType = CalendarType.SOLAR
+                calendarType = CalendarType.SOLAR,
+                nickname = "kakaouser"
             )
         )
         socialAccountRepository.save(
@@ -266,7 +268,8 @@ class AuthControllerTest {
             User(
                 name = "테스트유저",
                 birthDate = LocalDate.of(1990, 1, 15),
-                calendarType = CalendarType.SOLAR
+                calendarType = CalendarType.SOLAR,
+                nickname = "refreshuser"
             )
         )
         val refreshToken = jwtTokenProvider.generateRefreshToken(user.id!!)

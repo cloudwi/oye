@@ -3,6 +3,7 @@ package com.mindbridge.oye.service
 import com.mindbridge.oye.domain.CalendarType
 import com.mindbridge.oye.domain.Gender
 import com.mindbridge.oye.domain.User
+import com.mindbridge.oye.repository.GroupMemberRepository
 import com.mindbridge.oye.repository.SocialAccountRepository
 import com.mindbridge.oye.repository.UserRepository
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -24,6 +25,12 @@ class UserServiceTest {
     @Mock
     private lateinit var socialAccountRepository: SocialAccountRepository
 
+    @Mock
+    private lateinit var groupMemberRepository: GroupMemberRepository
+
+    @Mock
+    private lateinit var groupService: GroupService
+
     @InjectMocks
     private lateinit var userService: UserService
 
@@ -33,6 +40,7 @@ class UserServiceTest {
         birthDate = LocalDate.of(1990, 1, 15),
         gender = Gender.MALE,
         calendarType = CalendarType.SOLAR,
+        nickname = "testuser",
         expoPushToken = "ExponentPushToken[test]"
     )
 

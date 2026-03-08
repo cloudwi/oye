@@ -91,7 +91,8 @@ class CompatibilityControllerTest {
                 name = "테스트유저",
                 birthDate = LocalDate.of(1990, 1, 15),
                 gender = Gender.MALE,
-                calendarType = CalendarType.SOLAR
+                calendarType = CalendarType.SOLAR,
+                nickname = "testuser"
             )
         )
         partnerUser = userRepository.save(
@@ -99,7 +100,8 @@ class CompatibilityControllerTest {
                 name = "파트너유저",
                 birthDate = LocalDate.of(1992, 5, 20),
                 gender = Gender.FEMALE,
-                calendarType = CalendarType.LUNAR
+                calendarType = CalendarType.LUNAR,
+                nickname = "partner"
             )
         )
         connection = userConnectionRepository.save(
@@ -149,7 +151,8 @@ class CompatibilityControllerTest {
                 name = "다른유저",
                 birthDate = LocalDate.of(1988, 3, 10),
                 gender = Gender.MALE,
-                calendarType = CalendarType.SOLAR
+                calendarType = CalendarType.SOLAR,
+                nickname = "otheruser1"
             )
         )
         val otherToken = jwtTokenProvider.generateAccessToken(otherUser.id!!)
@@ -224,7 +227,8 @@ class CompatibilityControllerTest {
                 name = "다른유저",
                 birthDate = LocalDate.of(1988, 3, 10),
                 gender = Gender.MALE,
-                calendarType = CalendarType.SOLAR
+                calendarType = CalendarType.SOLAR,
+                nickname = "otheruser2"
             )
         )
         val otherToken = jwtTokenProvider.generateAccessToken(otherUser.id!!)
@@ -295,7 +299,8 @@ class CompatibilityControllerTest {
                 name = "다른유저",
                 birthDate = LocalDate.of(1988, 3, 10),
                 gender = Gender.MALE,
-                calendarType = CalendarType.SOLAR
+                calendarType = CalendarType.SOLAR,
+                nickname = "otheruser3"
             )
         )
         val otherToken = jwtTokenProvider.generateAccessToken(otherUser.id!!)
@@ -357,7 +362,8 @@ class CompatibilityControllerTest {
                 name = "다른유저2",
                 birthDate = LocalDate.of(1988, 3, 10),
                 gender = Gender.MALE,
-                calendarType = CalendarType.SOLAR
+                calendarType = CalendarType.SOLAR,
+                nickname = "otheruser4"
             )
         )
         val otherToken = jwtTokenProvider.generateAccessToken(otherUser.id!!)

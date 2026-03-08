@@ -42,7 +42,8 @@ class AuthServiceTest {
             id = 1L,
             name = "테스트유저",
             birthDate = LocalDate.of(2000, 1, 1),
-            calendarType = CalendarType.SOLAR
+            calendarType = CalendarType.SOLAR,
+            nickname = "testuser1"
         )
         whenever(userRepository.save(any<User>())).thenReturn(savedUser)
         whenever(socialAccountRepository.save(any<SocialAccount>())).thenAnswer { it.getArgument(0) }
@@ -73,7 +74,8 @@ class AuthServiceTest {
             id = 2L,
             name = null,
             birthDate = LocalDate.of(2000, 1, 1),
-            calendarType = CalendarType.SOLAR
+            calendarType = CalendarType.SOLAR,
+            nickname = "testuser2"
         )
         whenever(userRepository.save(any<User>())).thenReturn(savedUser)
         whenever(socialAccountRepository.save(any<SocialAccount>())).thenAnswer { it.getArgument(0) }
@@ -90,7 +92,8 @@ class AuthServiceTest {
             id = 3L,
             name = null,
             birthDate = LocalDate.of(2000, 1, 1),
-            calendarType = CalendarType.SOLAR
+            calendarType = CalendarType.SOLAR,
+            nickname = "testuser3"
         )
         whenever(userRepository.save(any<User>())).thenReturn(savedUser)
         whenever(socialAccountRepository.save(any<SocialAccount>())).thenAnswer { it.getArgument(0) }
@@ -107,7 +110,8 @@ class AuthServiceTest {
             id = 4L,
             name = null,
             birthDate = LocalDate.of(2000, 1, 1),
-            calendarType = CalendarType.SOLAR
+            calendarType = CalendarType.SOLAR,
+            nickname = "testuser4"
         )
         whenever(userRepository.save(any<User>())).thenReturn(savedUser)
         whenever(socialAccountRepository.save(any<SocialAccount>())).thenAnswer { it.getArgument(0) }
@@ -124,7 +128,8 @@ class AuthServiceTest {
             id = 5L,
             name = "애플유저",
             birthDate = LocalDate.of(2000, 1, 1),
-            calendarType = CalendarType.SOLAR
+            calendarType = CalendarType.SOLAR,
+            nickname = "appleuser"
         )
         whenever(userRepository.save(any<User>())).thenReturn(savedUser)
         whenever(socialAccountRepository.save(any<SocialAccount>())).thenAnswer { it.getArgument(0) }

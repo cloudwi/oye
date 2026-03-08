@@ -60,7 +60,8 @@ class DailyFortuneSchedulerTest {
         id = id,
         name = "유저$id",
         birthDate = LocalDate.of(1990, 1, 1),
-        calendarType = CalendarType.SOLAR
+        calendarType = CalendarType.SOLAR,
+        nickname = "user$id"
     )
 
     // === generateDailyFortunes ===

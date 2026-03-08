@@ -58,7 +58,8 @@ class UserControllerTest {
                 name = "테스트유저",
                 birthDate = LocalDate.of(1990, 1, 15),
                 gender = Gender.MALE,
-                calendarType = CalendarType.SOLAR
+                calendarType = CalendarType.SOLAR,
+                nickname = "testuser"
             )
         )
         accessToken = jwtTokenProvider.generateAccessToken(testUser.id!!)

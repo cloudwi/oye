@@ -20,6 +20,7 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.mindbridge.oye.util.DateUtils
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -140,7 +141,7 @@ class LottoService(
         return (daysSinceEpoch / 7 + 1).toInt()
     }
 
-    fun getCurrentRound(): Int = getRoundForDate(LocalDate.now())
+    fun getCurrentRound(): Int = getRoundForDate(DateUtils.today())
 
     private fun validateNotInDrawTime() {
         val now = LocalDateTime.now(KST)

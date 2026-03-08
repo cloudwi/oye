@@ -22,6 +22,7 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.security.SecureRandom
+import com.mindbridge.oye.util.DateUtils
 import java.time.LocalDate
 
 @Service
@@ -80,7 +81,7 @@ class ConnectionService(
         val connections = userConnectionRepository.findByUserOrPartnerWithUsers(user)
         if (connections.isEmpty()) return emptyList()
 
-        val today = LocalDate.now()
+        val today = DateUtils.today()
         val compatibilities = compatibilityRepository.findByConnectionInAndDate(connections, today)
         val compatibilityByConnectionId = compatibilities.associateBy { it.connection.id }
 

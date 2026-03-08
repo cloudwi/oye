@@ -126,10 +126,10 @@ class CompatibilityService(
     @Cacheable(value = [CacheConfig.COMPATIBILITY_TODAY], key = "#connection.id")
     @Transactional(readOnly = true)
     fun getTodayCompatibility(connection: UserConnection): Compatibility? {
-        return compatibilityRepository.findByConnectionAndDate(connection, LocalDate.now())
+        return compatibilityRepository.findByConnectionAndDate(connection, DateUtils.today())
     }
 
-    fun generateCompatibility(connection: UserConnection, date: LocalDate = LocalDate.now()): Compatibility {
+    fun generateCompatibility(connection: UserConnection, date: LocalDate = DateUtils.today()): Compatibility {
         val existing = compatibilityRepository.findByConnectionAndDate(connection, date)
         if (existing != null) return existing
 
@@ -173,7 +173,7 @@ class CompatibilityService(
 
     @CacheEvict(value = [CacheConfig.COMPATIBILITY_TODAY], key = "#connection.id")
     @Transactional
-    fun saveCompatibility(connection: UserConnection, score: Int, content: String, relationFortune: String? = null, date: LocalDate = LocalDate.now()): Compatibility {
+    fun saveCompatibility(connection: UserConnection, score: Int, content: String, relationFortune: String? = null, date: LocalDate = DateUtils.today()): Compatibility {
         val existing = compatibilityRepository.findByConnectionAndDate(connection, date)
         if (existing != null) {
             return existing
@@ -198,7 +198,7 @@ class CompatibilityService(
             throw ForbiddenException("해당 연결에 접근할 권한이 없습니다.")
         }
 
-        val end = LocalDate.now()
+        val end = DateUtils.today()
         val start = end.minusDays(days.toLong() - 1)
         return compatibilityRepository.findByConnectionAndDateBetweenOrderByDateAsc(connection, start, end)
             .map { ScoreTrendPoint(date = it.date, score = it.score) }
@@ -242,7 +242,7 @@ class CompatibilityService(
         )
     }
 
-    private fun callAiWithRetry(connection: UserConnection, date: LocalDate = LocalDate.now()): AiCompatibilityResult {
+    private fun callAiWithRetry(connection: UserConnection, date: LocalDate = DateUtils.today()): AiCompatibilityResult {
         val userPrompt = buildUserPrompt(connection, date)
         return try {
             aiChatService.callWithRetry(
@@ -257,7 +257,7 @@ class CompatibilityService(
         }
     }
 
-    private fun buildUserPrompt(connection: UserConnection, date: LocalDate = LocalDate.now()): String {
+    private fun buildUserPrompt(connection: UserConnection, date: LocalDate = DateUtils.today()): String {
         val user1 = connection.user
         val user2 = connection.partner
         val relationText = when (connection.relationType) {

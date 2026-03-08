@@ -95,10 +95,10 @@ class FortuneService(
     @Cacheable(value = [CacheConfig.FORTUNE_TODAY], key = "#user.id")
     @Transactional(readOnly = true)
     fun getTodayFortune(user: User): Fortune? {
-        return fortuneRepository.findByUserAndDate(user, LocalDate.now())
+        return fortuneRepository.findByUserAndDate(user, DateUtils.today())
     }
 
-    fun generateFortune(user: User, date: LocalDate = LocalDate.now()): Fortune {
+    fun generateFortune(user: User, date: LocalDate = DateUtils.today()): Fortune {
         // 1. 기존 fortune 확인 (별도 읽기 트랜잭션)
         val existingFortune = fortuneRepository.findByUserAndDate(user, date)
         if (existingFortune != null) {
@@ -121,7 +121,7 @@ class FortuneService(
 
     @CacheEvict(value = [CacheConfig.FORTUNE_TODAY], key = "#user.id")
     @Transactional
-    fun saveFortune(user: User, content: String, score: Int, date: LocalDate = LocalDate.now()): Fortune {
+    fun saveFortune(user: User, content: String, score: Int, date: LocalDate = DateUtils.today()): Fortune {
         // 트랜잭션 내에서 다시 한번 확인 (동시성 보호)
         val existingFortune = fortuneRepository.findByUserAndDate(user, date)
         if (existingFortune != null) {
@@ -139,7 +139,7 @@ class FortuneService(
 
     @Transactional(readOnly = true)
     fun getScoreTrend(user: User, days: Int): List<ScoreTrendPoint> {
-        val end = LocalDate.now()
+        val end = DateUtils.today()
         val start = end.minusDays(days.toLong() - 1)
         return fortuneRepository.findByUserAndDateBetweenOrderByDateAsc(user, start, end)
             .filter { it.score != null }
@@ -170,7 +170,7 @@ class FortuneService(
         )
     }
 
-    private fun callAiWithRetry(user: User, date: LocalDate = LocalDate.now()): FortuneAiResponse {
+    private fun callAiWithRetry(user: User, date: LocalDate = DateUtils.today()): FortuneAiResponse {
         val userPrompt = buildUserPrompt(user, date)
         return try {
             aiChatService.callWithRetry(
@@ -185,7 +185,7 @@ class FortuneService(
         }
     }
 
-    private fun buildUserPrompt(user: User, date: LocalDate = LocalDate.now()): String {
+    private fun buildUserPrompt(user: User, date: LocalDate = DateUtils.today()): String {
         val parts = UserProfileBuilder.buildProfileParts(user, nameLabel = "사용자")
             .toMutableList()
         val dayOfWeek = DateUtils.getDayOfWeekKorean(date)

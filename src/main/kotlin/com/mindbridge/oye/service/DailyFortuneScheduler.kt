@@ -4,13 +4,13 @@ import com.mindbridge.oye.repository.GroupMemberRepository
 import com.mindbridge.oye.repository.GroupRepository
 import com.mindbridge.oye.repository.UserConnectionRepository
 import com.mindbridge.oye.repository.UserRepository
+import com.mindbridge.oye.util.DateUtils
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.LocalDate
-import java.time.ZoneId
 
 @Component
 class DailyFortuneScheduler(
@@ -28,7 +28,7 @@ class DailyFortuneScheduler(
     companion object {
         private const val BATCH_SIZE = 50
         private const val BATCH_DELAY_MS = 500L
-        private val KST = ZoneId.of("Asia/Seoul")
+        private val KST = DateUtils.KST
     }
 
     @Scheduled(cron = "0 0 6 * * *", zone = "Asia/Seoul")

@@ -2,8 +2,13 @@ package com.mindbridge.oye.util
 
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.ZoneId
 
 object DateUtils {
+    val KST: ZoneId = ZoneId.of("Asia/Seoul")
+
+    fun today(): LocalDate = LocalDate.now(KST)
+
     fun getDayOfWeekKorean(date: LocalDate): String {
         return when (date.dayOfWeek) {
             DayOfWeek.MONDAY -> "월요일"

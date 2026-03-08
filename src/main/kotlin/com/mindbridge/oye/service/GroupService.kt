@@ -33,6 +33,7 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.security.SecureRandom
+import com.mindbridge.oye.util.DateUtils
 import java.time.LocalDate
 
 @Service
@@ -268,7 +269,7 @@ class GroupService(
         }
 
         val members = groupMemberRepository.findByGroupWithUsers(group)
-        val today = LocalDate.now()
+        val today = DateUtils.today()
         val compatibility = groupCompatibilityRepository.findByGroupAndDate(group, today)
 
         val memberMap = members.associate { it.user.id!! to it.user.name }
@@ -290,7 +291,7 @@ class GroupService(
             throw NotGroupMemberException()
         }
 
-        val since = LocalDate.now().minusDays(days.toLong() - 1)
+        val since = DateUtils.today().minusDays(days.toLong() - 1)
         val history = groupCompatibilityRepository
             .findByGroupAndDateGreaterThanEqualOrderByDateDesc(group, since)
 

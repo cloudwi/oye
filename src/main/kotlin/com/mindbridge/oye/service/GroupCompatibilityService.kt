@@ -65,7 +65,7 @@ class GroupCompatibilityService(
         """.trimIndent()
     }
 
-    fun generateGroupCompatibility(group: Group, date: LocalDate = LocalDate.now()) {
+    fun generateGroupCompatibility(group: Group, date: LocalDate = DateUtils.today()) {
         val members = groupMemberRepository.findByGroupWithUsers(group).map { it.user }
         if (members.size < 2) return
 
@@ -76,7 +76,7 @@ class GroupCompatibilityService(
         }
     }
 
-    fun regenerateGroupCompatibility(group: Group, date: LocalDate = LocalDate.now()) {
+    fun regenerateGroupCompatibility(group: Group, date: LocalDate = DateUtils.today()) {
         val members = groupMemberRepository.findByGroupWithUsers(group).map { it.user }
         if (members.size < 2) return
 
@@ -102,7 +102,7 @@ class GroupCompatibilityService(
     }
 
     @Transactional
-    fun generateCompatibility(group: Group, members: List<User>, date: LocalDate = LocalDate.now()): GroupCompatibility {
+    fun generateCompatibility(group: Group, members: List<User>, date: LocalDate = DateUtils.today()): GroupCompatibility {
         val existing = groupCompatibilityRepository.findByGroupAndDate(group, date)
         if (existing != null) return existing
 

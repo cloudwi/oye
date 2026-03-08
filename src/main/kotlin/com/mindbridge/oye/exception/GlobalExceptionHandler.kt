@@ -123,6 +123,10 @@ class GlobalExceptionHandler {
     fun handleNotGroupMemberException(e: NotGroupMemberException) =
         errorResponse(HttpStatus.FORBIDDEN, e.message ?: "그룹 멤버가 아닙니다.", "NOT_GROUP_MEMBER")
 
+    @ExceptionHandler(LoverLimitExceededException::class)
+    fun handleLoverLimitExceededException(e: LoverLimitExceededException) =
+        errorResponse(HttpStatus.CONFLICT, e.message ?: "연인은 1명만 등록할 수 있습니다.", "LOVER_LIMIT_EXCEEDED")
+
     @ExceptionHandler(NicknameDuplicateException::class)
     fun handleNicknameDuplicateException(e: NicknameDuplicateException) =
         errorResponse(HttpStatus.CONFLICT, e.message ?: "이미 사용 중인 닉네임입니다.", "NICKNAME_DUPLICATE")

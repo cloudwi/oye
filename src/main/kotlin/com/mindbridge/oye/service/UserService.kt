@@ -55,7 +55,7 @@ class UserService(
         user.deletedAt = LocalDateTime.now()
         user.expoPushToken = null
         user.connectCode = null
-        user.nickname = null
+        user.nickname = "deleted_${user.id}"
         socialAccountRepository.deleteAllByUser(user)
         userRepository.save(user)
         log.info("사용자 소프트 딜리트 완료: userId={}", user.id)

@@ -28,4 +28,6 @@ interface UserConnectionRepository : JpaRepository<UserConnection, Long> {
     fun existsByUserAndPartnerOrPartnerAndUser(user1: User, partner1: User, user2: User, partner2: User): Boolean
     fun deleteAllByUserOrPartner(user: User, partner: User)
 
+    @Query("SELECT COUNT(c) > 0 FROM UserConnection c WHERE (c.user = :user OR c.partner = :user) AND c.relationType = com.mindbridge.oye.domain.RelationType.LOVER")
+    fun existsLoverConnection(@org.springframework.data.repository.query.Param("user") user: User): Boolean
 }

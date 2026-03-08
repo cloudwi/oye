@@ -49,8 +49,8 @@ class GroupService(
 
     @Transactional
     fun createGroup(user: User, request: CreateGroupRequest): GroupSummaryResponse {
-        if (request.relationType == RelationType.LOVER) {
-            throw InvalidRelationTypeException("그룹에서는 연인 관계를 지원하지 않습니다.")
+        if (request.relationType != RelationType.FRIEND) {
+            throw InvalidRelationTypeException("그룹에서는 친구 관계만 지원합니다.")
         }
 
         val inviteCode = generateUniqueCode()

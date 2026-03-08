@@ -10,8 +10,10 @@ import com.mindbridge.oye.exception.CodeGenerationException
 import com.mindbridge.oye.exception.ConnectionNotFoundException
 import com.mindbridge.oye.exception.DuplicateConnectionException
 import com.mindbridge.oye.exception.ForbiddenException
+import com.mindbridge.oye.exception.LoverLimitExceededException
 import com.mindbridge.oye.exception.SelfConnectionException
 import com.mindbridge.oye.exception.UserNotFoundException
+import com.mindbridge.oye.domain.RelationType
 import com.mindbridge.oye.repository.CompatibilityRepository
 import com.mindbridge.oye.repository.UserConnectionRepository
 import com.mindbridge.oye.repository.UserRepository
@@ -60,6 +62,12 @@ class ConnectionService(
         )
         if (alreadyConnected) {
             throw DuplicateConnectionException()
+        }
+
+        if (request.relationType == RelationType.LOVER) {
+            if (userConnectionRepository.existsLoverConnection(user) || userConnectionRepository.existsLoverConnection(partner)) {
+                throw LoverLimitExceededException()
+            }
         }
 
         val connection = UserConnection(

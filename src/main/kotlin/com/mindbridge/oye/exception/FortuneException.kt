@@ -52,3 +52,5 @@ class NotGroupMemberException(message: String = "그룹 멤버가 아닙니다."
 
 class NicknameDuplicateException(message: String = "이미 사용 중인 닉네임입니다.") : OyeException(message)
 class NicknameInvalidException(message: String = "닉네임은 2~20자의 한글, 영문, 숫자, 밑줄만 사용 가능합니다.") : OyeException(message)
+
+class NotificationNotFoundException(message: String = "알림을 찾을 수 없습니다.") : OyeException(message)

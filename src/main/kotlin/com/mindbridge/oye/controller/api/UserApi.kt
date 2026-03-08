@@ -1,5 +1,7 @@
 package com.mindbridge.oye.controller.api
 
+import com.mindbridge.oye.dto.NicknameCheckResponse
+import com.mindbridge.oye.dto.NicknameRequest
 import com.mindbridge.oye.dto.UserResponse
 import com.mindbridge.oye.dto.UserUpdateRequest
 import com.mindbridge.oye.exception.ErrorResponse
@@ -67,6 +69,26 @@ interface UserApi {
         )
     )
     fun updateMe(principal: Any?, request: UserUpdateRequest): UserResponse
+
+    @Operation(
+        summary = "닉네임 설정",
+        description = "닉네임을 설정하거나 변경합니다. 2~20자의 한글, 영문, 숫자, 밑줄만 사용 가능합니다."
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "닉네임 설정 성공"),
+        ApiResponse(responseCode = "400", description = "닉네임 형식 오류", content = [Content(schema = Schema(implementation = ErrorResponse::class))]),
+        ApiResponse(responseCode = "409", description = "닉네임 중복", content = [Content(schema = Schema(implementation = ErrorResponse::class))])
+    )
+    fun setNickname(principal: Any?, request: NicknameRequest): UserResponse
+
+    @Operation(
+        summary = "닉네임 중복 확인",
+        description = "해당 닉네임이 사용 가능한지 확인합니다."
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "확인 완료")
+    )
+    fun checkNickname(nickname: String): NicknameCheckResponse
 
     @Operation(
         summary = "계정 삭제",

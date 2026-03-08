@@ -8,6 +8,7 @@ import com.mindbridge.oye.domain.SocialProvider
 import com.mindbridge.oye.domain.User
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Past
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
@@ -85,6 +86,9 @@ data class UserResponse(
     @Schema(description = "관심사/취미", example = "독서, 요리", nullable = true)
     val interests: String?,
 
+    @Schema(description = "닉네임", example = "fortune_lover", nullable = true)
+    val nickname: String?,
+
     @Schema(description = "사용자 권한", example = "USER")
     val role: Role,
 
@@ -105,9 +109,24 @@ data class UserResponse(
                 mbti = user.mbti,
                 bloodType = user.bloodType,
                 interests = user.interests,
+                nickname = user.nickname,
                 role = user.role,
                 createdAt = user.createdAt
             )
         }
     }
 }
+
+@Schema(description = "닉네임 설정 요청")
+data class NicknameRequest(
+    @field:NotBlank(message = "닉네임은 필수입니다.")
+    @field:Size(min = 2, max = 20, message = "닉네임은 2~20자여야 합니다.")
+    @Schema(description = "닉네임 (2~20자, 한글/영문/숫자/밑줄)", example = "fortune_lover")
+    val nickname: String
+)
+
+@Schema(description = "닉네임 사용 가능 여부 응답")
+data class NicknameCheckResponse(
+    @Schema(description = "사용 가능 여부")
+    val available: Boolean
+)

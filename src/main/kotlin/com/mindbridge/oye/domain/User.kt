@@ -65,6 +65,10 @@ class User(
     @Comment("친구 초대 코드 (6자리 영숫자)")
     var connectCode: String? = null,
 
+    @Column(unique = true, length = 20)
+    @Comment("닉네임 (고유, 2~20자)")
+    var nickname: String? = null,
+
     @Comment("Expo 푸시 토큰")
     var expoPushToken: String? = null,
 

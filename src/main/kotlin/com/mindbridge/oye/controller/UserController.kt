@@ -3,6 +3,8 @@ package com.mindbridge.oye.controller
 import com.mindbridge.oye.config.AuthenticationResolver
 import com.mindbridge.oye.controller.api.PushTokenApi
 import com.mindbridge.oye.controller.api.UserApi
+import com.mindbridge.oye.dto.NicknameCheckResponse
+import com.mindbridge.oye.dto.NicknameRequest
 import com.mindbridge.oye.dto.PushTokenRequest
 import com.mindbridge.oye.dto.UserResponse
 import com.mindbridge.oye.dto.UserUpdateRequest
@@ -13,6 +15,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -40,6 +43,22 @@ class UserController(
     ): UserResponse {
         val user = authenticationResolver.getCurrentUser(principal)
         return userService.updateProfile(user, request)
+    }
+
+    @PatchMapping("/me/nickname")
+    override fun setNickname(
+        @AuthenticationPrincipal principal: Any?,
+        @Valid @RequestBody request: NicknameRequest
+    ): UserResponse {
+        val user = authenticationResolver.getCurrentUser(principal)
+        return userService.setNickname(user, request.nickname)
+    }
+
+    @GetMapping("/nickname-check")
+    override fun checkNickname(
+        @org.springframework.web.bind.annotation.RequestParam nickname: String
+    ): NicknameCheckResponse {
+        return NicknameCheckResponse(available = userService.checkNicknameAvailable(nickname))
     }
 
     @DeleteMapping("/me")

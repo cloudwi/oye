@@ -8,8 +8,11 @@ import java.time.LocalDateTime
 
 @Schema(description = "연결 요청")
 data class ConnectRequest(
-    @Schema(description = "상대방 초대 코드", example = "A1B2C3")
-    val code: String,
+    @Schema(description = "상대방 초대 코드", example = "A1B2C3", nullable = true)
+    val code: String? = null,
+
+    @Schema(description = "상대방 닉네임", example = "fortune_lover", nullable = true)
+    val nickname: String? = null,
 
     @Schema(description = "관계 유형")
     val relationType: RelationType
@@ -22,6 +25,9 @@ data class ConnectionResponse(
 
     @Schema(description = "상대방 이름", example = "홍길동", nullable = true)
     val partnerName: String?,
+
+    @Schema(description = "상대방 닉네임", example = "fortune_lover", nullable = true)
+    val partnerNickname: String?,
 
     @Schema(description = "관계 유형")
     val relationType: RelationType,
@@ -41,6 +47,7 @@ data class ConnectionResponse(
             return ConnectionResponse(
                 id = connection.id!!,
                 partnerName = partner.name,
+                partnerNickname = partner.nickname,
                 relationType = connection.relationType,
                 latestScore = latestScore,
                 latestContent = latestContent,
@@ -53,5 +60,8 @@ data class ConnectionResponse(
 @Schema(description = "내 초대 코드 응답")
 data class MyCodeResponse(
     @Schema(description = "6자리 초대 코드", example = "A1B2C3")
-    val code: String
+    val code: String,
+
+    @Schema(description = "닉네임", example = "fortune_lover", nullable = true)
+    val nickname: String?
 )

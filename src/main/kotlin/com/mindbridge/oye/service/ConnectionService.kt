@@ -39,18 +39,17 @@ class ConnectionService(
 
     @Transactional
     fun getMyCode(user: User): MyCodeResponse {
-        user.connectCode?.let { return MyCodeResponse(code = it) }
+        user.connectCode?.let { return MyCodeResponse(code = it, nickname = user.nickname) }
 
         val code = generateUniqueCode()
         user.connectCode = code
         userRepository.save(user)
-        return MyCodeResponse(code = code)
+        return MyCodeResponse(code = code, nickname = user.nickname)
     }
 
     @Transactional
     fun connect(user: User, request: ConnectRequest): ConnectionResponse {
-        val partner = userRepository.findByConnectCode(request.code)
-            ?: throw UserNotFoundException("해당 초대 코드의 사용자를 찾을 수 없습니다.")
+        val partner = resolvePartner(request)
 
         if (partner.id == user.id) {
             throw SelfConnectionException()
@@ -101,6 +100,18 @@ class ConnectionService(
         compatibilityRepository.deleteAllByConnection(connection)
         userConnectionRepository.delete(connection)
         log.info("연결 삭제: connectionId={}, userId={}", connectionId, user.id)
+    }
+
+    private fun resolvePartner(request: ConnectRequest): User {
+        if (request.nickname != null) {
+            return userRepository.findByNickname(request.nickname)
+                ?: throw UserNotFoundException("해당 닉네임의 사용자를 찾을 수 없습니다.")
+        }
+        if (request.code != null) {
+            return userRepository.findByConnectCode(request.code)
+                ?: throw UserNotFoundException("해당 초대 코드의 사용자를 찾을 수 없습니다.")
+        }
+        throw IllegalArgumentException("닉네임 또는 초대 코드를 입력해주세요.")
     }
 
     fun generateUniqueCode(): String {

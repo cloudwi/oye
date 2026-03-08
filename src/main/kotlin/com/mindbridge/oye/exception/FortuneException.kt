@@ -49,3 +49,6 @@ class InvalidRelationTypeException(message: String = "그룹에서 지원하지 
 class NotGroupOwnerException(message: String = "그룹 방장만 수행할 수 있습니다.") : OyeException(message)
 
 class NotGroupMemberException(message: String = "그룹 멤버가 아닙니다.") : OyeException(message)
+
+class NicknameDuplicateException(message: String = "이미 사용 중인 닉네임입니다.") : OyeException(message)
+class NicknameInvalidException(message: String = "닉네임은 2~20자의 한글, 영문, 숫자, 밑줄만 사용 가능합니다.") : OyeException(message)

@@ -79,6 +79,14 @@ class GlobalExceptionHandler {
     fun handleLottoDrawNotAvailableException(e: LottoDrawNotAvailableException) =
         errorResponse(HttpStatus.NOT_FOUND, e.message ?: "아직 추첨 결과를 가져올 수 없습니다.", "LOTTO_DRAW_NOT_AVAILABLE")
 
+    @ExceptionHandler(LottoInvalidNumbersException::class)
+    fun handleLottoInvalidNumbersException(e: LottoInvalidNumbersException) =
+        errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, e.message ?: "잘못된 로또 번호입니다.", "LOTTO_INVALID_NUMBERS")
+
+    @ExceptionHandler(LottoRegistrationClosedException::class)
+    fun handleLottoRegistrationClosedException(e: LottoRegistrationClosedException) =
+        errorResponse(HttpStatus.UNPROCESSABLE_ENTITY, e.message ?: "이미 평가 완료된 회차에는 등록할 수 없습니다.", "LOTTO_REGISTRATION_CLOSED")
+
     @ExceptionHandler(CodeGenerationException::class)
     fun handleCodeGenerationException(e: CodeGenerationException): ResponseEntity<ErrorResponse> {
         log.error("코드 생성 실패: {}", e.message)

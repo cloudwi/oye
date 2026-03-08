@@ -1,6 +1,7 @@
 package com.mindbridge.oye.repository
 
 import com.mindbridge.oye.domain.LottoRecommendation
+import com.mindbridge.oye.domain.LottoSource
 import com.mindbridge.oye.domain.User
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -27,4 +28,9 @@ interface LottoRecommendationRepository : JpaRepository<LottoRecommendation, Lon
 
     @Query("SELECT DISTINCT r.round FROM LottoRecommendation r WHERE r.evaluated = false")
     fun findDistinctUnevaluatedRounds(): List<Int>
+
+    @Query("SELECT COALESCE(MAX(r.setNumber), 0) FROM LottoRecommendation r WHERE r.user = :user AND r.round = :round AND r.source = :source")
+    fun findMaxSetNumberByUserAndRoundAndSource(user: User, round: Int, source: LottoSource): Int
+
+    fun findByUserAndRoundAndSource(user: User, round: Int, source: LottoSource): List<LottoRecommendation>
 }

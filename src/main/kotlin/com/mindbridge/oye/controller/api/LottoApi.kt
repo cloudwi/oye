@@ -3,6 +3,7 @@ package com.mindbridge.oye.controller.api
 import com.mindbridge.oye.dto.ApiResponse
 import com.mindbridge.oye.dto.LottoMyStatsResponse
 import com.mindbridge.oye.dto.LottoRecommendationResponse
+import com.mindbridge.oye.dto.LottoRegisterRequest
 import com.mindbridge.oye.dto.LottoRoundResponse
 import com.mindbridge.oye.dto.LottoWinnerResponse
 import com.mindbridge.oye.dto.PageResponse
@@ -132,4 +133,34 @@ interface LottoApi {
     fun getRound(
         @Parameter(description = "회차 번호", example = "1130") round: Int
     ): ApiResponse<LottoRoundResponse>
+
+    @Operation(
+        summary = "로또 번호 등록",
+        description = """실제 구매한 로또 번호를 등록합니다.
+
+- QR 스캔 또는 수동 입력으로 등록 가능
+- 회차당 소스별 최대 5세트
+- 토요일 20:30 이후 현재 회차 등록 불가
+- 이미 평가 완료된 회차 등록 불가"""
+    )
+    @ApiResponses(
+        io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "번호 등록 성공"
+        ),
+        io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "401",
+            description = "인증 실패",
+            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
+        ),
+        io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "422",
+            description = "유효하지 않은 번호 또는 등록 불가",
+            content = [Content(schema = Schema(implementation = ErrorResponse::class))]
+        )
+    )
+    fun registerNumbers(
+        principal: Any?,
+        request: LottoRegisterRequest
+    ): ApiResponse<List<LottoRecommendationResponse>>
 }

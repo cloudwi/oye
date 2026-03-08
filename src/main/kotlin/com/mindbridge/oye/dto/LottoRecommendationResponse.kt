@@ -2,6 +2,7 @@ package com.mindbridge.oye.dto
 
 import com.mindbridge.oye.domain.LottoRecommendation
 import com.mindbridge.oye.domain.LottoRound
+import com.mindbridge.oye.domain.LottoSource
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDateTime
 
@@ -40,6 +41,9 @@ data class LottoRecommendationResponse(
     @Schema(description = "보너스 당첨 번호 (평가 완료 시)", example = "7")
     val drawBonusNumber: Int?,
 
+    @Schema(description = "등록 출처", example = "AI")
+    val source: String,
+
     @Schema(description = "생성일시", example = "2025-06-15T08:00:00")
     val createdAt: LocalDateTime
 ) {
@@ -57,6 +61,7 @@ data class LottoRecommendationResponse(
                 prizeAmount = recommendation.prizeAmount,
                 drawNumbers = lottoRound?.numbers,
                 drawBonusNumber = lottoRound?.bonusNumber,
+                source = recommendation.source.name,
                 createdAt = recommendation.createdAt
             )
         }

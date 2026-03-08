@@ -1,14 +1,18 @@
 package com.mindbridge.oye.service
 
 import com.mindbridge.oye.domain.LottoRecommendation
+import com.mindbridge.oye.domain.LottoSource
 import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.dto.LottoMyStatsResponse
 import com.mindbridge.oye.dto.LottoRecommendationResponse
+import com.mindbridge.oye.dto.LottoRegisterRequest
 import com.mindbridge.oye.dto.LottoRoundResponse
 import com.mindbridge.oye.dto.LottoWinnerResponse
 import com.mindbridge.oye.dto.PageResponse
 import com.mindbridge.oye.exception.LottoAlreadyRecommendedException
+import com.mindbridge.oye.exception.LottoInvalidNumbersException
 import com.mindbridge.oye.exception.LottoRecommendationClosedException
+import com.mindbridge.oye.exception.LottoRegistrationClosedException
 import com.mindbridge.oye.exception.LottoRoundNotFoundException
 import com.mindbridge.oye.repository.LottoRecommendationRepository
 import com.mindbridge.oye.repository.LottoRoundRepository
@@ -143,6 +147,58 @@ class LottoService(
         if (now.dayOfWeek == DayOfWeek.SATURDAY && now.toLocalTime() >= DRAW_CUTOFF_TIME) {
             throw LottoRecommendationClosedException()
         }
+    }
+
+    @Transactional
+    fun registerNumbers(user: User, request: LottoRegisterRequest): List<LottoRecommendationResponse> {
+        if (request.source == LottoSource.AI) {
+            throw LottoInvalidNumbersException("AI 소스로는 직접 등록할 수 없습니다.")
+        }
+        if (request.numberSets.isEmpty() || request.numberSets.size > SET_COUNT) {
+            throw LottoInvalidNumbersException("번호 세트는 1~${SET_COUNT}개까지 등록 가능합니다.")
+        }
+        for (numbers in request.numberSets) {
+            if (numbers.size != NUMBER_COUNT) {
+                throw LottoInvalidNumbersException("각 세트는 ${NUMBER_COUNT}개의 번호가 필요합니다.")
+            }
+            if (numbers.any { it < MIN_NUMBER || it > MAX_NUMBER }) {
+                throw LottoInvalidNumbersException("번호는 ${MIN_NUMBER}~${MAX_NUMBER} 범위여야 합니다.")
+            }
+            if (numbers.toSet().size != numbers.size) {
+                throw LottoInvalidNumbersException("세트 내 중복 번호가 있습니다.")
+            }
+        }
+
+        validateNotInDrawTime()
+
+        val existingEvaluated = lottoRecommendationRepository.findByUserAndRoundAndSource(user, request.round, request.source)
+        if (existingEvaluated.any { it.evaluated }) {
+            throw LottoRegistrationClosedException()
+        }
+
+        val maxSetNumber = lottoRecommendationRepository.findMaxSetNumberByUserAndRoundAndSource(user, request.round, request.source)
+        if (maxSetNumber + request.numberSets.size > SET_COUNT) {
+            throw LottoInvalidNumbersException("해당 회차에 최대 ${SET_COUNT}세트까지 등록 가능합니다. (현재 ${maxSetNumber}세트 등록됨)")
+        }
+
+        val recommendations = request.numberSets.mapIndexed { index, numbers ->
+            val sorted = numbers.sorted()
+            LottoRecommendation(
+                user = user,
+                round = request.round,
+                source = request.source,
+                setNumber = maxSetNumber + index + 1,
+                number1 = sorted[0],
+                number2 = sorted[1],
+                number3 = sorted[2],
+                number4 = sorted[3],
+                number5 = sorted[4],
+                number6 = sorted[5]
+            )
+        }
+
+        val saved = lottoRecommendationRepository.saveAll(recommendations)
+        return saved.map { LottoRecommendationResponse.from(it) }
     }
 
     private fun generateNumbers(): List<Int> {

@@ -14,11 +14,12 @@ import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 import org.hibernate.annotations.Comment
 import java.time.LocalDateTime
+import com.mindbridge.oye.domain.LottoSource
 
 @Entity
 @Table(
     name = "lotto_recommendations",
-    uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "round", "set_number"])],
+    uniqueConstraints = [UniqueConstraint(name = "uk_lotto_rec_user_round_source_set", columnNames = ["user_id", "round", "source", "set_number"])],
     indexes = [Index(name = "idx_lotto_rec_user_rank", columnList = "user_id, rank")]
 )
 @Comment("유저별 로또 추천 번호")
@@ -35,6 +36,11 @@ class LottoRecommendation(
     @Column(nullable = false)
     @Comment("회차 번호")
     val round: Int,
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    @Comment("등록 출처 (AI, MANUAL, QR_SCAN)")
+    val source: LottoSource = LottoSource.AI,
 
     @Column(nullable = false)
     @Comment("세트 번호 (1~5)")

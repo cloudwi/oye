@@ -5,6 +5,7 @@ import com.mindbridge.oye.controller.api.LottoApi
 import com.mindbridge.oye.dto.ApiResponse
 import com.mindbridge.oye.dto.LottoMyStatsResponse
 import com.mindbridge.oye.dto.LottoRecommendationResponse
+import com.mindbridge.oye.dto.LottoRegisterRequest
 import com.mindbridge.oye.dto.LottoRoundResponse
 import com.mindbridge.oye.dto.LottoWinnerResponse
 import com.mindbridge.oye.dto.PageResponse
@@ -13,6 +14,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -66,5 +68,14 @@ class LottoController(
         @PathVariable round: Int
     ): ApiResponse<LottoRoundResponse> {
         return ApiResponse.success(lottoService.getRound(round))
+    }
+
+    @PostMapping("/registrations")
+    override fun registerNumbers(
+        @AuthenticationPrincipal principal: Any?,
+        @RequestBody request: LottoRegisterRequest
+    ): ApiResponse<List<LottoRecommendationResponse>> {
+        val user = authenticationResolver.getCurrentUser(principal)
+        return ApiResponse.success(lottoService.registerNumbers(user, request))
     }
 }

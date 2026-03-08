@@ -30,6 +30,10 @@ class LottoRecommendationClosedException(message: String = "추첨 마감으로 
 
 class LottoDrawNotAvailableException(message: String = "아직 추첨 결과를 가져올 수 없습니다.") : OyeException(message)
 
+class LottoInvalidNumbersException(message: String = "잘못된 로또 번호입니다.") : OyeException(message)
+
+class LottoRegistrationClosedException(message: String = "이미 평가 완료된 회차에는 등록할 수 없습니다.") : OyeException(message)
+
 class CodeGenerationException(message: String = "고유 코드 생성에 실패했습니다.") : OyeException(message)
 
 class ExternalApiException(message: String = "외부 API 호출에 실패했습니다.") : OyeException(message)

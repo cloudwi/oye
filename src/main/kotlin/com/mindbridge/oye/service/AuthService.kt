@@ -7,11 +7,11 @@ import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.event.UserCreatedEvent
 import com.mindbridge.oye.repository.SocialAccountRepository
 import com.mindbridge.oye.repository.UserRepository
+import com.mindbridge.oye.util.NicknameGenerator
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
-import java.security.SecureRandom
 
 @Service
 class AuthService(
@@ -19,11 +19,6 @@ class AuthService(
     private val socialAccountRepository: SocialAccountRepository,
     private val eventPublisher: ApplicationEventPublisher
 ) {
-    companion object {
-        private const val NICKNAME_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789"
-        private val secureRandom = SecureRandom()
-    }
-
     @Transactional
     fun createUser(provider: SocialProvider, providerId: String, name: String?): User {
         val nickname = generateUniqueNickname()
@@ -47,13 +42,8 @@ class AuthService(
     }
 
     private fun generateUniqueNickname(): String {
-        repeat(10) {
-            val suffix = buildString {
-                repeat(6) {
-                    append(NICKNAME_CHARS[secureRandom.nextInt(NICKNAME_CHARS.length)])
-                }
-            }
-            val nickname = "user_$suffix"
+        repeat(20) {
+            val nickname = NicknameGenerator.generate()
             if (!userRepository.existsByNickname(nickname)) {
                 return nickname
             }

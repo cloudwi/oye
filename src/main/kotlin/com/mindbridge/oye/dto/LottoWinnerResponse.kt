@@ -5,7 +5,7 @@ import com.mindbridge.oye.domain.LottoRound
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDate
 
-@Schema(description = "로또 당첨자 게시판 응답 (익명)")
+@Schema(description = "로또 당첨자 게시판 응답")
 data class LottoWinnerResponse(
     @Schema(description = "회차", example = "1130")
     val round: Int,
@@ -23,7 +23,10 @@ data class LottoWinnerResponse(
     val bonusMatch: Boolean,
 
     @Schema(description = "추첨일", example = "2025-06-14")
-    val drawDate: LocalDate?
+    val drawDate: LocalDate?,
+
+    @Schema(description = "당첨자 닉네임", example = "user_abc123")
+    val nickname: String
 ) {
     companion object {
         fun from(recommendation: LottoRecommendation): LottoWinnerResponse {
@@ -33,7 +36,8 @@ data class LottoWinnerResponse(
                 numbers = recommendation.numbers,
                 matchCount = recommendation.matchCount,
                 bonusMatch = recommendation.bonusMatch,
-                drawDate = null
+                drawDate = null,
+                nickname = recommendation.user.nickname
             )
         }
 
@@ -44,7 +48,8 @@ data class LottoWinnerResponse(
                 numbers = recommendation.numbers,
                 matchCount = recommendation.matchCount,
                 bonusMatch = recommendation.bonusMatch,
-                drawDate = lottoRound?.drawDate
+                drawDate = lottoRound?.drawDate,
+                nickname = recommendation.user.nickname
             )
         }
     }

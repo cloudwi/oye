@@ -12,6 +12,10 @@ interface LottoRecommendationRepository : JpaRepository<LottoRecommendation, Lon
     fun findByUserAndRound(user: User, round: Int): List<LottoRecommendation>
     fun findByUserOrderByRoundDescSetNumberAsc(user: User, pageable: Pageable): Page<LottoRecommendation>
     fun findByRoundAndRankIsNotNull(round: Int): List<LottoRecommendation>
+    @Query(
+        value = "SELECT r FROM LottoRecommendation r JOIN FETCH r.user WHERE r.rank IS NOT NULL ORDER BY r.round DESC, r.rank ASC",
+        countQuery = "SELECT COUNT(r) FROM LottoRecommendation r WHERE r.rank IS NOT NULL"
+    )
     fun findByRankIsNotNullOrderByRoundDescRankAsc(pageable: Pageable): Page<LottoRecommendation>
     fun findByRound(round: Int): List<LottoRecommendation>
     fun findByUserAndRankIsNotNull(user: User): List<LottoRecommendation>

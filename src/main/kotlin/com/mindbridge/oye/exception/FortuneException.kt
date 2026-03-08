@@ -56,3 +56,5 @@ class NicknameInvalidException(message: String = "닉네임은 2~20자의 한글
 class NotificationNotFoundException(message: String = "알림을 찾을 수 없습니다.") : OyeException(message)
 
 class LoverLimitExceededException(message: String = "연인은 1명만 등록할 수 있습니다.") : OyeException(message)
+
+class ConnectionNotPendingException(message: String = "이미 처리된 요청입니다.") : OyeException(message)

@@ -1,5 +1,6 @@
 package com.mindbridge.oye.dto
 
+import com.mindbridge.oye.domain.ConnectionStatus
 import com.mindbridge.oye.domain.RelationType
 import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.domain.UserConnection
@@ -41,11 +42,14 @@ data class ConnectionResponse(
     @Schema(description = "오늘의 궁합 한마디", example = "오늘은 서로 말이 잘 통하는 날이에요.")
     val latestContent: String?,
 
+    @Schema(description = "연결 상태", example = "ACCEPTED")
+    val status: ConnectionStatus,
+
     @Schema(description = "연결 생성일시", example = "2025-06-15T08:00:00")
     val createdAt: LocalDateTime
 ) {
     companion object {
-        fun from(connection: UserConnection, currentUser: User, latestScore: Int?, latestContent: String? = null): ConnectionResponse {
+        fun from(connection: UserConnection, currentUser: User, latestScore: Int? = null, latestContent: String? = null): ConnectionResponse {
             val partner = if (connection.user.id == currentUser.id) connection.partner else connection.user
             return ConnectionResponse(
                 id = connection.id!!,
@@ -55,6 +59,7 @@ data class ConnectionResponse(
                 relationType = connection.relationType,
                 latestScore = latestScore,
                 latestContent = latestContent,
+                status = connection.status,
                 createdAt = connection.createdAt
             )
         }

@@ -39,6 +39,11 @@ class UserConnection(
     @Comment("관계 유형 (LOVER, FRIEND, FAMILY, COLLEAGUE)")
     var relationType: RelationType,
 
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20, nullable = false)
+    @Comment("연결 상태 (PENDING, ACCEPTED, REJECTED)")
+    var status: ConnectionStatus = ConnectionStatus.ACCEPTED,
+
     @Column(nullable = false, updatable = false)
     @Comment("연결 생성일시")
     val createdAt: LocalDateTime = LocalDateTime.now()

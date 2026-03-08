@@ -8,6 +8,7 @@ import com.mindbridge.oye.domain.Gender
 import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.repository.FortuneRepository
 import com.mindbridge.oye.repository.LoginHistoryRepository
+import com.mindbridge.oye.repository.UserNotificationRepository
 import com.mindbridge.oye.repository.UserRepository
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -41,6 +42,9 @@ class FortuneControllerTest {
     private lateinit var loginHistoryRepository: LoginHistoryRepository
 
     @Autowired
+    private lateinit var userNotificationRepository: UserNotificationRepository
+
+    @Autowired
     private lateinit var jwtTokenProvider: JwtTokenProvider
 
     private lateinit var testUser: User
@@ -50,6 +54,7 @@ class FortuneControllerTest {
     fun setUp() {
         fortuneRepository.deleteAll()
         loginHistoryRepository.deleteAll()
+        userNotificationRepository.deleteAll()
         userRepository.deleteAll()
         testUser = userRepository.save(
             User(

@@ -2,6 +2,7 @@ package com.mindbridge.oye.service
 
 import com.mindbridge.oye.domain.CalendarType
 import com.mindbridge.oye.domain.Compatibility
+import com.mindbridge.oye.domain.ConnectionStatus
 import com.mindbridge.oye.domain.Gender
 import com.mindbridge.oye.domain.RelationType
 import com.mindbridge.oye.domain.User
@@ -46,6 +47,12 @@ class ConnectionServiceTest {
 
     @Mock
     private lateinit var eventPublisher: ApplicationEventPublisher
+
+    @Mock
+    private lateinit var userNotificationService: UserNotificationService
+
+    @Mock
+    private lateinit var pushNotificationService: PushNotificationService
 
     @InjectMocks
     private lateinit var connectionService: ConnectionService
@@ -114,7 +121,8 @@ class ConnectionServiceTest {
                 id = 1L,
                 user = conn.user,
                 partner = conn.partner,
-                relationType = conn.relationType
+                relationType = conn.relationType,
+                status = conn.status
             )
         }
 
@@ -123,6 +131,7 @@ class ConnectionServiceTest {
         assertEquals(1L, result.id)
         assertEquals("파트너유저", result.partnerName)
         assertEquals(RelationType.FRIEND, result.relationType)
+        assertEquals(ConnectionStatus.PENDING, result.status)
     }
 
     @Test

@@ -44,6 +44,30 @@ class ConnectionController(
         return connectionService.getMyConnections(user)
     }
 
+    @GetMapping("/pending")
+    override fun getPendingRequests(@AuthenticationPrincipal principal: Any?): List<ConnectionResponse> {
+        val user = authenticationResolver.getCurrentUser(principal)
+        return connectionService.getPendingRequests(user)
+    }
+
+    @PatchMapping("/{id}/accept")
+    override fun acceptConnection(
+        @AuthenticationPrincipal principal: Any?,
+        @PathVariable id: Long
+    ): ConnectionResponse {
+        val user = authenticationResolver.getCurrentUser(principal)
+        return connectionService.acceptConnection(user, id)
+    }
+
+    @DeleteMapping("/{id}/reject")
+    override fun rejectConnection(
+        @AuthenticationPrincipal principal: Any?,
+        @PathVariable id: Long
+    ) {
+        val user = authenticationResolver.getCurrentUser(principal)
+        connectionService.rejectConnection(user, id)
+    }
+
     @DeleteMapping("/{id}")
     override fun deleteConnection(
         @AuthenticationPrincipal principal: Any?,

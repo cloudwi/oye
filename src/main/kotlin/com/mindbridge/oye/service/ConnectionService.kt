@@ -1,5 +1,7 @@
 package com.mindbridge.oye.service
 
+import com.mindbridge.oye.domain.ConnectionStatus
+import com.mindbridge.oye.domain.NotificationType
 import com.mindbridge.oye.domain.User
 import com.mindbridge.oye.domain.UserConnection
 import com.mindbridge.oye.event.ConnectionCreatedEvent
@@ -8,21 +10,21 @@ import com.mindbridge.oye.dto.ConnectionResponse
 import com.mindbridge.oye.dto.MyCodeResponse
 import com.mindbridge.oye.exception.CodeGenerationException
 import com.mindbridge.oye.exception.ConnectionNotFoundException
+import com.mindbridge.oye.exception.ConnectionNotPendingException
 import com.mindbridge.oye.exception.DuplicateConnectionException
 import com.mindbridge.oye.exception.ForbiddenException
-import com.mindbridge.oye.exception.LoverLimitExceededException
 import com.mindbridge.oye.exception.SelfConnectionException
 import com.mindbridge.oye.exception.UserNotFoundException
 import com.mindbridge.oye.domain.RelationType
 import com.mindbridge.oye.repository.CompatibilityRepository
 import com.mindbridge.oye.repository.UserConnectionRepository
 import com.mindbridge.oye.repository.UserRepository
+import com.mindbridge.oye.util.DateUtils
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.security.SecureRandom
-import com.mindbridge.oye.util.DateUtils
 import java.time.LocalDate
 
 @Service
@@ -30,7 +32,9 @@ class ConnectionService(
     private val userRepository: UserRepository,
     private val userConnectionRepository: UserConnectionRepository,
     private val compatibilityRepository: CompatibilityRepository,
-    private val eventPublisher: ApplicationEventPublisher
+    private val eventPublisher: ApplicationEventPublisher,
+    private val userNotificationService: UserNotificationService,
+    private val pushNotificationService: PushNotificationService
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -68,12 +72,81 @@ class ConnectionService(
         val connection = UserConnection(
             user = user,
             partner = partner,
-            relationType = request.relationType
+            relationType = request.relationType,
+            status = ConnectionStatus.PENDING
         )
         val saved = userConnectionRepository.save(connection)
-        log.info("새 연결 생성: userId={}, partnerId={}, type={}", user.id, partner.id, request.relationType)
-        eventPublisher.publishEvent(ConnectionCreatedEvent(saved))
-        return ConnectionResponse.from(saved, user, null)
+        log.info("친구 요청 생성: userId={}, partnerId={}", user.id, partner.id)
+
+        // 상대방에게 알림
+        val requesterName = user.name ?: user.nickname
+        userNotificationService.createNotification(
+            user = partner,
+            title = "친구 요청이 도착했어요!",
+            body = "${requesterName}님이 친구 요청을 보냈습니다.",
+            type = NotificationType.CONNECTION,
+            metadata = """{"connectionId":${saved.id},"action":"CONNECTION_REQUEST","requesterId":${user.id}}"""
+        )
+        pushNotificationService.sendToUser(partner, "친구 요청이 도착했어요!", "${requesterName}님이 친구 요청을 보냈습니다.")
+
+        return ConnectionResponse.from(saved, user)
+    }
+
+    @Transactional
+    fun acceptConnection(user: User, connectionId: Long): ConnectionResponse {
+        val connection = userConnectionRepository.findByIdWithUsers(connectionId)
+            .orElseThrow { ConnectionNotFoundException() }
+
+        if (connection.partner.id != user.id) {
+            throw ForbiddenException("본인에게 온 요청만 수락할 수 있습니다.")
+        }
+
+        if (connection.status != ConnectionStatus.PENDING) {
+            throw ConnectionNotPendingException()
+        }
+
+        connection.status = ConnectionStatus.ACCEPTED
+        userConnectionRepository.save(connection)
+        log.info("친구 요청 수락: connectionId={}, userId={}", connectionId, user.id)
+
+        // 궁합 생성 이벤트 발행
+        eventPublisher.publishEvent(ConnectionCreatedEvent(connection))
+
+        // 요청자에게 수락 알림
+        val accepterName = user.name ?: user.nickname
+        userNotificationService.createNotification(
+            user = connection.user,
+            title = "친구 요청이 수락되었어요!",
+            body = "${accepterName}님이 친구 요청을 수락했습니다.",
+            type = NotificationType.CONNECTION,
+            metadata = """{"connectionId":${connectionId},"action":"CONNECTION_ACCEPTED"}"""
+        )
+        pushNotificationService.sendToUser(connection.user, "친구 요청이 수락되었어요!", "${accepterName}님이 친구 요청을 수락했습니다.")
+
+        return ConnectionResponse.from(connection, user)
+    }
+
+    @Transactional
+    fun rejectConnection(user: User, connectionId: Long) {
+        val connection = userConnectionRepository.findByIdWithUsers(connectionId)
+            .orElseThrow { ConnectionNotFoundException() }
+
+        if (connection.partner.id != user.id) {
+            throw ForbiddenException("본인에게 온 요청만 거절할 수 있습니다.")
+        }
+
+        if (connection.status != ConnectionStatus.PENDING) {
+            throw ConnectionNotPendingException()
+        }
+
+        userConnectionRepository.delete(connection)
+        log.info("친구 요청 거절: connectionId={}, userId={}", connectionId, user.id)
+    }
+
+    @Transactional(readOnly = true)
+    fun getPendingRequests(user: User): List<ConnectionResponse> {
+        val pending = userConnectionRepository.findPendingRequestsForUser(user)
+        return pending.map { ConnectionResponse.from(it, user) }
     }
 
     @Transactional(readOnly = true)
@@ -112,7 +185,7 @@ class ConnectionService(
         connection.relationType = RelationType.LOVER
         val saved = userConnectionRepository.save(connection)
         log.info("연인 설정: connectionId={}, userId={}", connectionId, user.id)
-        return ConnectionResponse.from(saved, user, null)
+        return ConnectionResponse.from(saved, user)
     }
 
     @Transactional
@@ -127,7 +200,7 @@ class ConnectionService(
         connection.relationType = RelationType.FRIEND
         val saved = userConnectionRepository.save(connection)
         log.info("연인 해제: connectionId={}, userId={}", connectionId, user.id)
-        return ConnectionResponse.from(saved, user, null)
+        return ConnectionResponse.from(saved, user)
     }
 
     @Transactional

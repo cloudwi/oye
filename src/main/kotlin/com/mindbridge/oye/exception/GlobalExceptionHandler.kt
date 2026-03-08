@@ -127,6 +127,10 @@ class GlobalExceptionHandler {
     fun handleLoverLimitExceededException(e: LoverLimitExceededException) =
         errorResponse(HttpStatus.CONFLICT, e.message ?: "연인은 1명만 등록할 수 있습니다.", "LOVER_LIMIT_EXCEEDED")
 
+    @ExceptionHandler(ConnectionNotPendingException::class)
+    fun handleConnectionNotPendingException(e: ConnectionNotPendingException) =
+        errorResponse(HttpStatus.CONFLICT, e.message ?: "이미 처리된 요청입니다.", "CONNECTION_NOT_PENDING")
+
     @ExceptionHandler(NicknameDuplicateException::class)
     fun handleNicknameDuplicateException(e: NicknameDuplicateException) =
         errorResponse(HttpStatus.CONFLICT, e.message ?: "이미 사용 중인 닉네임입니다.", "NICKNAME_DUPLICATE")

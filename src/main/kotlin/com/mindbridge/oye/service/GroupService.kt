@@ -123,7 +123,7 @@ class GroupService(
             user, targetUser, user, targetUser
         )
         if (!isConnected) {
-            throw ForbiddenException("친구만 그룹에 초대할 수 있습니다.")
+            throw ForbiddenException("연결된 사용자만 그룹에 초대할 수 있습니다.")
         }
 
         val member = GroupMember(group = group, user = targetUser)

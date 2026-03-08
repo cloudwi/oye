@@ -169,6 +169,15 @@ class LottoService(
             }
         }
 
+        val currentRound = getCurrentRound()
+        if (request.round < currentRound) {
+            throw LottoRegistrationClosedException("이미 지난 회차에는 등록할 수 없습니다.")
+        }
+
+        if (lottoRoundRepository.findByRound(request.round) != null) {
+            throw LottoRegistrationClosedException("이미 추첨이 완료된 회차에는 등록할 수 없습니다.")
+        }
+
         validateNotInDrawTime()
 
         val existingEvaluated = lottoRecommendationRepository.findByUserAndRoundAndSource(user, request.round, request.source)

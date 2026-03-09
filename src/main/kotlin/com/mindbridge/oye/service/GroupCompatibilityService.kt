@@ -9,6 +9,7 @@ import com.mindbridge.oye.repository.GroupCompatibilityRepository
 import com.mindbridge.oye.repository.GroupMemberRepository
 import com.mindbridge.oye.util.AiResponseParser
 import com.mindbridge.oye.util.DateUtils
+import com.mindbridge.oye.util.UserProfileBuilder
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
@@ -24,7 +25,7 @@ class GroupCompatibilityService(
     private val log = LoggerFactory.getLogger(javaClass)
 
     companion object {
-        private const val CONTENT_MAX_LENGTH = 200
+        private const val CONTENT_MAX_LENGTH = 250
 
         private val SYSTEM_PROMPT = """
             당신은 그룹 멤버들의 오늘 궁합을 분석하는 전문가입니다.
@@ -32,7 +33,7 @@ class GroupCompatibilityService(
             그룹 멤버들의 프로필과 관계 유형을 기반으로 오늘의 그룹 궁합을 분석하세요.
 
             궁합 규칙:
-            - 2~3문장, 80~150자 (최대 200자)
+            - 2~3문장, 100~200자 (최대 250자)
             - 첫 문장: 오늘 그룹 전체에서 일어날 수 있는 구체적인 상황
             - 두 번째 문장: 그 상황이 그룹에 어떤 의미인지, 또는 어떻게 하면 더 좋은지
             - 해요체로 작성 (~돼요, ~있어요, ~이에요)
@@ -41,7 +42,13 @@ class GroupCompatibilityService(
             - 이모지 없이 텍스트만
             - 추상적 표현 금지 (빛난다, 설렘, 특별한 기운 등)
             - 검증 가능한 구체적 사건 금지 (선물 받음, 전화 옴 등)
-            - 멤버들의 프로필(MBTI, 혈액형 등)을 자연스럽게 반영
+
+            개인화 규칙:
+            - 멤버 이름을 자연스럽게 포함하세요 (예: "민수의 ~", "지은이와 서준이가 ~")
+            - 특정 멤버 간의 상호작용이나 조합을 구체적으로 묘사하세요 (예: "민수의 ENFP 기질이 그룹 분위기를 띄워주고, 지은이가 여기에 호응하면서...")
+            - MBTI 조합에서 오는 그룹 역학을 반영하세요 (예: "분석적인 INTJ와 즉흥적인 ENFP가 만나면...")
+            - 공통 관심사가 있으면 그 관심사를 활용한 상황을 만들어주세요
+            - 혈액형 궁합 특성을 가볍게 반영하세요
 
             관계별 테마 (반드시 관계 유형에 맞는 테마로 작성):
             - 친구: 같이 놀거나 대화하며 느끼는 유쾌함, 서로에게 솔직할 수 있는 편안함에 초점을 맞추세요.
@@ -54,6 +61,16 @@ class GroupCompatibilityService(
 
             출력 형식 (반드시 JSON만 출력):
             {"score": 85, "content": "궁합 문장"}
+
+            좋은 예시 (친구):
+            {"score": 82, "content": "오늘은 민수의 ENFP 기질이 그룹 분위기를 띄워주는 날이에요. 지은이와 서준이도 민수 페이스에 맞춰 평소보다 수다가 길어지고, 함께 웃는 시간이 많아져요."}
+            {"score": 65, "content": "지은이의 세심한 A형 성격이 오늘 그룹에서 빛을 발하는 날이에요. 민수와 서준이가 놓치기 쉬운 부분을 지은이가 챙겨주면서 모임이 한결 매끄러워져요."}
+
+            좋은 예시 (가족):
+            {"score": 75, "content": "오늘 식사 자리에서 민수가 꺼낸 이야기에 지은이와 서준이가 공감하며 대화가 길어지는 날이에요. 사소한 안부도 가족 모두에게 따뜻하게 닿아요."}
+
+            좋은 예시 (동료):
+            {"score": 80, "content": "오늘은 ISTJ인 민수의 체계적인 정리와 ENTP인 지은이의 아이디어가 잘 맞물리는 날이에요. 서준이가 중간에서 조율하면서 팀 전체 작업이 수월하게 진행돼요."}
 
             요일 규칙:
             - 주말(토요일, 일요일)에는 직장, 업무, 회의, 프로젝트 등 직업 관련 내용을 피하세요.
@@ -148,18 +165,7 @@ class GroupCompatibilityService(
         val parts = mutableListOf<String>()
         members.forEachIndexed { index, user ->
             parts.add("=== 멤버 ${index + 1} ===")
-            user.name?.let { parts.add("이름: $it") }
-            user.mbti?.let { parts.add("MBTI: $it") }
-            val bloodTypeText = user.bloodType?.let {
-                when (it.name) {
-                    "A" -> "A형"
-                    "B" -> "B형"
-                    "O" -> "O형"
-                    "AB" -> "AB형"
-                    else -> null
-                }
-            }
-            bloodTypeText?.let { parts.add("혈액형: $it") }
+            parts.addAll(UserProfileBuilder.buildProfileParts(user))
             parts.add("")
         }
         parts.add("관계: $relationText")
